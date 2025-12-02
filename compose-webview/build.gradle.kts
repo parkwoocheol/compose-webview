@@ -64,18 +64,27 @@ publishing {
             artifactId = "compose-webview"
             version = "1.0.0"
 
+            pom {
+                name.set("Compose WebView")
+                description.set("A powerful, flexible, and feature-rich WebView wrapper for Jetpack Compose with advanced JavaScript bridge capabilities.")
+                url.set("https://github.com/parkwoocheol/compose-webview")
+
+                licenses {
+                    license {
+                        name.set("MIT License")
+                        url.set("https://opensource.org/licenses/MIT")
+                    }
+                }
+                developers {
+                    developer {
+                        id.set("parkwoocheol")
+                        name.set("Woocheol Park")
+                    }
+                }
+            }
+
             afterEvaluate {
                 from(components["release"])
-            }
-        }
-    }
-    repositories {
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/parkwoocheol/compose-webview")
-            credentials {
-                username = project.findProperty("gpr.user") as String? ?: System.getenv("GITHUB_ACTOR")
-                password = project.findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN")
             }
         }
     }

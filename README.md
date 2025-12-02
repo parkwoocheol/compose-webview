@@ -2,6 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![API](https://img.shields.io/badge/API-24%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=24)
+[![Release](https://jitpack.io/v/parkwoocheol/compose-webview.svg)](https://jitpack.io/#parkwoocheol/compose-webview)
 
 A powerful, flexible, and feature-rich WebView wrapper for Jetpack Compose with advanced JavaScript bridge capabilities.
 
@@ -43,7 +44,18 @@ A powerful, flexible, and feature-rich WebView wrapper for Jetpack Compose with 
 
 ## Installation
 
-1. Add the dependency to your module's `build.gradle.kts`:
+1. Add the JitPack repository to your project's `settings.gradle.kts` (or root `build.gradle.kts`):
+
+```kotlin
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+        maven { url = uri("https://jitpack.io") }
+    }
+}
+```
+
+2. Add the dependency to your module's `build.gradle.kts`:
 
 ```kotlin
 dependencies {

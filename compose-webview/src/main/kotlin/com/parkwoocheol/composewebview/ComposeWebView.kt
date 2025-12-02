@@ -16,15 +16,9 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -134,6 +128,7 @@ fun ComposeWebView(
  * @param jsConfirmContent A composable that is displayed when the WebView requests a JS Confirm.
  * @param jsPromptContent A composable that is displayed when the WebView requests a JS Prompt.
  * @param customViewContent A composable that is displayed when the WebView requests a custom view (e.g. fullscreen video).
+ * @param jsBridge The [WebViewJsBridge] to be used for JavaScript communication.
  * @param onPageStarted Callback for [WebViewClient.onPageStarted].
  * @param onPageFinished Callback for [WebViewClient.onPageFinished].
  * @param onReceivedError Callback for [WebViewClient.onReceivedError].
@@ -189,6 +184,7 @@ fun ComposeWebView(
                             wv.loadUrl(url, content.additionalHttpHeaders)
                         }
                     }
+
                     is WebContent.Data -> {
                         wv.loadDataWithBaseURL(
                             content.baseUrl,
@@ -198,19 +194,21 @@ fun ComposeWebView(
                             content.historyUrl
                         )
                     }
+
                     is WebContent.Post -> {
                         wv.postUrl(content.url, content.postData)
                     }
+
                     is WebContent.NavigatorOnly -> {
                         // Do nothing, navigation is handled by controller
                     }
                 }
             }
         }
-        
+
         // Update JS interfaces if they change (though usually they are static)
         LaunchedEffect(javascriptInterfaces) {
-             wv.injectJavascriptInterfaces(javascriptInterfaces)
+            wv.injectJavascriptInterfaces(javascriptInterfaces)
         }
 
         // Inject JS Bridge script when page finishes loading
@@ -270,6 +268,7 @@ fun ComposeWebView(
                                     it.loadUrl(content.url, content.additionalHttpHeaders)
                                 }
                             }
+
                             is WebContent.Data -> {
                                 it.loadDataWithBaseURL(
                                     content.baseUrl,
@@ -279,9 +278,11 @@ fun ComposeWebView(
                                     content.historyUrl
                                 )
                             }
+
                             is WebContent.Post -> {
                                 it.postUrl(content.url, content.postData)
                             }
+
                             is WebContent.NavigatorOnly -> {
                                 // Do nothing
                             }
@@ -321,7 +322,7 @@ fun ComposeWebView(
             customViewContent?.invoke(customView)
         }
     }
-    
+
     DisposableEffect(lifecycleOwner, webView) {
         val observer = LifecycleEventObserver { _, event ->
             if (webView != null) {
@@ -330,10 +331,12 @@ fun ComposeWebView(
                         webView.onResume()
                         webView.resumeTimers()
                     }
+
                     Lifecycle.Event.ON_PAUSE -> {
                         webView.onPause()
                         webView.pauseTimers()
                     }
+
                     else -> Unit
                 }
             }

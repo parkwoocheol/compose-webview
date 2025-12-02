@@ -19,3 +19,4 @@ build/
 *.jks
 *.keystore
 
+RELEASE_NOTES.md
