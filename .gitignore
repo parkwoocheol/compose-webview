@@ -20,3 +20,71 @@ build/
 *.keystore
 
 RELEASE_NOTES.md
+
+# Kotlin
+.kotlin
+.kotlin-js-store
+.kotlin-native
+
+# Java
+hs_err_pid*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+# Gradle
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# Kotlin
+.kotlin
+.kotlin-js-store
+.kotlin-native
+
+# Node.js (for JS/Wasm)
+node_modules/
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# Android
+.externalNativeBuild
+.cxx
+local.properties
+captures/
+*.jks
+*.keystore
+
+# OS
+.DS_Store
+Thumbs.db
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Desktop.ini
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+debug.log
+
+# Other
+.firebase/
+.firebaserc

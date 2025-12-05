@@ -1,7 +1,7 @@
 package com.parkwoocheol.composewebview
 
-import android.webkit.JavascriptInterface
-import android.webkit.WebView
+
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
@@ -161,8 +161,9 @@ class WebViewJsBridge(
         // We need to run this on the main thread because it interacts with WebView
         scope.launch {
             val script = "window.$jsObjectName.trigger('$event', $jsonStr);"
-            webView?.evaluateJavascript(script, null)
+            webView?.platformEvaluateJavascript(script, null)
         }
+
     }
 
     /**
@@ -174,8 +175,9 @@ class WebViewJsBridge(
 
     internal fun attach(webView: WebView) {
         this.webView = webView
-        webView.addJavascriptInterface(this, nativeInterfaceName)
+        webView.platformAddJavascriptInterface(this, nativeInterfaceName)
     }
+
     
     /**
      * Disposes of the bridge, cancelling any active coroutines and clearing references.
@@ -193,7 +195,9 @@ class WebViewJsBridge(
      * @param data The JSON string containing the data for the handler.
      * @param callbackId The ID of the callback to invoke with the result.
      */
-    @JavascriptInterface
+    @PlatformJavascriptInterface
+
+
     fun call(methodName: String, data: String?, callbackId: String?) {
         val handler = handlers[methodName]
         if (handler == null) {
@@ -221,7 +225,7 @@ class WebViewJsBridge(
     private fun sendSuccess(callbackId: String, resultJson: String?) {
         val safeResult = resultJson ?: "null"
         val script = "window.$jsObjectName.onSuccess('$callbackId', $safeResult);"
-        webView?.evaluateJavascript(script, null)
+        webView?.platformEvaluateJavascript(script, null)
     }
 
     private fun sendError(callbackId: String, errorMessage: String) {
@@ -234,16 +238,14 @@ class WebViewJsBridge(
             "\"${errorMessage.replace("\"", "\\\"")}\""
         }
         val script = "window.$jsObjectName.onError('$callbackId', $escapedError);"
-        webView?.evaluateJavascript(script, null)
+        webView?.platformEvaluateJavascript(script, null)
     }
 }
 
 private fun defaultSerializer(): BridgeSerializer {
     try {
         return KotlinxBridgeSerializer()
-    } catch (e: NoClassDefFoundError) {
-        throw IllegalStateException("Kotlinx Serialization is missing. Please add 'org.jetbrains.kotlinx:kotlinx-serialization-json' dependency or provide a custom serializer.", e)
-    } catch (e: ClassNotFoundException) {
+    } catch (e: Throwable) {
         throw IllegalStateException("Kotlinx Serialization is missing. Please add 'org.jetbrains.kotlinx:kotlinx-serialization-json' dependency or provide a custom serializer.", e)
     }
 }

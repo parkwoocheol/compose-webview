@@ -57,28 +57,29 @@ import kotlinx.coroutines.withContext
  * @param onFindResultReceived Callback for [WebView.FindListener.onFindResultReceived].
  */
 @Composable
-fun ComposeWebView(
+actual fun ComposeWebView(
     url: String,
-    modifier: Modifier = Modifier,
-    controller: WebViewController = rememberWebViewController(),
-    javascriptInterfaces: Map<String, Any> = emptyMap(),
-    onCreated: (WebView) -> Unit = {},
-    onDispose: (WebView) -> Unit = {},
-    client: ComposeWebViewClient = remember { ComposeWebViewClient() },
-    chromeClient: ComposeWebChromeClient = remember { ComposeWebChromeClient() },
-    factory: ((Context) -> WebView)? = null,
-    loadingContent: @Composable () -> Unit = {},
-    errorContent: @Composable (List<WebViewError>) -> Unit = {},
-    jsAlertContent: @Composable (JsDialogState.Alert) -> Unit = {},
-    jsConfirmContent: @Composable (JsDialogState.Confirm) -> Unit = {},
-    jsPromptContent: @Composable (JsDialogState.Prompt) -> Unit = {},
-    customViewContent: (@Composable (CustomViewState) -> Unit)? = null,
-    onPageStarted: (WebView, String?, Bitmap?) -> Unit = { _, _, _ -> },
-    onPageFinished: (WebView, String?) -> Unit = { _, _ -> },
-    onReceivedError: (WebView, WebResourceRequest?, WebResourceError?) -> Unit = { _, _, _ -> },
-    onProgressChanged: (WebView, Int) -> Unit = { _, _ -> },
-    onDownloadStart: ((String, String, String, String, Long) -> Unit)? = null,
-    onFindResultReceived: ((Int, Int, Boolean) -> Unit)? = null
+    modifier: Modifier,
+    controller: WebViewController,
+    javascriptInterfaces: Map<String, Any>,
+    onCreated: (WebView) -> Unit,
+    onDispose: (WebView) -> Unit,
+    client: ComposeWebViewClient,
+    chromeClient: ComposeWebChromeClient,
+    factory: ((PlatformContext) -> WebView)?,
+    loadingContent: @Composable () -> Unit,
+    errorContent: @Composable (List<WebViewError>) -> Unit,
+    jsAlertContent: @Composable (JsDialogState.Alert) -> Unit,
+    jsConfirmContent: @Composable (JsDialogState.Confirm) -> Unit,
+    jsPromptContent: @Composable (JsDialogState.Prompt) -> Unit,
+    customViewContent: (@Composable (CustomViewState) -> Unit)?,
+    onPageStarted: (WebView, String?, PlatformBitmap?) -> Unit,
+    onPageFinished: (WebView, String?) -> Unit,
+    onReceivedError: (WebView, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit,
+
+    onProgressChanged: (WebView, Int) -> Unit,
+    onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
+    onFindResultReceived: ((Int, Int, Boolean) -> Unit)?
 ) {
     val state = rememberSaveableWebViewState(url = url)
     ComposeWebView(
@@ -106,61 +107,33 @@ fun ComposeWebView(
     )
 }
 
-/**
- * A powerful and flexible wrapper around the Android WebView for Jetpack Compose.
- *
- * This composable allows you to harness the full power of the Android WebView while
- * benefiting from the declarative nature of Compose. It supports custom clients,
- * navigation control, state observation, lifecycle management, and JavaScript interfaces.
- *
- * @param state The state of the WebView, observing loading, title, etc.
- * @param modifier The modifier to be applied to the layout.
- * @param controller The controller to control the WebView (load, back, forward, post, evaluateJS, etc.).
- * @param javascriptInterfaces A map of interface objects to inject into JavaScript. Key is the name, Value is the object.
- * @param onCreated Called when the WebView is created. Use this to configure settings.
- * @param onDispose Called when the WebView is disposed.
- * @param client The [WebViewClient] to be used. Defaults to [ComposeWebViewClient].
- * @param chromeClient The [WebChromeClient] to be used. Defaults to [ComposeWebChromeClient].
- * @param factory A factory to create the WebView instance. Useful for custom WebView subclasses.
- * @param loadingContent A composable that is displayed when the WebView is in a loading state.
- * @param errorContent A composable that is displayed when the WebView encounters errors.
- * @param jsAlertContent A composable that is displayed when the WebView requests a JS Alert.
- * @param jsConfirmContent A composable that is displayed when the WebView requests a JS Confirm.
- * @param jsPromptContent A composable that is displayed when the WebView requests a JS Prompt.
- * @param customViewContent A composable that is displayed when the WebView requests a custom view (e.g. fullscreen video).
- * @param jsBridge The [WebViewJsBridge] to be used for JavaScript communication.
- * @param onPageStarted Callback for [WebViewClient.onPageStarted].
- * @param onPageFinished Callback for [WebViewClient.onPageFinished].
- * @param onReceivedError Callback for [WebViewClient.onReceivedError].
- * @param onProgressChanged Callback for [WebChromeClient.onProgressChanged].
- * @param onDownloadStart Callback for [DownloadListener.onDownloadStart].
- * @param onFindResultReceived Callback for [WebView.FindListener.onFindResultReceived].
- */
 @Composable
-fun ComposeWebView(
+actual fun ComposeWebView(
     state: WebViewState,
-    modifier: Modifier = Modifier,
-    controller: WebViewController = rememberWebViewController(),
-    javascriptInterfaces: Map<String, Any> = emptyMap(),
-    onCreated: (WebView) -> Unit = {},
-    onDispose: (WebView) -> Unit = {},
-    client: ComposeWebViewClient = remember { ComposeWebViewClient() },
-    chromeClient: ComposeWebChromeClient = remember { ComposeWebChromeClient() },
-    factory: ((Context) -> WebView)? = null,
-    loadingContent: @Composable () -> Unit = {},
-    errorContent: @Composable (List<WebViewError>) -> Unit = {},
-    jsAlertContent: @Composable (JsDialogState.Alert) -> Unit = {},
-    jsConfirmContent: @Composable (JsDialogState.Confirm) -> Unit = {},
-    jsPromptContent: @Composable (JsDialogState.Prompt) -> Unit = {},
-    customViewContent: (@Composable (CustomViewState) -> Unit)? = null,
-    jsBridge: WebViewJsBridge? = null,
-    onPageStarted: (WebView, String?, Bitmap?) -> Unit = { _, _, _ -> },
-    onPageFinished: (WebView, String?) -> Unit = { _, _ -> },
-    onReceivedError: (WebView, WebResourceRequest?, WebResourceError?) -> Unit = { _, _, _ -> },
-    onProgressChanged: (WebView, Int) -> Unit = { _, _ -> },
-    onDownloadStart: ((String, String, String, String, Long) -> Unit)? = null,
-    onFindResultReceived: ((Int, Int, Boolean) -> Unit)? = null
+    modifier: Modifier,
+    controller: WebViewController,
+    javascriptInterfaces: Map<String, Any>,
+    onCreated: (WebView) -> Unit,
+    onDispose: (WebView) -> Unit,
+    client: ComposeWebViewClient,
+    chromeClient: ComposeWebChromeClient,
+    factory: ((PlatformContext) -> WebView)?,
+    loadingContent: @Composable () -> Unit,
+    errorContent: @Composable (List<WebViewError>) -> Unit,
+    jsAlertContent: @Composable (JsDialogState.Alert) -> Unit,
+    jsConfirmContent: @Composable (JsDialogState.Confirm) -> Unit,
+    jsPromptContent: @Composable (JsDialogState.Prompt) -> Unit,
+    customViewContent: (@Composable (CustomViewState) -> Unit)?,
+    jsBridge: WebViewJsBridge?,
+    onPageStarted: (WebView, String?, PlatformBitmap?) -> Unit,
+    onPageFinished: (WebView, String?) -> Unit,
+    onReceivedError: (WebView, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit,
+
+    onProgressChanged: (WebView, Int) -> Unit,
+    onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
+    onFindResultReceived: ((Int, Int, Boolean) -> Unit)?
 ) {
+
     val webView = state.webView
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -212,18 +185,18 @@ fun ComposeWebView(
         }
 
         // Inject JS Bridge script when page finishes loading
-        if (jsBridge != null) {
+        jsBridge?.let { bridge ->
             LaunchedEffect(state.loadingState) {
                 if (state.loadingState is LoadingState.Finished) {
-                    wv.evaluateJavascript(jsBridge.jsScript, null)
+                    wv.evaluateJavascript(bridge.jsScript, null)
                 }
             }
         }
     }
 
     // Inject state and callbacks into clients
-    client.state = state
-    client.controller = controller
+    client.webViewState = state
+    client.webViewController = controller
     client.onPageStartedCallback = onPageStarted
     client.onPageFinishedCallback = onPageFinished
     client.onReceivedErrorCallback = onReceivedError
@@ -258,9 +231,9 @@ fun ComposeWebView(
                     }
                 }.also {
                     // Restore state if available
-                    if (state.bundle != null) {
-                        it.restoreState(state.bundle!!)
-                    } else {
+                    state.bundle?.let { bundle ->
+                        it.restoreState(bundle)
+                    } ?: run {
                         // Initial load logic if no bundle
                         when (val content = state.content) {
                             is WebContent.Url -> {
@@ -325,16 +298,16 @@ fun ComposeWebView(
 
     DisposableEffect(lifecycleOwner, webView) {
         val observer = LifecycleEventObserver { _, event ->
-            if (webView != null) {
+            webView?.let { wv ->
                 when (event) {
                     Lifecycle.Event.ON_RESUME -> {
-                        webView.onResume()
-                        webView.resumeTimers()
+                        wv.onResume()
+                        wv.resumeTimers()
                     }
 
                     Lifecycle.Event.ON_PAUSE -> {
-                        webView.onPause()
-                        webView.pauseTimers()
+                        wv.onPause()
+                        wv.pauseTimers()
                     }
 
                     else -> Unit

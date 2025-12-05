@@ -1,6 +1,7 @@
 package com.parkwoocheol.composewebview
 
-import android.webkit.WebView
+
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
@@ -46,7 +47,7 @@ class WebViewController(private val coroutineScope: CoroutineScope) {
         ) : NavigationEvent {
             override fun equals(other: Any?): Boolean {
                 if (this === other) return true
-                if (javaClass != other?.javaClass) return false
+                if (other == null || this::class != other::class) return false
 
                 other as PostUrl
 
@@ -299,36 +300,37 @@ class WebViewController(private val coroutineScope: CoroutineScope) {
         withContext(Dispatchers.Main) {
             navigationEvents.collect { event ->
                 when (event) {
-                    is NavigationEvent.Back -> webView.goBack()
-                    is NavigationEvent.Forward -> webView.goForward()
-                    is NavigationEvent.Reload -> webView.reload()
-                    is NavigationEvent.StopLoading -> webView.stopLoading()
-                    is NavigationEvent.LoadUrl -> webView.loadUrl(event.url, event.additionalHttpHeaders)
-                    is NavigationEvent.LoadHtml -> webView.loadDataWithBaseURL(
+                    is NavigationEvent.Back -> webView.platformGoBack()
+                    is NavigationEvent.Forward -> webView.platformGoForward()
+                    is NavigationEvent.Reload -> webView.platformReload()
+                    is NavigationEvent.StopLoading -> webView.platformStopLoading()
+                    is NavigationEvent.LoadUrl -> webView.platformLoadUrl(event.url, event.additionalHttpHeaders)
+                    is NavigationEvent.LoadHtml -> webView.platformLoadDataWithBaseURL(
                         event.baseUrl,
                         event.html,
                         event.mimeType,
                         event.encoding,
                         event.historyUrl
                     )
-                    is NavigationEvent.PostUrl -> webView.postUrl(event.url, event.postData)
-                    is NavigationEvent.EvaluateJavascript -> webView.evaluateJavascript(event.script, event.callback)
-                    is NavigationEvent.ZoomBy -> webView.zoomBy(event.zoomFactor)
-                    is NavigationEvent.ZoomIn -> webView.zoomIn()
-                    is NavigationEvent.ZoomOut -> webView.zoomOut()
-                    is NavigationEvent.FindAllAsync -> webView.findAllAsync(event.find)
-                    is NavigationEvent.FindNext -> webView.findNext(event.forward)
-                    is NavigationEvent.ClearMatches -> webView.clearMatches()
-                    is NavigationEvent.ClearCache -> webView.clearCache(true)
-                    is NavigationEvent.ClearHistory -> webView.clearHistory()
-                    is NavigationEvent.ClearSslPreferences -> webView.clearSslPreferences()
-                    is NavigationEvent.ClearFormData -> webView.clearFormData()
-                    is NavigationEvent.PageUp -> webView.pageUp(event.top)
-                    is NavigationEvent.PageDown -> webView.pageDown(event.bottom)
-                    is NavigationEvent.ScrollTo -> webView.scrollTo(event.x, event.y)
-                    is NavigationEvent.ScrollBy -> webView.scrollBy(event.x, event.y)
-                    is NavigationEvent.SaveWebArchive -> webView.saveWebArchive(event.filename)
+                    is NavigationEvent.PostUrl -> webView.platformPostUrl(event.url, event.postData)
+                    is NavigationEvent.EvaluateJavascript -> webView.platformEvaluateJavascript(event.script, event.callback)
+                    is NavigationEvent.ZoomBy -> webView.platformZoomBy(event.zoomFactor)
+                    is NavigationEvent.ZoomIn -> webView.platformZoomIn()
+                    is NavigationEvent.ZoomOut -> webView.platformZoomOut()
+                    is NavigationEvent.FindAllAsync -> webView.platformFindAllAsync(event.find)
+                    is NavigationEvent.FindNext -> webView.platformFindNext(event.forward)
+                    is NavigationEvent.ClearMatches -> webView.platformClearMatches()
+                    is NavigationEvent.ClearCache -> webView.platformClearCache(true)
+                    is NavigationEvent.ClearHistory -> webView.platformClearHistory()
+                    is NavigationEvent.ClearSslPreferences -> webView.platformClearSslPreferences()
+                    is NavigationEvent.ClearFormData -> webView.platformClearFormData()
+                    is NavigationEvent.PageUp -> webView.platformPageUp(event.top)
+                    is NavigationEvent.PageDown -> webView.platformPageDown(event.bottom)
+                    is NavigationEvent.ScrollTo -> webView.platformScrollTo(event.x, event.y)
+                    is NavigationEvent.ScrollBy -> webView.platformScrollBy(event.x, event.y)
+                    is NavigationEvent.SaveWebArchive -> webView.platformSaveWebArchive(event.filename)
                 }
+
             }
         }
     }

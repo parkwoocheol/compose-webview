@@ -1,9 +1,82 @@
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.compose.multiplatform)
+    alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.serialization)
     id("maven-publish")
+}
+
+kotlin {
+    androidTarget {
+        publishLibraryVariants("release")
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = "11"
+            }
+        }
+    }
+    
+    iosX64()
+    iosArm64()
+    iosSimulatorArm64()
+    
+    jvm("desktop")
+    
+    js(IR) {
+        browser()
+    }
+    
+    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
+    wasmJs {
+        browser()
+    }
+
+    sourceSets {
+        commonMain.dependencies {
+            implementation(compose.runtime)
+            implementation(compose.foundation)
+            implementation(compose.material3)
+            implementation(compose.ui)
+            implementation(compose.components.resources)
+            implementation(compose.components.uiToolingPreview)
+            implementation(libs.kotlinx.serialization.json)
+        }
+        
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+        }
+        
+        androidMain.dependencies {
+            implementation(libs.androidx.core.ktx)
+            implementation(libs.androidx.appcompat)
+            implementation(libs.material)
+            implementation(libs.androidx.activity.compose)
+            implementation(libs.androidx.lifecycle.runtime.compose)
+        }
+        
+        iosMain.dependencies {
+        }
+        
+        val desktopMain by getting {
+            dependencies {
+                implementation(compose.desktop.currentOs)
+                implementation(libs.kcef)
+            }
+        }
+        
+        val jsMain by getting {
+            dependencies {
+                implementation(compose.html.core)
+            }
+        }
+        
+        val wasmJsMain by getting {
+            dependencies {
+                // implementation(compose.html.core) // Not supported for Wasm yet
+            }
+        }
+    }
 }
 
 android {
@@ -12,7 +85,6 @@ android {
 
     defaultConfig {
         minSdk = 24
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
@@ -30,62 +102,17 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlinOptions {
-        jvmTarget = "11"
-    }
-    buildFeatures {
-        compose = true
-    }
 }
 
-dependencies {
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.material)
-    
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.compose.ui)
-    implementation(libs.androidx.compose.ui.graphics)
-    implementation(libs.androidx.compose.ui.tooling.preview)
-    implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.activity.compose)
-    implementation(libs.androidx.lifecycle.runtime.compose)
-    compileOnly(libs.kotlinx.serialization.json)
-    
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-}
-
+// Publishing configuration for KMP is handled by the plugin, 
+// but we can configure the POM details here if needed.
+// For now, disabling the manual publication to avoid conflicts.
+/*
 publishing {
     publications {
         register<MavenPublication>("release") {
-            groupId = "com.github.parkwoocheol"
-            artifactId = "compose-webview"
-            version = "1.0.0"
-
-            pom {
-                name.set("Compose WebView")
-                description.set("A powerful, flexible, and feature-rich WebView wrapper for Jetpack Compose with advanced JavaScript bridge capabilities.")
-                url.set("https://github.com/parkwoocheol/compose-webview")
-
-                licenses {
-                    license {
-                        name.set("MIT License")
-                        url.set("https://opensource.org/licenses/MIT")
-                    }
-                }
-                developers {
-                    developer {
-                        id.set("parkwoocheol")
-                        name.set("Woocheol Park")
-                    }
-                }
-            }
-
-            afterEvaluate {
-                from(components["release"])
-            }
+            // ...
         }
     }
 }
+*/

@@ -1,0 +1,90 @@
+
+> Configure project :compose-webview
+w: Kotlin Multiplatform <-> Android Gradle Plugin compatibility issue:
+The applied Android Gradle Plugin version (8.13.1) is higher 
+than the maximum known to the Kotlin Gradle Plugin.
+Tooling stability in such configuration isn't tested, please report encountered issues to https://kotl.in/issue
+
+Minimum supported Android Gradle Plugin version: 7.1
+Maximum tested Android Gradle Plugin version: 8.5
+
+To suppress this message add 'kotlin.mpp.androidGradlePluginCompatibility.nowarn=true' to your gradle.properties
+
+w: A compileOnly dependency is used in targets: Kotlin/Native.
+Dependencies:
+    - org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3 (source sets: iosArm64Main, iosSimulatorArm64Main, iosX64Main)
+
+Using compileOnly dependencies in these targets is not currently supported, because compileOnly dependencies must be present during the compilation of projects that depend on this project.
+
+To ensure consistent compilation behaviour, compileOnly dependencies should be exposed as api dependencies.
+
+Example:
+
+    kotlin {
+        sourceSets {
+            nativeMain {
+                dependencies {
+                    compileOnly("org.example:lib:1.2.3")
+                    // additionally add the compileOnly dependency as an api dependency:
+                    api("org.example:lib:1.2.3")
+                }
+            }
+        }
+    }
+
+This warning can be suppressed in gradle.properties:
+
+    kotlin.suppressGradlePluginWarnings=IncorrectCompileOnlyDependencyWarning
+
+
+
+> Task :compose-webview:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :compose-webview:convertXmlValueResourcesForAppleMain NO-SOURCE
+> Task :compose-webview:copyNonXmlValueResourcesForAppleMain NO-SOURCE
+> Task :compose-webview:prepareComposeResourcesTaskForAppleMain NO-SOURCE
+> Task :compose-webview:generateResourceAccessorsForAppleMain NO-SOURCE
+> Task :compose-webview:convertXmlValueResourcesForCommonMain NO-SOURCE
+> Task :compose-webview:copyNonXmlValueResourcesForCommonMain NO-SOURCE
+> Task :compose-webview:prepareComposeResourcesTaskForCommonMain NO-SOURCE
+> Task :compose-webview:generateResourceAccessorsForCommonMain NO-SOURCE
+> Task :compose-webview:convertXmlValueResourcesForIosArm64Main NO-SOURCE
+> Task :compose-webview:copyNonXmlValueResourcesForIosArm64Main NO-SOURCE
+> Task :compose-webview:prepareComposeResourcesTaskForIosArm64Main NO-SOURCE
+> Task :compose-webview:generateResourceAccessorsForIosArm64Main NO-SOURCE
+> Task :compose-webview:convertXmlValueResourcesForIosMain NO-SOURCE
+> Task :compose-webview:copyNonXmlValueResourcesForIosMain NO-SOURCE
+> Task :compose-webview:prepareComposeResourcesTaskForIosMain NO-SOURCE
+> Task :compose-webview:generateResourceAccessorsForIosMain NO-SOURCE
+> Task :compose-webview:convertXmlValueResourcesForNativeMain NO-SOURCE
+> Task :compose-webview:copyNonXmlValueResourcesForNativeMain NO-SOURCE
+> Task :compose-webview:prepareComposeResourcesTaskForNativeMain NO-SOURCE
+> Task :compose-webview:generateResourceAccessorsForNativeMain NO-SOURCE
+> Task :compose-webview:generateActualResourceCollectorsForIosArm64Main UP-TO-DATE
+> Task :compose-webview:generateComposeResClass UP-TO-DATE
+> Task :compose-webview:generateExpectResourceCollectorsForCommonMain UP-TO-DATE
+
+> Task :compose-webview:compileKotlinIosArm64 FAILED
+e: file:///Users/woocheolpark/Documents/Projects/compose-webview/compose-webview/src/iosMain/kotlin/com/parkwoocheol/composewebview/WebViewPlatform.ios.kt:29:1 Non-final Kotlin subclasses of Objective-C classes are not yet supported
+
+[Incubating] Problems report is available at: file:///Users/woocheolpark/Documents/Projects/compose-webview/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compose-webview:compileKotlinIosArm64'.
+> Compilation finished with errors
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.13/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 926ms
+4 actionable tasks: 1 executed, 3 up-to-date

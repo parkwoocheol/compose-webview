@@ -855,9 +855,9 @@ fun CustomClientScreen(onBack: () -> Unit) {
         object : com.parkwoocheol.composewebview.client.ComposeWebViewClient() {
             override fun shouldOverrideUrlLoading(
                 view: WebView?,
-                request: android.webkit.WebResourceRequest?
+                request: com.parkwoocheol.composewebview.PlatformWebResourceRequest?
             ): Boolean {
-                if (request?.url?.host?.contains("example.com") == true) {
+                if (request?.impl?.url?.host?.contains("example.com") == true) {
                     return true // Block example.com
                 }
                 return super.shouldOverrideUrlLoading(view, request)
