@@ -1,9 +1,7 @@
 package com.parkwoocheol.composewebview
 
-import android.graphics.Bitmap
-import android.os.Bundle
-import android.webkit.WebView
 import androidx.compose.runtime.Composable
+
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
@@ -81,7 +79,8 @@ class WebViewState(webContent: WebContent) {
     /**
      * The favicon of the current page.
      */
-    var pageIcon: Bitmap? by mutableStateOf(null)
+    var pageIcon: PlatformBitmap? by mutableStateOf(null)
+
         internal set
 
     /**
@@ -113,7 +112,8 @@ class WebViewState(webContent: WebContent) {
     /**
      * The saved state bundle of the WebView, used for restoration.
      */
-    var bundle: Bundle? = null
+    var bundle: PlatformBundle? = null
+
         internal set
 }
 
@@ -151,9 +151,11 @@ sealed class JsDialogState {
  * @property callback The callback to invoke when the custom view is dismissed.
  */
 data class CustomViewState(
-    val view: android.view.View,
-    val callback: android.webkit.WebChromeClient.CustomViewCallback
+    val view: PlatformCustomView,
+    val callback: PlatformCustomViewCallback
 )
+
+
 
 /**
  * Creates and remembers a [WebViewState] for a specific URL.
@@ -251,8 +253,9 @@ val WebViewStateSaver: Saver<WebViewState, Any> = run {
 
     mapSaver(
         save = { state ->
-            val bundle = Bundle()
-            state.webView?.saveState(bundle)
+            val bundle = createPlatformBundle()
+            state.webView?.platformSaveState(bundle)
+
             mapOf(
                 pageTitleKey to state.pageTitle,
                 lastLoadedUrlKey to state.lastLoadedUrl,
@@ -263,8 +266,9 @@ val WebViewStateSaver: Saver<WebViewState, Any> = run {
             val webViewState = WebViewState(WebContent.NavigatorOnly)
             webViewState.pageTitle = map[pageTitleKey] as String?
             webViewState.lastLoadedUrl = map[lastLoadedUrlKey] as String?
-            webViewState.bundle = map[stateBundleKey] as Bundle?
+            webViewState.bundle = map[stateBundleKey] as PlatformBundle?
             webViewState
         }
     )
+
 }
