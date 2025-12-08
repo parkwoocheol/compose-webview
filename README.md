@@ -59,16 +59,32 @@ A powerful, flexible, and feature-rich WebView wrapper for **Jetpack Compose** a
  |----------|----------------|--------|------|
  | **Android** | `AndroidView` (WebView) | ✅ Stable | Full feature support |
  | **iOS** | `UIKitView` (WKWebView) | ✅ Stable | Full feature support (Seamless JS Bridge) |
- | **Desktop** | `SwingPanel` (CEF via KCEF) | 🚧 Experimental | **Partial Support**: Rendering works, but `WebViewController` and `WebViewJsBridge` are NOT implemented yet. |
- | **Web (JS)** | `Iframe` (DOM) | 🚧 Experimental | **Basic Support**: Uses `Iframe`. Supports `loadUrl` navigation. |
+ | **Desktop** | `SwingPanel` (CEF via KCEF) | 🚧 Experimental | **WIP**: KCEF integration is in progress. Control APIs and JSBridge are implemented but require more testing. |
+ | **Web (JS)** | `Iframe` (DOM) | 🚧 Experimental | **WIP**: Basic navigation and JSBridge (via postMessage) are implemented but may have limitations. |
  | **Web (Wasm)** | Placeholder | 🚧 Experimental | Pending full DOM support in Wasm |
 
-> [!WARNING]
-> **Desktop Support Notice**:
-> While the Desktop target uses KCEF to render web pages, the **control APIs** (e.g., `goBack`, `reload`) and **JSBridge** are currently **NOT implemented** (Empty Stubs).
-> If you require a fully functional Desktop WebView, please consider using other libraries for now. We are working on full KCEF integration.
+## 🎯 Project Focus & Comparison
 
-## Installation
+This library has a slightly different focus compared to other WebView libraries (like `KevinnZou/compose-webview-multiplatform`), primarily targeting **Mobile productivity**.
+
+### 1. Mobile-First & Advanced JSBridge
+
+We focused heavily on making the interaction between Kotlin and JavaScript as seamless as possible on **Android & iOS**.
+
+- **Promise-based JSBridge**: Enables using `await` in JavaScript to call Native functions and get results directly, avoiding callback hell.
+- **Flexible Serialization**: Supports **Kotlinx Serialization** out-of-the-box, while the `BridgeSerializer` interface allows plugging in Gson, Moshi, or any other JSON library.
+- **Type Safety**: Allows passing complex data objects with full type safety.
+
+### 2. Platform Support Status
+
+* **Mobile (Android/iOS)**: Stable and Feature-Rich. Recommended for production.
+- **Desktop & Web**: Currently **Experimental (WIP)**.
+  - While we have implemented basic controls and JSBridge for these platforms, they are not as battle-tested as the mobile targets.
+  - For **stable Desktop or Web requirements**, [KevinnZou's library](https://github.com/KevinnZou/compose-webview-multiplatform) is the **better choice**.
+
+---
+
+## 📦 Installation
 
 1. **Add the JitPack repository** to your build file.
 

@@ -11,6 +11,11 @@ import org.cef.browser.CefRendering
 import java.awt.BorderLayout
 import javax.swing.JLabel
 import javax.swing.JPanel
+import org.cef.browser.CefBrowser
+import org.cef.browser.CefFrame
+import org.cef.handler.CefDisplayHandlerAdapter
+import org.cef.handler.CefLoadHandlerAdapter
+import org.cef.network.CefRequest
 
 @Composable
 actual fun ComposeWebView(
@@ -55,6 +60,32 @@ actual fun ComposeWebView(
     if (initialized) {
         DisposableEffect(Unit) {
             val client = KCEF.newClientOrNullBlocking()
+            
+            // Add Load Handler
+            client?.addLoadHandler(object : CefLoadHandlerAdapter() {
+                override fun onLoadingStateChange(
+                    browser: CefBrowser?,
+                    isLoading: Boolean,
+                    canGoBack: Boolean,
+                    canGoForward: Boolean
+                ) {
+                    state.loadingState = if (isLoading) LoadingState.Loading(0f) else LoadingState.Finished
+                    controller.canGoBack = canGoBack
+                    controller.canGoForward = canGoForward
+                }
+            })
+
+            // Add Display Handler
+            client?.addDisplayHandler(object : CefDisplayHandlerAdapter() {
+                override fun onAddressChange(browser: CefBrowser?, frame: CefFrame?, url: String?) {
+                    state.lastLoadedUrl = url
+                }
+
+                override fun onTitleChange(browser: CefBrowser?, title: String?) {
+                    state.pageTitle = title
+                }
+            })
+
             val newBrowser = client?.createBrowser(url, CefRendering.DEFAULT, false)
             browser = newBrowser
             
@@ -67,10 +98,9 @@ actual fun ComposeWebView(
             SwingPanel(
                 modifier = modifier,
                 factory = {
-                    val panel = JPanel(BorderLayout())
-                    panel.add(browser!!.uiComponent, BorderLayout.CENTER)
-                    onCreated(panel)
-                    panel
+                    val webView = DesktopWebView(browser!!)
+                    onCreated(webView)
+                    webView
                 },
                 update = {
                     browser?.loadURL(url)
@@ -89,7 +119,11 @@ actual fun ComposeWebView(
                     val scrollPane = javax.swing.JScrollPane(jEditorPane)
                     val panel = JPanel(BorderLayout())
                     panel.add(scrollPane, BorderLayout.CENTER)
-                    onCreated(panel)
+                    // Note: We cannot pass 'panel' to onCreated because it expects 'WebView' (DesktopWebView).
+                    // Since initialization failed, we can't create a DesktopWebView.
+                    // We might need to handle this case better or make DesktopWebView nullable/flexible.
+                    // For now, we skip onCreated or pass a dummy if possible, but DesktopWebView requires a browser.
+                    // Let's just render the error panel.
                     panel
                 }
             )
@@ -142,7 +176,10 @@ actual fun ComposeWebView(
         modifier = modifier,
         controller = controller,
         javascriptInterfaces = javascriptInterfaces,
-        onCreated = onCreated,
+        onCreated = { webView ->
+            jsBridge?.attach(webView)
+            onCreated(webView)
+        },
         onDispose = onDispose,
         client = client,
         chromeClient = chromeClient,
@@ -160,4 +197,13 @@ actual fun ComposeWebView(
         onDownloadStart = onDownloadStart,
         onFindResultReceived = onFindResultReceived
     )
+
+    // Inject JS Bridge script when page finishes loading
+    jsBridge?.let { bridge ->
+        LaunchedEffect(state.loadingState) {
+            if (state.loadingState is LoadingState.Finished) {
+                state.webView?.platformEvaluateJavascript(bridge.jsScript, null)
+            }
+        }
+    }
 }

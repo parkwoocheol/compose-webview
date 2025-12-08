@@ -2,8 +2,15 @@ package com.parkwoocheol.composewebview
 
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLIFrameElement
+import org.w3c.dom.MessageEvent
+import kotlinx.browser.window
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
-actual class WebView(val iframe: HTMLIFrameElement)
+actual class WebView(val iframe: HTMLIFrameElement) {
+    var bridge: NativeWebBridge? = null
+}
 
 actual typealias PlatformBitmap = Any // Placeholder
 actual typealias PlatformBundle = Any
@@ -30,19 +37,35 @@ actual fun WebView.platformSaveState(bundle: PlatformBundle): Any? = null
 actual fun WebView.platformRestoreState(bundle: PlatformBundle): Any? = null
 
 actual fun WebView.platformGoBack() {
-    // contentWindow?.history?.back()
+    try {
+        iframe.contentWindow?.history?.back()
+    } catch (e: Throwable) {
+        println("Web: goBack failed (CORS?): ${e.message}")
+    }
 }
 actual fun WebView.platformGoForward() {
-    // contentWindow?.history?.forward()
+    try {
+        iframe.contentWindow?.history?.forward()
+    } catch (e: Throwable) {
+        println("Web: goForward failed (CORS?): ${e.message}")
+    }
 }
 actual fun WebView.platformReload() {
-    // contentWindow?.location?.reload()
+    try {
+        iframe.contentWindow?.location?.reload()
+    } catch (e: Throwable) {
+        println("Web: reload failed (CORS?): ${e.message}")
+    }
 }
 actual fun WebView.platformStopLoading() {
-    // contentWindow?.stop()
+    try {
+        iframe.contentWindow?.stop()
+    } catch (e: Throwable) {
+        println("Web: stopLoading failed (CORS?): ${e.message}")
+    }
 }
 actual fun WebView.platformLoadUrl(url: String, additionalHttpHeaders: Map<String, String>) {
-    // src = url
+    iframe.src = url
 }
 actual fun WebView.platformLoadDataWithBaseURL(
     baseUrl: String?,
@@ -86,10 +109,47 @@ actual fun WebView.platformEvaluateJavascript(script: String, callback: ((String
 }
 
 actual fun WebView.platformAddJavascriptInterface(obj: Any, name: String) {
-    // Attach object to contentWindow
-    // Note: This only works if the iframe is same-origin or we have access.
-    iframe.contentWindow?.asDynamic()?.get(name) ?: run {
-        iframe.contentWindow?.asDynamic()?.set(name, obj)
+    if (obj is NativeWebBridge) {
+        this.bridge = obj
+        
+        // 1. Setup Message Listener on Parent Window
+        window.addEventListener("message", { event ->
+            val messageEvent = event as MessageEvent
+            // Verify source is our iframe (optional but good practice)
+            // if (messageEvent.source != iframe.contentWindow) return@addEventListener
+            
+            val data = messageEvent.data
+            // We expect data to be a JSON string or object. 
+            // If it's from our polyfill, it should be an object: { type: 'jsBridgeCall', ... }
+            
+            // In Kotlin JS, data is Any?. We need to cast or check properties dynamically.
+            // Using dynamic for simplicity
+            val d = data.asDynamic()
+            if (d.type == "jsBridgeCall") {
+                val method = d.method as String
+                val dataStr = d.data as? String
+                val callbackId = d.callbackId as? String
+                
+                obj.call(method, dataStr, callbackId)
+            }
+        })
+        
+        // 2. Inject Polyfill Script
+        // This script adapts window.AppBridgeNative.call(...) to window.parent.postMessage(...)
+        val polyfill = """
+            window.$name = {
+                call: function(method, data, callbackId) {
+                    window.parent.postMessage({
+                        type: 'jsBridgeCall',
+                        method: method,
+                        data: data,
+                        callbackId: callbackId
+                    }, '*');
+                }
+            };
+        """.trimIndent()
+        
+        this.platformEvaluateJavascript(polyfill, null)
     }
 }
 
