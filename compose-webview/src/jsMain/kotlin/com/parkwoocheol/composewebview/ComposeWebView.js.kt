@@ -10,6 +10,7 @@ import org.jetbrains.compose.web.css.*
 import org.jetbrains.compose.web.dom.*
 import org.jetbrains.compose.web.attributes.*
 import org.w3c.dom.HTMLIFrameElement
+import com.parkwoocheol.composewebview.LoadingState
 
 @Composable
 actual fun ComposeWebView(
@@ -89,6 +90,13 @@ actual fun ComposeWebView(
         }
     }
 
+    // Handle navigation events (Back, Forward, Reload)
+    state.webView?.let { webView ->
+        LaunchedEffect(webView, controller) {
+            controller.handleNavigationEvents(webView)
+        }
+    }
+
     val url = state.lastLoadedUrl ?: ""
     Iframe(
         attrs = {
@@ -99,8 +107,27 @@ actual fun ComposeWebView(
                 border(0.px)
             }
             ref {
-                onCreated(WebView(it as HTMLIFrameElement))
-                onDispose { onDispose(WebView(it as HTMLIFrameElement)) }
+                val webView = WebView(it as HTMLIFrameElement)
+                state.webView = webView
+                
+                // Attach JSBridge
+                jsBridge?.attach(webView)
+                
+                onCreated(webView)
+                
+                // Handle Load Events
+                it.onload = { _ ->
+                    state.loadingState = LoadingState.Finished
+                    // Inject JS Bridge script
+                    jsBridge?.let { bridge ->
+                        webView.platformEvaluateJavascript(bridge.jsScript, null)
+                    }
+                }
+                
+                onDispose { 
+                    onDispose(webView)
+                    state.webView = null
+                }
             }
         }
     )

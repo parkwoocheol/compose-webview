@@ -18,10 +18,6 @@ import kotlin.reflect.typeOf
  * library-agnostic communication. It supports registering handlers for specific method names and
  * emitting events to JavaScript.
  *
- * @property serializer The [BridgeSerializer] instance used for serialization. Defaults to [KotlinxBridgeSerializer].
- * @property jsObjectName The name of the JavaScript object injected into the window (e.g., window.AppBridge).
- * @property nativeInterfaceName The name of the native interface injected into the WebView.
- */
 class WebViewJsBridge(
     serializer: BridgeSerializer? = null,
     @PublishedApi internal val jsObjectName: String = "AppBridge",
