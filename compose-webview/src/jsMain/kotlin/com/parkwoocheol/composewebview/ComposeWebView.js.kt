@@ -1,6 +1,8 @@
 package com.parkwoocheol.composewebview
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import com.parkwoocheol.composewebview.client.ComposeWebChromeClient
 import com.parkwoocheol.composewebview.client.ComposeWebViewClient
@@ -79,6 +81,14 @@ actual fun ComposeWebView(
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?
 ) {
+    LaunchedEffect(state) {
+        snapshotFlow { state.content }.collect { content ->
+            if (content is WebContent.Url) {
+                state.lastLoadedUrl = content.url
+            }
+        }
+    }
+
     val url = state.lastLoadedUrl ?: ""
     Iframe(
         attrs = {

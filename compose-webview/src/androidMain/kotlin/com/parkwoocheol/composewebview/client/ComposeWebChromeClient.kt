@@ -14,6 +14,7 @@ import com.parkwoocheol.composewebview.LoadingState
 actual open class ComposeWebChromeClient : WebChromeClient() {
     var state: WebViewState? = null
     internal var onProgressChangedCallback: (WebView, Int) -> Unit = { _, _ -> }
+    internal var onShowFileChooserCallback: ((WebView, android.webkit.ValueCallback<android.net.UriArray>, android.webkit.WebChromeClient.FileChooserParams) -> Boolean)? = null
 
     actual override fun onProgressChanged(view: WebView?, newProgress: Int) {
         super.onProgressChanged(view, newProgress)
@@ -78,4 +79,14 @@ actual open class ComposeWebChromeClient : WebChromeClient() {
         state?.customViewState?.callback?.onCustomViewHidden()
         state?.customViewState = null
     }
+
+    override fun onShowFileChooser(
+        webView: WebView,
+        filePathCallback: android.webkit.ValueCallback<android.net.UriArray>,
+        fileChooserParams: FileChooserParams
+    ): Boolean {
+        return onShowFileChooserCallback?.invoke(webView, filePathCallback, fileChooserParams) ?: super.onShowFileChooser(webView, filePathCallback, fileChooserParams)
+    }
 }
+
+private typealias UriArray = Array<android.net.Uri>

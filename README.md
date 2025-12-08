@@ -32,15 +32,17 @@ A powerful, flexible, and feature-rich WebView wrapper for **Jetpack Compose** a
 
 - **Multiplatform Support**: Supports Android, iOS, Desktop (CEF), and Web (JS/Wasm).
 - **Jetpack Compose Integration**: Seamlessly integrates native WebViews with Compose UI.
-- **Advanced JSBridge**: Type-safe, promise-based communication between Kotlin and JavaScript.
-  - **Cross-Platform Parity**: Identical JS API on both Android and iOS (no platform-specific code needed in JS).
+- **Advanced JSBridge (Mobile Focused)**: A highly productive bridge for Android & iOS.
+  - **Promise-based**: JavaScript calls return Promises, allowing `await` syntax (no callback hell).
+  - **Type-Safe**: Built-in **Kotlinx Serialization** support automatically converts JSON to Kotlin data classes.
+  - **Event Bus**: Bi-directional event system (`emit`/`on`) for real-time communication.
 - **State Management**: Reactive state handling for URL, loading progress, and navigation.
 - **Flexible API**: Full control over `WebViewClient`, `WebChromeClient`, and WebView settings.
 - **Lifecycle Management**: Automatically handles `onResume`, `onPause`, and cleanup.
 - **Custom View Support**: Built-in support for fullscreen videos and custom HTML views.
 - **Loading & Error States**: Built-in state management for loading indicators and error handling.
-- **Back Navigation**: Integrated with Compose `BackHandler` for seamless back navigation.
-- **File Upload**: Support for file upload functionality.
+- **Back Navigation**: Integrated with Compose `BackHandler` for seamless back navigation (Android) and native swipe gestures (iOS).
+- **File Upload**: Full support for file upload functionality (Android & iOS).
 
 ## Requirements
 
@@ -57,9 +59,14 @@ A powerful, flexible, and feature-rich WebView wrapper for **Jetpack Compose** a
  |----------|----------------|--------|------|
  | **Android** | `AndroidView` (WebView) | ✅ Stable | Full feature support |
  | **iOS** | `UIKitView` (WKWebView) | ✅ Stable | Full feature support (Seamless JS Bridge) |
- | **Desktop** | `SwingPanel` (CEF via KCEF) | ✅ Stable | Full browser engine support using Chromium Embedded Framework |
- | **Web (JS)** | `Iframe` (DOM) | ✅ Stable | Uses browser's native iframe |
+ | **Desktop** | `SwingPanel` (CEF via KCEF) | 🚧 Experimental | **Partial Support**: Rendering works, but `WebViewController` and `WebViewJsBridge` are NOT implemented yet. |
+ | **Web (JS)** | `Iframe` (DOM) | 🚧 Experimental | **Basic Support**: Uses `Iframe`. Supports `loadUrl` navigation. |
  | **Web (Wasm)** | Placeholder | 🚧 Experimental | Pending full DOM support in Wasm |
+
+> [!WARNING]
+> **Desktop Support Notice**:
+> While the Desktop target uses KCEF to render web pages, the **control APIs** (e.g., `goBack`, `reload`) and **JSBridge** are currently **NOT implemented** (Empty Stubs).
+> If you require a fully functional Desktop WebView, please consider using other libraries for now. We are working on full KCEF integration.
 
 ## Installation
 
