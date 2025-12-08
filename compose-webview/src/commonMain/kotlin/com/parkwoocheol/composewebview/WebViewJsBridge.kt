@@ -26,7 +26,7 @@ class WebViewJsBridge(
     serializer: BridgeSerializer? = null,
     @PublishedApi internal val jsObjectName: String = "AppBridge",
     private val nativeInterfaceName: String = "AppBridgeNative"
-) {
+) : NativeWebBridge {
     @PublishedApi internal val serializer: BridgeSerializer = serializer ?: defaultSerializer()
 
     // Handler stores a function that takes a JSON string and returns a JSON string (or null)
@@ -196,9 +196,7 @@ class WebViewJsBridge(
      * @param callbackId The ID of the callback to invoke with the result.
      */
     @PlatformJavascriptInterface
-
-
-    fun call(methodName: String, data: String?, callbackId: String?) {
+    override fun call(methodName: String, data: String?, callbackId: String?) {
         val handler = handlers[methodName]
         if (handler == null) {
             if (callbackId != null) {
