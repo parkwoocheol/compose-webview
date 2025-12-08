@@ -92,7 +92,9 @@ actual fun ComposeWebView(
 ) {
     val webView = state.webView ?: remember {
         val config = WKWebViewConfiguration()
-        WKWebView(frame = platform.CoreGraphics.CGRectMake(0.0, 0.0, 0.0, 0.0), configuration = config)
+        WKWebView(frame = platform.CoreGraphics.CGRectMake(0.0, 0.0, 0.0, 0.0), configuration = config).apply {
+            allowsBackForwardNavigationGestures = true
+        }
     }.also { state.webView = it }
 
     // Connect controller

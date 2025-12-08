@@ -10,11 +10,18 @@ import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.ui.Modifier
@@ -135,7 +142,32 @@ actual fun ComposeWebView(
 ) {
 
     val webView = state.webView
+    val webView = state.webView
     val lifecycleOwner = LocalLifecycleOwner.current
+
+    var fileChooserCallback by remember { mutableStateOf<android.webkit.ValueCallback<Array<android.net.Uri>>?>(null) }
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == android.app.Activity.RESULT_OK) {
+            val data = result.data
+            val uris = android.webkit.WebChromeClient.FileChooserParams.parseResult(result.resultCode, data)
+            fileChooserCallback?.onReceiveValue(uris)
+        } else {
+            fileChooserCallback?.onReceiveValue(null)
+        }
+        fileChooserCallback = null
+    }
+
+    chromeClient.onShowFileChooserCallback = { _, callback, params ->
+        fileChooserCallback = callback
+        try {
+            launcher.launch(params.createIntent())
+            true
+        } catch (e: Exception) {
+            fileChooserCallback?.onReceiveValue(null)
+            fileChooserCallback = null
+            false
+        }
+    }
 
     BackHandler(enabled = controller.canGoBack) {
         webView?.goBack()
