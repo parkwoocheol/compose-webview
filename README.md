@@ -4,7 +4,7 @@
 [![API](https://img.shields.io/badge/API-24%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=24)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.1.0-blue.svg?style=flat&logo=kotlin)](https://kotlinlang.org)
 [![Release](https://jitpack.io/v/parkwoocheol/compose-webview.svg)](https://jitpack.io/#parkwoocheol/compose-webview)
-[![Compose Multiplatform](https://img.shields.io/badge/Compose%20Multiplatform-1.7.0-blue.svg)](https://github.com/JetBrains/compose-multiplatform)
+[![Compose Multiplatform](https://img.shields.io/badge/Compose%20Multiplatform-1.9.3-blue.svg)](https://github.com/JetBrains/compose-multiplatform)
 
 A powerful, flexible, and feature-rich WebView wrapper for **Jetpack Compose** and **Compose Multiplatform** (Android, iOS, Desktop, Web).
 
@@ -32,7 +32,8 @@ A powerful, flexible, and feature-rich WebView wrapper for **Jetpack Compose** a
 
 - **Multiplatform Support**: Supports Android, iOS, Desktop (CEF), and Web (JS/Wasm).
 - **Jetpack Compose Integration**: Seamlessly integrates native WebViews with Compose UI.
-- **Advanced JSBridge**: Type-safe, promise-based communication between Kotlin and JavaScript using **Kotlin Serialization**.
+- **Advanced JSBridge**: Type-safe, promise-based communication between Kotlin and JavaScript.
+  - **Cross-Platform Parity**: Identical JS API on both Android and iOS (no platform-specific code needed in JS).
 - **State Management**: Reactive state handling for URL, loading progress, and navigation.
 - **Flexible API**: Full control over `WebViewClient`, `WebChromeClient`, and WebView settings.
 - **Lifecycle Management**: Automatically handles `onResume`, `onPause`, and cleanup.
@@ -47,53 +48,52 @@ A powerful, flexible, and feature-rich WebView wrapper for **Jetpack Compose** a
 - iOS 14.0+
 - Desktop (JVM) 11+
 - Web (JS/Wasm)
-- Jetpack Compose / Compose Multiplatform 1.7.0+
-- Kotlin 1.9+
+- Jetpack Compose / Compose Multiplatform 1.9.3+
+- Kotlin 2.2.0+
 
 ## Supported Platforms
 
  | Platform | Implementation | Status | Note |
  |----------|----------------|--------|------|
  | **Android** | `AndroidView` (WebView) | ✅ Stable | Full feature support |
- | **iOS** | `UIKitView` (WKWebView) | ✅ Stable | Full feature support |
+ | **iOS** | `UIKitView` (WKWebView) | ✅ Stable | Full feature support (Seamless JS Bridge) |
  | **Desktop** | `SwingPanel` (CEF via KCEF) | ✅ Stable | Full browser engine support using Chromium Embedded Framework |
  | **Web (JS)** | `Iframe` (DOM) | ✅ Stable | Uses browser's native iframe |
  | **Web (Wasm)** | Placeholder | 🚧 Experimental | Pending full DOM support in Wasm |
 
 ## Installation
 
-1. Add the JitPack repository to your project's `settings.gradle.kts` (or root `build.gradle.kts`):
+1. **Add the JitPack repository** to your build file.
 
-```kotlin
-dependencyResolutionManagement {
-    repositories {
-        mavenCentral()
-        maven { url = uri("https://jitpack.io") }
-    }
-}
-```
+   **Kotlin DSL (`settings.gradle.kts`):**
 
-2. Add the dependency to your module's `build.gradle.kts`:
+   ```kotlin
+   dependencyResolutionManagement {
+       repositories {
+           google()
+           mavenCentral()
+           maven { url = uri("https://jitpack.io") }
+       }
+   }
+   ```
 
-```kotlin
-dependencies {
-    implementation("com.github.parkwoocheol:compose-webview:<version>")
+2. **Add the dependency**.
 
-    // Optional: Required ONLY if you use the default serializer
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:<version>")
-}
-```
+   **Kotlin DSL (`build.gradle.kts`):**
 
-2. **(Optional) If you use the default serializer:**
-   Apply the Kotlin Serialization plugin (should match your Kotlin version):
+   ```kotlin
+   dependencies {
+           implementation("com.github.parkwoocheol:compose-webview:1.0.0") // Replace with latest version
+   }
+   ```
 
-```kotlin
-plugins {
-    kotlin("plugin.serialization") version "<kotlin-version>"
-}
-```
+   **Groovy DSL (`build.gradle`):**
 
-> **Note:** If you provide a custom `BridgeSerializer` (e.g., for Moshi or Gson), you do NOT need the `kotlinx-serialization` dependency or plugin.
+   ```groovy
+   dependencies {
+           implementation 'com.github.parkwoocheol:compose-webview:1.0.0' // Replace with latest version
+   }
+   ```
 
 ## Quick Start
 
@@ -642,13 +642,6 @@ Check out the sample app in the `app` module for complete working examples:
    - URL input and navigation
    - Loading progress indicator
    - Back/Forward navigation
-The repository includes a sample application in the `app` module that demonstrates:
-
-- **Basic Browser**: A simple browser with URL navigation, loading indicators, and error handling. Uses `rememberSaveableWebViewState` for persistence.
-- **Transient Browser**: Demonstrates `rememberWebViewState` where state is lost on configuration changes (e.g., rotation).
-- **HTML & JS Interaction**: Shows how to use `WebViewJsBridge` for two-way communication between Kotlin and JavaScript.
-- **Fullscreen Video**: Examples of handling custom views for fullscreen video playback.
-- **Custom Client**: Demonstrates how to use a custom `WebViewClient` to intercept and block specific URLs.
 
 ### Running the Sample App
 

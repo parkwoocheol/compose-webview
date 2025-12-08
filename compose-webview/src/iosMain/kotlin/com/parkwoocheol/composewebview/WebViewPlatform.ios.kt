@@ -3,12 +3,14 @@ package com.parkwoocheol.composewebview
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.usePinned
+import kotlinx.cinterop.useContents
 import platform.UIKit.UIImage
 import platform.UIKit.UIView
 import platform.WebKit.WKWebView
 import platform.Foundation.NSError
 import platform.Foundation.*
 import platform.darwin.NSObject
+import platform.WebKit.*
 
 actual typealias WebView = WKWebView
 actual class PlatformWebResourceError(val impl: NSError)
@@ -161,19 +163,68 @@ actual fun WebView.platformScrollTo(x: Int, y: Int) {
 @OptIn(ExperimentalForeignApi::class)
 actual fun WebView.platformScrollBy(x: Int, y: Int) {
     val current = scrollView.contentOffset
-    // Need to extract x and y from CGPoint, which is CStruct
-    // Simplified:
-    // scrollView.setContentOffset(...)
+    current.useContents {
+        val newX = this.x + x.toDouble()
+        val newY = this.y + y.toDouble()
+        scrollView.setContentOffset(platform.CoreGraphics.CGPointMake(newX, newY), animated = true)
+    }
 }
 
 actual fun WebView.platformSaveWebArchive(filename: String) {
     // Not supported
 }
 
+@OptIn(ExperimentalForeignApi::class)
 actual fun WebView.platformAddJavascriptInterface(obj: Any, name: String) {
-    // Requires WKUserContentController and WKScriptMessageHandler
-    // This is complex to map 1:1 with Android's addJavascriptInterface
-    // For now, we can leave it empty or implement a basic version if needed
+    // This is a simplified implementation.
+    // In a real-world scenario, you'd need a more robust way to map Kotlin objects to JS.
+    // For now, we'll just register a message handler.
+    configuration.userContentController.addScriptMessageHandler(
+        scriptMessageHandler = object : NSObject(), WKScriptMessageHandlerProtocol {
+            override fun userContentController(
+                userContentController: WKUserContentController,
+                didReceiveScriptMessage: WKScriptMessage
+            ) {
+                // Handle message from JS: window.webkit.messageHandlers.name.postMessage(message)
+                // Message body is expected to be a Dictionary/Map with 'method', 'data', 'callbackId'
+                val body = didReceiveScriptMessage.body as? Map<String, Any?>
+                if (body != null && obj is NativeWebBridge) {
+                    val method = body["method"] as? String
+                    val data = body["data"] as? String
+                    val callbackId = body["callbackId"] as? String
+                    if (method != null) {
+                        obj.call(method, data, callbackId)
+                    }
+                } else {
+                     println("Received JS message for $name: ${didReceiveScriptMessage.body}")
+                }
+            }
+        },
+        name = name
+    )
+
+    // If the object is a NativeWebBridge, inject a JS adapter to mimic Android's addJavascriptInterface
+    if (obj is NativeWebBridge) {
+        val adapterScript = """
+            window.$name = {
+                call: function(method, data, callbackId) {
+                    var message = {
+                        method: method,
+                        data: data,
+                        callbackId: callbackId
+                    };
+                    window.webkit.messageHandlers.$name.postMessage(message);
+                }
+            };
+        """.trimIndent()
+        
+        val userScript = WKUserScript(
+            source = adapterScript,
+            injectionTime = WKUserScriptInjectionTime.WKUserScriptInjectionTimeAtDocumentStart,
+            forMainFrameOnly = false
+        )
+        configuration.userContentController.addUserScript(userScript)
+    }
 }
 
 @Target(AnnotationTarget.FUNCTION)
