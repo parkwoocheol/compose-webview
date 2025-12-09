@@ -88,3 +88,6 @@ debug.log
 # Other
 .firebase/
 .firebaserc
+
+# MkDocs
+site/
