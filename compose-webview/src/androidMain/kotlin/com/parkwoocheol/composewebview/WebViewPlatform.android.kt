@@ -114,8 +114,7 @@ actual typealias PlatformJavascriptInterface = android.webkit.JavascriptInterfac
 
 actual typealias PlatformContext = android.content.Context
 
-actual typealias ComposeWebViewClient = com.parkwoocheol.composewebview.client.ComposeWebViewClient
-actual typealias ComposeWebChromeClient = com.parkwoocheol.composewebview.client.ComposeWebChromeClient
+
 
 actual var WebView.platformJavaScriptEnabled: Boolean
     get() = settings.javaScriptEnabled

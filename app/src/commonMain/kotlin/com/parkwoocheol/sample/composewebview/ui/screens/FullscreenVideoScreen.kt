@@ -11,8 +11,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.parkwoocheol.composewebview.ComposeWebView
+import com.parkwoocheol.composewebview.platformBuiltInZoomControls
+import com.parkwoocheol.composewebview.platformDisplayZoomControls
 import com.parkwoocheol.composewebview.platformDomStorageEnabled
 import com.parkwoocheol.composewebview.platformJavaScriptEnabled
+import com.parkwoocheol.composewebview.platformSupportZoom
 import com.parkwoocheol.composewebview.rememberSaveableWebViewState
 import com.parkwoocheol.sample.composewebview.ui.components.AppTopBar
 import com.parkwoocheol.sample.composewebview.ui.components.SampleCustomView
@@ -47,9 +50,9 @@ fun FullscreenVideoScreen(onBack: () -> Unit) {
                     webView.platformJavaScriptEnabled = true
                     webView.platformDomStorageEnabled = true
                     // Enable Zoom for better video controls access
-                    webView.settings.setSupportZoom(true)
-                    webView.settings.builtInZoomControls = true
-                    webView.settings.displayZoomControls = false
+                    webView.platformSupportZoom = true
+                    webView.platformBuiltInZoomControls = true
+                    webView.platformDisplayZoomControls = false
                 },
                 customViewContent = { customViewState ->
                     // This block renders when the WebView requests a custom view (e.g. fullscreen video)

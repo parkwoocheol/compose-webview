@@ -265,13 +265,12 @@ actual fun WebView.platformAddJavascriptInterface(
 @Target(AnnotationTarget.FUNCTION)
 actual annotation class PlatformJavascriptInterface actual constructor()
 
-actual typealias ComposeWebViewClient = com.parkwoocheol.composewebview.client.ComposeWebViewClient
-actual typealias ComposeWebChromeClient = com.parkwoocheol.composewebview.client.ComposeWebChromeClient
+
 
 actual var WebView.platformJavaScriptEnabled: Boolean
-    get() = configuration.preferences.javaScriptEnabled
+    get() = configuration.defaultWebpagePreferences.allowsContentJavaScript
     set(value) {
-        configuration.preferences.javaScriptEnabled = value
+        configuration.defaultWebpagePreferences.allowsContentJavaScript = value
     }
 
 actual var WebView.platformDomStorageEnabled: Boolean

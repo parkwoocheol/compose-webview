@@ -181,9 +181,7 @@ expect annotation class PlatformJavascriptInterface()
 
 expect abstract class PlatformContext
 
-expect open class ComposeWebViewClient()
 
-expect open class ComposeWebChromeClient()
 
 expect var WebView.platformJavaScriptEnabled: Boolean
 

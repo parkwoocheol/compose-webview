@@ -30,7 +30,7 @@ actual fun ComposeWebView(
     javaScriptInterfaces: Map<String, Any>,
     onCreated: (WebView) -> Unit,
     onDispose: (WebView) -> Unit,
-    client: ComposeWebViewClient,
+    client: com.parkwoocheol.composewebview.client.ComposeWebViewClient,
     chromeClient: ComposeWebChromeClient,
     factory: ((PlatformContext) -> WebView)?,
     loadingContent: @Composable () -> Unit,
@@ -116,10 +116,10 @@ actual fun ComposeWebView(
 
     if (initialized) {
         DisposableEffect(Unit) {
-            val client = KCEF.newClientOrNullBlocking()
+            val kcefClient = KCEF.newClientOrNullBlocking()
 
             // Add Load Handler
-            client?.addLoadHandler(
+            kcefClient?.addLoadHandler(
                 object : CefLoadHandlerAdapter() {
                     override fun onLoadingStateChange(
                         browser: CefBrowser?,
@@ -149,7 +149,7 @@ actual fun ComposeWebView(
             )
 
             // Add Request Handler for shouldOverrideUrlLoading
-            client?.addRequestHandler(
+            kcefClient?.addRequestHandler(
                 object : org.cef.handler.CefRequestHandlerAdapter() {
                     override fun onBeforeBrowse(
                         browser: CefBrowser?,
@@ -172,13 +172,13 @@ actual fun ComposeWebView(
                         // We need to pass a WebView instance. Since we don't have the wrapper easily, pass null for now
                         // or refactor to hold reference.
                         // For the sample app's CustomClient, it just checks the URL.
-                        return this@ComposeWebView.client.shouldOverrideUrlLoading(null, platformRequest)
+                        return client.shouldOverrideUrlLoading(null, platformRequest)
                     }
                 },
             )
 
             // Add Display Handler
-            client?.addDisplayHandler(
+            kcefClient?.addDisplayHandler(
                 object : CefDisplayHandlerAdapter() {
                     override fun onAddressChange(
                         browser: CefBrowser?,
@@ -206,7 +206,7 @@ actual fun ComposeWebView(
                     is WebContent.NavigatorOnly -> "about:blank"
                 }
 
-            val newBrowser = client?.createBrowser(initialUrl, CefRendering.DEFAULT, false)
+            val newBrowser = kcefClient?.createBrowser(initialUrl, CefRendering.DEFAULT, false)
             browser = newBrowser
 
             onDispose {

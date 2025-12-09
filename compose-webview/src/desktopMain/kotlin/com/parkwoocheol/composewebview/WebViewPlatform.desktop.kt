@@ -20,6 +20,9 @@ class DesktopWebView(val browser: KCEFBrowser) : JPanel(BorderLayout()) {
     var bridge: NativeWebBridge? = null
     var javaScriptEnabled: Boolean = true
     var domStorageEnabled: Boolean = true
+    var supportZoom: Boolean = true
+    var builtInZoomControls: Boolean = false
+    var displayZoomControls: Boolean = false
 }
 
 actual typealias WebView = DesktopWebView
@@ -84,7 +87,7 @@ actual fun WebView.platformLoadDataWithBaseURL(
     encoding: String?,
     historyUrl: String?,
 ) {
-    browser.loadString(data, baseUrl ?: "about:blank")
+    browser.loadHtml(data, baseUrl ?: "about:blank")
 }
 
 actual fun WebView.platformPostUrl(
@@ -100,17 +103,25 @@ actual fun WebView.platformEvaluateJavascript(
 }
 
 actual fun WebView.platformZoomBy(zoomFactor: Float) {
-    browser.zoomLevel = browser.zoomLevel + zoomFactor
+    if (this.supportZoom) {
+        browser.zoomLevel = browser.zoomLevel + zoomFactor
+    }
 }
 
 actual fun WebView.platformZoomIn(): Boolean {
-    browser.zoomLevel = browser.zoomLevel + 0.5
-    return true
+    if (this.supportZoom) {
+        browser.zoomLevel = browser.zoomLevel + 0.5
+        return true
+    }
+    return false
 }
 
 actual fun WebView.platformZoomOut(): Boolean {
-    browser.zoomLevel = browser.zoomLevel - 0.5
-    return true
+    if (this.supportZoom) {
+        browser.zoomLevel = browser.zoomLevel - 0.5
+        return true
+    }
+    return false
 }
 
 actual fun WebView.platformFindAllAsync(find: String) {}
@@ -204,7 +215,7 @@ actual fun WebView.platformAddJavascriptInterface(
                             console.error("CEF JSBridge Failed: " + error_message);
                         }
                     });
-                }
+                    }
             };
             """.trimIndent()
 
@@ -230,8 +241,7 @@ actual annotation class PlatformJavascriptInterface actual constructor()
 
 actual abstract class PlatformContext
 
-actual typealias ComposeWebViewClient = com.parkwoocheol.composewebview.client.ComposeWebViewClient
-actual typealias ComposeWebChromeClient = com.parkwoocheol.composewebview.client.ComposeWebChromeClient
+
 
 actual var WebView.platformJavaScriptEnabled: Boolean
     get() = this.javaScriptEnabled
@@ -241,20 +251,24 @@ actual var WebView.platformJavaScriptEnabled: Boolean
 
 actual var WebView.platformDomStorageEnabled: Boolean
     get() = this.domStorageEnabled
-actual var WebView.platformSupportZoom: Boolean
-    get() = true
     set(value) {
-        // TODO: Configure CEF settings
+        this.domStorageEnabled = value
+    }
+
+actual var WebView.platformSupportZoom: Boolean
+    get() = this.supportZoom
+    set(value) {
+        this.supportZoom = value
     }
 
 actual var WebView.platformBuiltInZoomControls: Boolean
-    get() = false
+    get() = this.builtInZoomControls
     set(value) {
-        // Not applicable
+        this.builtInZoomControls = value
     }
 
 actual var WebView.platformDisplayZoomControls: Boolean
-    get() = false
+    get() = this.displayZoomControls
     set(value) {
-        // Not applicable
+        this.displayZoomControls = value
     }
