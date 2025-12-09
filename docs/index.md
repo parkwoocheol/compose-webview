@@ -21,7 +21,7 @@ It provides a unified API to control WebViews across **Android**, **iOS**, **Des
 
     Run your WebView logic on Android, iOS, Desktop (CEF), and Web (JS) with a single codebase.
 
-- :material-javascript: **Advanced JSBridge**
+- :material-language-javascript: **Advanced JSBridge**
     ---
 
     Promise-based, type-safe communication between Kotlin and JavaScript. No more callback hell.
