@@ -61,7 +61,7 @@ jobs:
         run: ./gradlew :compose-webview:compileKotlinDesktop
         
       - name: Build Web (JS)
-        run: ./gradlew :compose-webview:jsBrowserDistribution
+        run: ./gradlew :compose-webview:compileKotlinJs
 
   # 3. Build iOS (macOS)
   build-ios:
