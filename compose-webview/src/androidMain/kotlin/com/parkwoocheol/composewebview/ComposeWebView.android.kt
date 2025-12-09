@@ -63,7 +63,7 @@ import kotlinx.coroutines.withContext
  * @param onFindResultReceived Callback for [WebView.FindListener.onFindResultReceived].
  */
 @Composable
-actual fun ComposeWebView(
+internal actual fun ComposeWebViewImpl(
     url: String,
     modifier: Modifier,
     controller: WebViewController,
@@ -113,7 +113,7 @@ actual fun ComposeWebView(
 }
 
 @Composable
-actual fun ComposeWebView(
+internal actual fun ComposeWebViewImpl(
     state: WebViewState,
     modifier: Modifier,
     controller: WebViewController,

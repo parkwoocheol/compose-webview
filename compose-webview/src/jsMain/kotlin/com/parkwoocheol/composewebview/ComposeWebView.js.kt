@@ -15,7 +15,7 @@ import org.jetbrains.compose.web.dom.Iframe
 import org.w3c.dom.HTMLIFrameElement
 
 @Composable
-actual fun ComposeWebView(
+internal actual fun ComposeWebViewImpl(
     url: String,
     modifier: Modifier,
     controller: WebViewController,
@@ -60,7 +60,7 @@ actual fun ComposeWebView(
 }
 
 @Composable
-actual fun ComposeWebView(
+internal actual fun ComposeWebViewImpl(
     state: WebViewState,
     modifier: Modifier,
     controller: WebViewController,
