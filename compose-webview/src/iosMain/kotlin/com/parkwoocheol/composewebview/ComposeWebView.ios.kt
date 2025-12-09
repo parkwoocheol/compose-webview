@@ -13,7 +13,7 @@ import platform.WebKit.WKWebViewConfiguration
 
 @OptIn(ExperimentalForeignApi::class)
 @Composable
-actual fun ComposeWebView(
+internal actual fun ComposeWebViewImpl(
     url: String,
     modifier: Modifier,
     controller: WebViewController,
@@ -64,7 +64,7 @@ actual fun ComposeWebView(
 
 @OptIn(ExperimentalForeignApi::class)
 @Composable
-actual fun ComposeWebView(
+internal actual fun ComposeWebViewImpl(
     state: WebViewState,
     modifier: Modifier,
     controller: WebViewController,

@@ -38,7 +38,7 @@ import com.parkwoocheol.composewebview.client.ComposeWebViewClient
  * @param onFindResultReceived Callback for [WebView.FindListener.onFindResultReceived].
  */
 @Composable
-expect fun ComposeWebView(
+fun ComposeWebView(
     url: String,
     modifier: Modifier = Modifier,
     controller: WebViewController = rememberWebViewController(),
@@ -60,6 +60,55 @@ expect fun ComposeWebView(
     onProgressChanged: (WebView, Int) -> Unit = { _, _ -> },
     onDownloadStart: ((String, String, String, String, Long) -> Unit)? = null,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)? = null,
+) {
+    ComposeWebViewImpl(
+        url = url,
+        modifier = modifier,
+        controller = controller,
+        javaScriptInterfaces = javaScriptInterfaces,
+        onCreated = onCreated,
+        onDispose = onDispose,
+        client = client,
+        chromeClient = chromeClient,
+        factory = factory,
+        loadingContent = loadingContent,
+        errorContent = errorContent,
+        jsAlertContent = jsAlertContent,
+        jsConfirmContent = jsConfirmContent,
+        jsPromptContent = jsPromptContent,
+        customViewContent = customViewContent,
+        onPageStarted = onPageStarted,
+        onPageFinished = onPageFinished,
+        onReceivedError = onReceivedError,
+        onProgressChanged = onProgressChanged,
+        onDownloadStart = onDownloadStart,
+        onFindResultReceived = onFindResultReceived,
+    )
+}
+
+@Composable
+internal expect fun ComposeWebViewImpl(
+    url: String,
+    modifier: Modifier,
+    controller: WebViewController,
+    javaScriptInterfaces: Map<String, Any>,
+    onCreated: (WebView) -> Unit,
+    onDispose: (WebView) -> Unit,
+    client: ComposeWebViewClient,
+    chromeClient: ComposeWebChromeClient,
+    factory: ((PlatformContext) -> WebView)?,
+    loadingContent: @Composable () -> Unit,
+    errorContent: @Composable (List<WebViewError>) -> Unit,
+    jsAlertContent: @Composable (JsDialogState.Alert) -> Unit,
+    jsConfirmContent: @Composable (JsDialogState.Confirm) -> Unit,
+    jsPromptContent: @Composable (JsDialogState.Prompt) -> Unit,
+    customViewContent: (@Composable (CustomViewState) -> Unit)?,
+    onPageStarted: (WebView, String?, PlatformBitmap?) -> Unit,
+    onPageFinished: (WebView, String?) -> Unit,
+    onReceivedError: (WebView, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit,
+    onProgressChanged: (WebView, Int) -> Unit,
+    onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
+    onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
 )
 
 /**
@@ -93,7 +142,7 @@ expect fun ComposeWebView(
  * @param onFindResultReceived Callback for [WebView.FindListener.onFindResultReceived].
  */
 @Composable
-expect fun ComposeWebView(
+fun ComposeWebView(
     state: WebViewState,
     modifier: Modifier = Modifier,
     controller: WebViewController = rememberWebViewController(),
@@ -116,4 +165,55 @@ expect fun ComposeWebView(
     onProgressChanged: (WebView, Int) -> Unit = { _, _ -> },
     onDownloadStart: ((String, String, String, String, Long) -> Unit)? = null,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)? = null,
+) {
+    ComposeWebViewImpl(
+        state = state,
+        modifier = modifier,
+        controller = controller,
+        javaScriptInterfaces = javaScriptInterfaces,
+        onCreated = onCreated,
+        onDispose = onDispose,
+        client = client,
+        chromeClient = chromeClient,
+        factory = factory,
+        loadingContent = loadingContent,
+        errorContent = errorContent,
+        jsAlertContent = jsAlertContent,
+        jsConfirmContent = jsConfirmContent,
+        jsPromptContent = jsPromptContent,
+        customViewContent = customViewContent,
+        jsBridge = jsBridge,
+        onPageStarted = onPageStarted,
+        onPageFinished = onPageFinished,
+        onReceivedError = onReceivedError,
+        onProgressChanged = onProgressChanged,
+        onDownloadStart = onDownloadStart,
+        onFindResultReceived = onFindResultReceived,
+    )
+}
+
+@Composable
+internal expect fun ComposeWebViewImpl(
+    state: WebViewState,
+    modifier: Modifier,
+    controller: WebViewController,
+    javaScriptInterfaces: Map<String, Any>,
+    onCreated: (WebView) -> Unit,
+    onDispose: (WebView) -> Unit,
+    client: ComposeWebViewClient,
+    chromeClient: ComposeWebChromeClient,
+    factory: ((PlatformContext) -> WebView)?,
+    loadingContent: @Composable () -> Unit,
+    errorContent: @Composable (List<WebViewError>) -> Unit,
+    jsAlertContent: @Composable (JsDialogState.Alert) -> Unit,
+    jsConfirmContent: @Composable (JsDialogState.Confirm) -> Unit,
+    jsPromptContent: @Composable (JsDialogState.Prompt) -> Unit,
+    customViewContent: (@Composable (CustomViewState) -> Unit)?,
+    jsBridge: WebViewJsBridge?,
+    onPageStarted: (WebView, String?, PlatformBitmap?) -> Unit,
+    onPageFinished: (WebView, String?) -> Unit,
+    onReceivedError: (WebView, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit,
+    onProgressChanged: (WebView, Int) -> Unit,
+    onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
+    onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
 )
