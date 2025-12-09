@@ -114,8 +114,6 @@ actual typealias PlatformJavascriptInterface = android.webkit.JavascriptInterfac
 
 actual typealias PlatformContext = android.content.Context
 
-
-
 actual var WebView.platformJavaScriptEnabled: Boolean
     get() = settings.javaScriptEnabled
     set(value) {

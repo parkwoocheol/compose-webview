@@ -181,8 +181,6 @@ expect annotation class PlatformJavascriptInterface()
 
 expect abstract class PlatformContext
 
-
-
 expect var WebView.platformJavaScriptEnabled: Boolean
 
 expect var WebView.platformDomStorageEnabled: Boolean

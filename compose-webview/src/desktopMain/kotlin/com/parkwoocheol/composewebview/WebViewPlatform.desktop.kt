@@ -241,8 +241,6 @@ actual annotation class PlatformJavascriptInterface actual constructor()
 
 actual abstract class PlatformContext
 
-
-
 actual var WebView.platformJavaScriptEnabled: Boolean
     get() = this.javaScriptEnabled
     set(value) {

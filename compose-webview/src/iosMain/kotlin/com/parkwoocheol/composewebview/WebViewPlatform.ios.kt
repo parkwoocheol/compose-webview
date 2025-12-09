@@ -265,8 +265,6 @@ actual fun WebView.platformAddJavascriptInterface(
 @Target(AnnotationTarget.FUNCTION)
 actual annotation class PlatformJavascriptInterface actual constructor()
 
-
-
 actual var WebView.platformJavaScriptEnabled: Boolean
     get() = configuration.defaultWebpagePreferences.allowsContentJavaScript
     set(value) {
