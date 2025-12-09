@@ -247,8 +247,6 @@ actual fun WebView.platformSaveWebArchive(filename: String) {
     // Not supported
 }
 
-
-
 actual var WebView.platformJavaScriptEnabled: Boolean
     get() = true
     set(value) {
