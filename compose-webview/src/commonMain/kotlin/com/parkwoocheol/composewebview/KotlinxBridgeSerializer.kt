@@ -10,17 +10,26 @@ import kotlin.reflect.KType
  * @property json The [Json] instance to use.
  */
 class KotlinxBridgeSerializer(
-    private val json: Json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
+    private val json: Json =
+        Json {
+            ignoreUnknownKeys = true
+            encodeDefaults = true
+        },
 ) : BridgeSerializer {
-    
-    override fun encode(data: Any?, type: KType): String {
+    override fun encode(
+        data: Any?,
+        type: KType,
+    ): String {
         val serializer = json.serializersModule.serializer(type)
         return json.encodeToString(serializer, data)
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun <T> decode(jsonString: String, type: KType): T {
-        val serializer = json.serializersModule.serializer(type)
-        return json.decodeFromString(serializer, jsonString) as T
+    override fun <T> decode(
+        json: String,
+        type: KType,
+    ): T {
+        val serializer = this.json.serializersModule.serializer(type)
+        return this.json.decodeFromString(serializer, json) as T
     }
 }

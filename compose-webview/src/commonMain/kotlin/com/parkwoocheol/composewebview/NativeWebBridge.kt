@@ -13,5 +13,9 @@ interface NativeWebBridge {
      * @param data The JSON string containing the data for the handler.
      * @param callbackId The ID of the callback to invoke with the result.
      */
-    fun call(methodName: String, data: String?, callbackId: String?)
+    fun call(
+        methodName: String,
+        data: String?,
+        callbackId: String?,
+    )
 }

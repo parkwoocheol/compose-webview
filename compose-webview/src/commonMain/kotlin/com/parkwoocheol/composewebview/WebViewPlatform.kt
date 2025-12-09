@@ -1,10 +1,13 @@
+@file:Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
+
 package com.parkwoocheol.composewebview
 
 expect class WebView
 
-
 expect class PlatformBitmap
+
 expect class PlatformBundle
+
 expect fun createPlatformBundle(): PlatformBundle
 
 expect class PlatformCustomView
@@ -14,6 +17,7 @@ expect class PlatformCustomViewCallback {
 }
 
 expect class PlatformWebResourceError
+
 expect class PlatformWebResourceRequest {
     val url: String
     val method: String
@@ -54,7 +58,10 @@ expect fun WebView.platformStopLoading()
 /**
  * Loads the given URL.
  */
-expect fun WebView.platformLoadUrl(url: String, additionalHttpHeaders: Map<String, String>)
+expect fun WebView.platformLoadUrl(
+    url: String,
+    additionalHttpHeaders: Map<String, String>,
+)
 
 /**
  * Loads the given data with the base URL.
@@ -64,18 +71,24 @@ expect fun WebView.platformLoadDataWithBaseURL(
     data: String,
     mimeType: String?,
     encoding: String?,
-    historyUrl: String?
+    historyUrl: String?,
 )
 
 /**
  * Posts data to the given URL.
  */
-expect fun WebView.platformPostUrl(url: String, postData: ByteArray)
+expect fun WebView.platformPostUrl(
+    url: String,
+    postData: ByteArray,
+)
 
 /**
  * Evaluates the given JavaScript.
  */
-expect fun WebView.platformEvaluateJavascript(script: String, callback: ((String) -> Unit)?)
+expect fun WebView.platformEvaluateJavascript(
+    script: String,
+    callback: ((String) -> Unit)?,
+)
 
 /**
  * Zooms by the given factor.
@@ -140,31 +153,44 @@ expect fun WebView.platformPageDown(bottom: Boolean): Boolean
 /**
  * Scrolls to the given position.
  */
-expect fun WebView.platformScrollTo(x: Int, y: Int)
+expect fun WebView.platformScrollTo(
+    x: Int,
+    y: Int,
+)
 
 /**
  * Scrolls by the given amount.
  */
-expect fun WebView.platformScrollBy(x: Int, y: Int)
+expect fun WebView.platformScrollBy(
+    x: Int,
+    y: Int,
+)
 
 /**
  * Saves the current view as a web archive.
  */
 expect fun WebView.platformSaveWebArchive(filename: String)
 
-expect fun WebView.platformAddJavascriptInterface(obj: Any, name: String)
+expect fun WebView.platformAddJavascriptInterface(
+    obj: Any,
+    name: String,
+)
 
 @Target(AnnotationTarget.FUNCTION)
 expect annotation class PlatformJavascriptInterface()
 
 expect abstract class PlatformContext
 
-
 expect open class ComposeWebViewClient()
+
 expect open class ComposeWebChromeClient()
 
+expect var WebView.platformJavaScriptEnabled: Boolean
 
+expect var WebView.platformDomStorageEnabled: Boolean
 
+expect var WebView.platformSupportZoom: Boolean
 
+expect var WebView.platformBuiltInZoomControls: Boolean
 
-
+expect var WebView.platformDisplayZoomControls: Boolean

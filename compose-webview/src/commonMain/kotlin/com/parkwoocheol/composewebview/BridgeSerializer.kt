@@ -14,7 +14,10 @@ interface BridgeSerializer {
      * @param type The [KType] of the data.
      * @return The JSON string representation of the data.
      */
-    fun encode(data: Any?, type: KType): String
+    fun encode(
+        data: Any?,
+        type: KType,
+    ): String
 
     /**
      * Decodes the given [json] string into an object of type [T].
@@ -23,5 +26,8 @@ interface BridgeSerializer {
      * @param type The [KType] of the target object.
      * @return The decoded object.
      */
-    fun <T> decode(json: String, type: KType): T
+    fun <T> decode(
+        json: String,
+        type: KType,
+    ): T
 }

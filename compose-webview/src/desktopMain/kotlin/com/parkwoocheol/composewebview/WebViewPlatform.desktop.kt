@@ -1,29 +1,32 @@
 package com.parkwoocheol.composewebview
 
 import dev.datlag.kcef.KCEFBrowser
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.cef.browser.CefBrowser
 import org.cef.browser.CefFrame
 import org.cef.callback.CefQueryCallback
 import org.cef.handler.CefMessageRouterHandlerAdapter
-import org.cef.network.CefRequest
 import java.awt.BorderLayout
+import java.awt.image.BufferedImage
 import javax.swing.JPanel
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 
-actual class DesktopWebView(val browser: KCEFBrowser) : JPanel(BorderLayout()) {
+class DesktopWebView(val browser: KCEFBrowser) : JPanel(BorderLayout()) {
     init {
         add(browser.uiComponent, BorderLayout.CENTER)
     }
 
     var bridge: NativeWebBridge? = null
+    var javaScriptEnabled: Boolean = true
+    var domStorageEnabled: Boolean = true
 }
 
 actual typealias WebView = DesktopWebView
 
 actual typealias PlatformBitmap = BufferedImage
 actual typealias PlatformBundle = Any
+
 actual fun createPlatformBundle(): PlatformBundle = Any()
 
 actual typealias PlatformCustomView = JPanel
@@ -35,14 +38,16 @@ actual class PlatformCustomViewCallback {
 }
 
 actual class PlatformWebResourceError
-actual class PlatformWebResourceRequest {
-    actual val url: String = ""
-    actual val method: String = "GET"
-    actual val headers: Map<String, String> = emptyMap()
-    actual val isForMainFrame: Boolean = true
-}
+
+actual class PlatformWebResourceRequest(
+    actual val url: String = "",
+    actual val method: String = "GET",
+    actual val headers: Map<String, String> = emptyMap(),
+    actual val isForMainFrame: Boolean = true,
+)
 
 actual fun WebView.platformSaveState(bundle: PlatformBundle): Any? = null
+
 actual fun WebView.platformRestoreState(bundle: PlatformBundle): Any? = null
 
 actual fun WebView.platformGoBack() {
@@ -65,81 +70,127 @@ actual fun WebView.platformStopLoading() {
     browser.stopLoad()
 }
 
-actual fun WebView.platformLoadUrl(url: String, additionalHttpHeaders: Map<String, String>) {
+actual fun WebView.platformLoadUrl(
+    url: String,
+    additionalHttpHeaders: Map<String, String>,
+) {
     browser.loadURL(url)
 }
+
 actual fun WebView.platformLoadDataWithBaseURL(
     baseUrl: String?,
     data: String,
     mimeType: String?,
     encoding: String?,
-    historyUrl: String?
-) {}
-actual fun WebView.platformPostUrl(url: String, postData: ByteArray) {}
-actual fun WebView.platformEvaluateJavascript(script: String, callback: ((String) -> Unit)?) {
-    browser.executeJavaScript(script, browser.url, 0)
-    // Note: KCEF executeJavaScript does not return a result directly via callback in this signature.
-    // To get a result, we would need to use CefMessageRouter or similar.
-    // For now, we just execute. If a result is needed, we need a more complex bridge.
-    // We will implement the full bridge later.
+    historyUrl: String?,
+) {
+    browser.loadString(data, baseUrl ?: "about:blank")
 }
-actual fun WebView.platformZoomBy(zoomFactor: Float) {}
-actual fun WebView.platformZoomIn(): Boolean = false
-actual fun WebView.platformZoomOut(): Boolean = false
+
+actual fun WebView.platformPostUrl(
+    url: String,
+    postData: ByteArray,
+) {}
+
+actual fun WebView.platformEvaluateJavascript(
+    script: String,
+    callback: ((String) -> Unit)?,
+) {
+    browser.executeJavaScript(script, browser.url, 0)
+}
+
+actual fun WebView.platformZoomBy(zoomFactor: Float) {
+    browser.zoomLevel = browser.zoomLevel + zoomFactor
+}
+
+actual fun WebView.platformZoomIn(): Boolean {
+    browser.zoomLevel = browser.zoomLevel + 0.5
+    return true
+}
+
+actual fun WebView.platformZoomOut(): Boolean {
+    browser.zoomLevel = browser.zoomLevel - 0.5
+    return true
+}
+
 actual fun WebView.platformFindAllAsync(find: String) {}
+
 actual fun WebView.platformFindNext(forward: Boolean) {}
+
 actual fun WebView.platformClearMatches() {}
+
 actual fun WebView.platformClearCache(includeDiskFiles: Boolean) {}
+
 actual fun WebView.platformClearHistory() {}
+
 actual fun WebView.platformClearSslPreferences() {}
+
 actual fun WebView.platformClearFormData() {}
+
 actual fun WebView.platformPageUp(top: Boolean): Boolean = false
+
 actual fun WebView.platformPageDown(bottom: Boolean): Boolean = false
-actual fun WebView.platformScrollTo(x: Int, y: Int) {}
-actual fun WebView.platformScrollBy(x: Int, y: Int) {}
+
+actual fun WebView.platformScrollTo(
+    x: Int,
+    y: Int,
+) {}
+
+actual fun WebView.platformScrollBy(
+    x: Int,
+    y: Int,
+) {}
+
 actual fun WebView.platformSaveWebArchive(filename: String) {}
 
-actual fun WebView.platformAddJavascriptInterface(obj: Any, name: String) {
+actual fun WebView.platformAddJavascriptInterface(
+    obj: Any,
+    name: String,
+) {
     if (obj is NativeWebBridge) {
         this.bridge = obj
-        
+
         // 1. Create and add Message Router
         val router = org.cef.browser.CefMessageRouter.create()
-        router.addHandler(object : CefMessageRouterHandlerAdapter() {
-            override fun onQuery(
-                browser: CefBrowser?,
-                frame: CefFrame?,
-                queryId: Long,
-                request: String?,
-                persistent: Boolean,
-                callback: CefQueryCallback?
-            ): Boolean {
-                if (request == null) return false
-                
-                try {
-                    // Parse request: { method: "...", data: "...", callbackId: "..." }
-                    val json = Json.parseToJsonElement(request).jsonObject
-                    val method = json["method"]?.jsonPrimitive?.content ?: return false
-                    val data = json["data"]?.jsonPrimitive?.content
-                    val callbackId = json["callbackId"]?.jsonPrimitive?.content
-                    
-                    obj.call(method, data, callbackId)
-                    
-                    callback?.success("")
-                    return true
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    callback?.failure(500, e.message)
-                    return false
+        router.addHandler(
+            object : CefMessageRouterHandlerAdapter() {
+                override fun onQuery(
+                    browser: CefBrowser?,
+                    frame: CefFrame?,
+                    queryId: Long,
+                    request: String?,
+                    persistent: Boolean,
+                    callback: CefQueryCallback?,
+                ): Boolean {
+                    if (request == null) return false
+
+                    try {
+                        // Parse request: { method: "...", data: "...", callbackId: "..." }
+                        val json = Json.parseToJsonElement(request).jsonObject
+                        val method = json["method"]?.jsonPrimitive?.content ?: return false
+                        val data = json["data"]?.jsonPrimitive?.content
+                        val callbackId = json["callbackId"]?.jsonPrimitive?.content
+
+                        obj.call(method, data, callbackId)
+
+                        callback?.success("")
+                        return true
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        callback?.failure(500, e.message)
+                        return false
+                    }
                 }
-            }
-        }, true)
-        
+            },
+            true,
+        )
+
         this.browser.client.addMessageRouter(router)
-        
+
         // 2. Inject Polyfill Script
         // This script adapts window.AppBridgeNative.call(...) to window.cefQuery(...)
-        val polyfill = """
+        val polyfill =
+            """
             window.$name = {
                 call: function(method, data, callbackId) {
                     if (!window.cefQuery) {
@@ -155,14 +206,18 @@ actual fun WebView.platformAddJavascriptInterface(obj: Any, name: String) {
                     });
                 }
             };
-        """.trimIndent()
-        
+            """.trimIndent()
+
         // Inject immediately and also on every page load
         this.platformEvaluateJavascript(polyfill, null)
-        
+
         // To ensure it persists across navigations, we should ideally use a CefLoadHandler
         // But for now, we rely on the fact that WebViewJsBridge might re-inject or we need to hook into load events.
         // KCEF doesn't easily expose "inject on load" without a LoadHandler.
+        // We will handle re-injection in ComposeWebView.desktop.kt via onPageFinished or similar if possible.
+        // Actually, WebViewJsBridge.jsScript checks `if (window.AppBridge) return;`.
+        // Our polyfill needs to be there before AppBridge uses it.
+        // We'll rely on onPageFinished for now or the user calling it.
         // We will handle re-injection in ComposeWebView.desktop.kt via onPageFinished or similar if possible.
         // Actually, WebViewJsBridge.jsScript checks `if (window.AppBridge) return;`.
         // Our polyfill needs to be there before AppBridge uses it.
@@ -177,3 +232,29 @@ actual abstract class PlatformContext
 
 actual typealias ComposeWebViewClient = com.parkwoocheol.composewebview.client.ComposeWebViewClient
 actual typealias ComposeWebChromeClient = com.parkwoocheol.composewebview.client.ComposeWebChromeClient
+
+actual var WebView.platformJavaScriptEnabled: Boolean
+    get() = this.javaScriptEnabled
+    set(value) {
+        this.javaScriptEnabled = value
+    }
+
+actual var WebView.platformDomStorageEnabled: Boolean
+    get() = this.domStorageEnabled
+actual var WebView.platformSupportZoom: Boolean
+    get() = true
+    set(value) {
+        // TODO: Configure CEF settings
+    }
+
+actual var WebView.platformBuiltInZoomControls: Boolean
+    get() = false
+    set(value) {
+        // Not applicable
+    }
+
+actual var WebView.platformDisplayZoomControls: Boolean
+    get() = false
+    set(value) {
+        // Not applicable
+    }

@@ -1,7 +1,5 @@
 package com.parkwoocheol.composewebview
 
-
-
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
@@ -17,21 +15,21 @@ import kotlin.reflect.typeOf
  * This class handles the serialization and deserialization of data using a [BridgeSerializer], allowing for
  * library-agnostic communication. It supports registering handlers for specific method names and
  * emitting events to JavaScript.
- *
+ */
 class WebViewJsBridge(
     serializer: BridgeSerializer? = null,
     @PublishedApi internal val jsObjectName: String = "AppBridge",
-    private val nativeInterfaceName: String = "AppBridgeNative"
+    private val nativeInterfaceName: String = "AppBridgeNative",
 ) : NativeWebBridge {
     @PublishedApi internal val serializer: BridgeSerializer = serializer ?: defaultSerializer()
 
     // Handler stores a function that takes a JSON string and returns a JSON string (or null)
     @PublishedApi
     internal val handlers = mutableMapOf<String, (String?) -> String?>()
-    
+
     @PublishedApi
     internal var webView: WebView? = null
-    
+
     @PublishedApi
     internal val scope = CoroutineScope(Dispatchers.Main)
 
@@ -105,25 +103,21 @@ class WebViewJsBridge(
      */
     inline fun <reified T : Any, reified R : Any> register(
         method: String,
-        noinline handler: (T) -> R
+        noinline handler: (T) -> R,
     ) {
         handlers[method] = { jsonStr ->
-            val input = if (jsonStr != null) {
-                serializer.decode<T>(jsonStr, typeOf<T>())
-            } else {
-                // If T is nullable, we can pass null. But here we enforce T : Any for simplicity in serializer
-                // If we want to support nullable T, we need to handle it.
-                // For now, let's assume T is non-null or handle nulls in serializer if needed.
-                // Actually, typeOf<T>() captures nullability.
-                // But our interface says encode(data: Any).
-                // Let's adjust: if jsonStr is null, and T is nullable, pass null.
-                if (typeOf<T>().isMarkedNullable) {
-                    null as T
+            val input =
+                if (jsonStr != null) {
+                    serializer.decode<T>(jsonStr, typeOf<T>())
                 } else {
-                    throw IllegalArgumentException("Input data is null but type is not nullable")
+                    if (typeOf<T>().isMarkedNullable) {
+                        @Suppress("UNCHECKED_CAST")
+                        null as T
+                    } else {
+                        throw IllegalArgumentException("Input data is null but type is not nullable")
+                    }
                 }
-            }
-            
+
             val result = handler(input)
             serializer.encode(result, typeOf<R>())
         }
@@ -137,7 +131,7 @@ class WebViewJsBridge(
      */
     inline fun <reified R : Any> register(
         method: String,
-        noinline handler: () -> R
+        noinline handler: () -> R,
     ) {
         handlers[method] = { _ ->
             val result = handler()
@@ -152,14 +146,16 @@ class WebViewJsBridge(
      * @param event The name of the event to emit.
      * @param data The data to pass to the event listener.
      */
-    inline fun <reified T> emit(event: String, data: T) {
+    inline fun <reified T> emit(
+        event: String,
+        data: T,
+    ) {
         val jsonStr = serializer.encode(data, typeOf<T>())
         // We need to run this on the main thread because it interacts with WebView
         scope.launch {
             val script = "window.$jsObjectName.trigger('$event', $jsonStr);"
             webView?.platformEvaluateJavascript(script, null)
         }
-
     }
 
     /**
@@ -174,7 +170,6 @@ class WebViewJsBridge(
         webView.platformAddJavascriptInterface(this, nativeInterfaceName)
     }
 
-    
     /**
      * Disposes of the bridge, cancelling any active coroutines and clearing references.
      * This should be called when the bridge is no longer needed to prevent memory leaks.
@@ -192,7 +187,11 @@ class WebViewJsBridge(
      * @param callbackId The ID of the callback to invoke with the result.
      */
     @PlatformJavascriptInterface
-    override fun call(methodName: String, data: String?, callbackId: String?) {
+    override fun call(
+        methodName: String,
+        data: String?,
+        callbackId: String?,
+    ) {
         val handler = handlers[methodName]
         if (handler == null) {
             if (callbackId != null) {
@@ -204,7 +203,7 @@ class WebViewJsBridge(
         scope.launch {
             try {
                 val resultJson = handler(data)
-                
+
                 if (callbackId != null) {
                     sendSuccess(callbackId, resultJson)
                 }
@@ -216,21 +215,28 @@ class WebViewJsBridge(
         }
     }
 
-    private fun sendSuccess(callbackId: String, resultJson: String?) {
+    private fun sendSuccess(
+        callbackId: String,
+        resultJson: String?,
+    ) {
         val safeResult = resultJson ?: "null"
         val script = "window.$jsObjectName.onSuccess('$callbackId', $safeResult);"
         webView?.platformEvaluateJavascript(script, null)
     }
 
-    private fun sendError(callbackId: String, errorMessage: String) {
+    private fun sendError(
+        callbackId: String,
+        errorMessage: String,
+    ) {
         // We use the serializer to encode the error message string to ensure it's a valid JSON string
         // But since it's just a string, we can manually quote it or use serializer.
         // Using serializer is safer.
-        val escapedError = try {
-            serializer.encode(errorMessage, typeOf<String>())
-        } catch (e: Exception) {
-            "\"${errorMessage.replace("\"", "\\\"")}\""
-        }
+        val escapedError =
+            try {
+                serializer.encode(errorMessage, typeOf<String>())
+            } catch (e: Exception) {
+                "\"${errorMessage.replace("\"", "\\\"")}\""
+            }
         val script = "window.$jsObjectName.onError('$callbackId', $escapedError);"
         webView?.platformEvaluateJavascript(script, null)
     }
@@ -240,7 +246,11 @@ private fun defaultSerializer(): BridgeSerializer {
     try {
         return KotlinxBridgeSerializer()
     } catch (e: Throwable) {
-        throw IllegalStateException("Kotlinx Serialization is missing. Please add 'org.jetbrains.kotlinx:kotlinx-serialization-json' dependency or provide a custom serializer.", e)
+        throw IllegalStateException(
+            "Kotlinx Serialization is missing. Please add 'org.jetbrains.kotlinx:kotlinx-serialization-json' " +
+                "dependency or provide a custom serializer.",
+            e,
+        )
     }
 }
 
@@ -249,7 +259,8 @@ private fun defaultSerializer(): BridgeSerializer {
  *
  * This composable manages the lifecycle of the bridge, ensuring it is disposed when the composable leaves the composition.
  *
- * @param serializer The [BridgeSerializer] to use for serialization. Defaults to null, which tries to use [KotlinxBridgeSerializer].
+ * @param serializer The [BridgeSerializer] to use for serialization.
+ * Defaults to null, which tries to use [KotlinxBridgeSerializer].
  * @param jsObjectName The name of the JavaScript object to inject (e.g., "AppBridge").
  * @param nativeInterfaceName The name of the native interface to inject (e.g., "AppBridgeNative").
  * @return A [WebViewJsBridge] instance.
@@ -258,17 +269,18 @@ private fun defaultSerializer(): BridgeSerializer {
 fun rememberWebViewJsBridge(
     serializer: BridgeSerializer? = null,
     jsObjectName: String = "AppBridge",
-    nativeInterfaceName: String = "AppBridgeNative"
+    nativeInterfaceName: String = "AppBridgeNative",
 ): WebViewJsBridge {
-    val bridge = remember(serializer, jsObjectName, nativeInterfaceName) { 
-        WebViewJsBridge(serializer, jsObjectName, nativeInterfaceName) 
-    }
-    
+    val bridge =
+        remember(serializer, jsObjectName, nativeInterfaceName) {
+            WebViewJsBridge(serializer, jsObjectName, nativeInterfaceName)
+        }
+
     DisposableEffect(bridge) {
         onDispose {
             bridge.dispose()
         }
     }
-    
+
     return bridge
 }

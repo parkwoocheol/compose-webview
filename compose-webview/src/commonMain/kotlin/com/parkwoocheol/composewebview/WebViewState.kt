@@ -1,12 +1,11 @@
 package com.parkwoocheol.composewebview
 
 import androidx.compose.runtime.Composable
-
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.mapSaver
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -102,13 +101,13 @@ class WebViewState(webContent: WebContent) {
      */
     var customViewState: CustomViewState? by mutableStateOf(null)
         internal set
-    
+
     /**
      * The underlying [WebView] instance.
      */
     var webView: WebView? by mutableStateOf(null)
         internal set
-        
+
     /**
      * The saved state bundle of the WebView, used for restoration.
      */
@@ -152,10 +151,8 @@ sealed class JsDialogState {
  */
 data class CustomViewState(
     val view: PlatformCustomView,
-    val callback: PlatformCustomViewCallback
+    val callback: PlatformCustomViewCallback,
 )
-
-
 
 /**
  * Creates and remembers a [WebViewState] for a specific URL.
@@ -167,13 +164,16 @@ data class CustomViewState(
  * @return A [WebViewState] instance.
  */
 @Composable
-fun rememberWebViewState(url: String, additionalHttpHeaders: Map<String, String> = emptyMap()): WebViewState =
+fun rememberWebViewState(
+    url: String,
+    additionalHttpHeaders: Map<String, String> = emptyMap(),
+): WebViewState =
     remember {
         WebViewState(
             WebContent.Url(
                 url = url,
-                additionalHttpHeaders = additionalHttpHeaders
-            )
+                additionalHttpHeaders = additionalHttpHeaders,
+            ),
         )
     }
 
@@ -186,13 +186,16 @@ fun rememberWebViewState(url: String, additionalHttpHeaders: Map<String, String>
  * @return A [WebViewState] instance that survives configuration changes.
  */
 @Composable
-fun rememberSaveableWebViewState(url: String, additionalHttpHeaders: Map<String, String> = emptyMap()): WebViewState =
+fun rememberSaveableWebViewState(
+    url: String,
+    additionalHttpHeaders: Map<String, String> = emptyMap(),
+): WebViewState =
     rememberSaveable(saver = WebViewStateSaver) {
         WebViewState(
             WebContent.Url(
                 url = url,
-                additionalHttpHeaders = additionalHttpHeaders
-            )
+                additionalHttpHeaders = additionalHttpHeaders,
+            ),
         )
     }
 
@@ -214,7 +217,7 @@ fun rememberWebViewStateWithData(
     baseUrl: String? = null,
     encoding: String = "utf-8",
     mimeType: String? = null,
-    historyUrl: String? = null
+    historyUrl: String? = null,
 ): WebViewState =
     remember {
         WebViewState(WebContent.Data(data, baseUrl, encoding, mimeType, historyUrl))
@@ -237,7 +240,7 @@ fun rememberSaveableWebViewStateWithData(
     baseUrl: String? = null,
     encoding: String = "utf-8",
     mimeType: String? = null,
-    historyUrl: String? = null
+    historyUrl: String? = null,
 ): WebViewState =
     rememberSaveable(saver = WebViewStateSaver) {
         WebViewState(WebContent.Data(data, baseUrl, encoding, mimeType, historyUrl))
@@ -246,29 +249,29 @@ fun rememberSaveableWebViewStateWithData(
 /**
  * A [Saver] for [WebViewState] to handle saving and restoring state across configuration changes.
  */
-val WebViewStateSaver: Saver<WebViewState, Any> = run {
-    val pageTitleKey = "pagetitle"
-    val lastLoadedUrlKey = "lastloaded"
-    val stateBundleKey = "bundle"
+val WebViewStateSaver: Saver<WebViewState, Any> =
+    run {
+        val pageTitleKey = "pagetitle"
+        val lastLoadedUrlKey = "lastloaded"
+        val stateBundleKey = "bundle"
 
-    mapSaver(
-        save = { state ->
-            val bundle = createPlatformBundle()
-            state.webView?.platformSaveState(bundle)
+        mapSaver(
+            save = { state ->
+                val bundle = createPlatformBundle()
+                state.webView?.platformSaveState(bundle)
 
-            mapOf(
-                pageTitleKey to state.pageTitle,
-                lastLoadedUrlKey to state.lastLoadedUrl,
-                stateBundleKey to bundle
-            )
-        },
-        restore = { map ->
-            val webViewState = WebViewState(WebContent.NavigatorOnly)
-            webViewState.pageTitle = map[pageTitleKey] as String?
-            webViewState.lastLoadedUrl = map[lastLoadedUrlKey] as String?
-            webViewState.bundle = map[stateBundleKey] as PlatformBundle?
-            webViewState
-        }
-    )
-
-}
+                mapOf(
+                    pageTitleKey to state.pageTitle,
+                    lastLoadedUrlKey to state.lastLoadedUrl,
+                    stateBundleKey to bundle,
+                )
+            },
+            restore = { map ->
+                val webViewState = WebViewState(WebContent.NavigatorOnly)
+                webViewState.pageTitle = map[pageTitleKey] as String?
+                webViewState.lastLoadedUrl = map[lastLoadedUrlKey] as String?
+                webViewState.bundle = map[stateBundleKey] as PlatformBundle?
+                webViewState
+            },
+        )
+    }

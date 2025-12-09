@@ -1,29 +1,28 @@
 package com.parkwoocheol.composewebview
 
 import android.annotation.SuppressLint
-import android.content.Context
-import android.graphics.Bitmap
+import android.app.Activity
+import android.net.Uri
 import android.view.ViewGroup.LayoutParams
 import android.webkit.DownloadListener
+import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
-import android.webkit.WebResourceError
-import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.webkit.WebViewClient
+import android.widget.FrameLayout
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
@@ -44,7 +43,7 @@ import kotlinx.coroutines.withContext
  * @param url The URL to load.
  * @param modifier The modifier to be applied to the layout.
  * @param controller The controller to control the WebView (load, back, forward, post, evaluateJS, etc.).
- * @param javascriptInterfaces A map of interface objects to inject into JavaScript. Key is the name, Value is the object.
+ * @param javaScriptInterfaces A map of interface objects to inject into JavaScript. Key is the name, Value is the object.
  * @param onCreated Called when the WebView is created. Use this to configure settings.
  * @param onDispose Called when the WebView is disposed.
  * @param client The [WebViewClient] to be used. Defaults to [ComposeWebViewClient].
@@ -68,7 +67,7 @@ actual fun ComposeWebView(
     url: String,
     modifier: Modifier,
     controller: WebViewController,
-    javascriptInterfaces: Map<String, Any>,
+    javaScriptInterfaces: Map<String, Any>,
     onCreated: (WebView) -> Unit,
     onDispose: (WebView) -> Unit,
     client: ComposeWebViewClient,
@@ -83,17 +82,16 @@ actual fun ComposeWebView(
     onPageStarted: (WebView, String?, PlatformBitmap?) -> Unit,
     onPageFinished: (WebView, String?) -> Unit,
     onReceivedError: (WebView, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit,
-
     onProgressChanged: (WebView, Int) -> Unit,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
-    onFindResultReceived: ((Int, Int, Boolean) -> Unit)?
+    onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
 ) {
     val state = rememberSaveableWebViewState(url = url)
     ComposeWebView(
         state = state,
         modifier = modifier,
         controller = controller,
-        javascriptInterfaces = javascriptInterfaces,
+        javaScriptInterfaces = javaScriptInterfaces,
         onCreated = onCreated,
         onDispose = onDispose,
         client = client,
@@ -110,7 +108,7 @@ actual fun ComposeWebView(
         onReceivedError = onReceivedError,
         onProgressChanged = onProgressChanged,
         onDownloadStart = onDownloadStart,
-        onFindResultReceived = onFindResultReceived
+        onFindResultReceived = onFindResultReceived,
     )
 }
 
@@ -119,7 +117,7 @@ actual fun ComposeWebView(
     state: WebViewState,
     modifier: Modifier,
     controller: WebViewController,
-    javascriptInterfaces: Map<String, Any>,
+    javaScriptInterfaces: Map<String, Any>,
     onCreated: (WebView) -> Unit,
     onDispose: (WebView) -> Unit,
     client: ComposeWebViewClient,
@@ -135,27 +133,24 @@ actual fun ComposeWebView(
     onPageStarted: (WebView, String?, PlatformBitmap?) -> Unit,
     onPageFinished: (WebView, String?) -> Unit,
     onReceivedError: (WebView, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit,
-
     onProgressChanged: (WebView, Int) -> Unit,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
-    onFindResultReceived: ((Int, Int, Boolean) -> Unit)?
+    onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
 ) {
-
-    val webView = state.webView
     val webView = state.webView
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    var fileChooserCallback by remember { mutableStateOf<android.webkit.ValueCallback<Array<android.net.Uri>>?>(null) }
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == android.app.Activity.RESULT_OK) {
-            val data = result.data
-            val uris = android.webkit.WebChromeClient.FileChooserParams.parseResult(result.resultCode, data)
+    var fileChooserCallback by remember { mutableStateOf<ValueCallback<Array<Uri>>?>(null) }
+    val launcher =
+        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val uris = if (result.resultCode == Activity.RESULT_OK) {
+                WebChromeClient.FileChooserParams.parseResult(result.resultCode, result.data)
+            } else {
+                null
+            }
             fileChooserCallback?.onReceiveValue(uris)
-        } else {
-            fileChooserCallback?.onReceiveValue(null)
+            fileChooserCallback = null
         }
-        fileChooserCallback = null
-    }
 
     chromeClient.onShowFileChooserCallback = { _, callback, params ->
         fileChooserCallback = callback
@@ -196,7 +191,7 @@ actual fun ComposeWebView(
                             content.data,
                             content.mimeType,
                             content.encoding,
-                            content.historyUrl
+                            content.historyUrl,
                         )
                     }
 
@@ -212,8 +207,8 @@ actual fun ComposeWebView(
         }
 
         // Update JS interfaces if they change (though usually they are static)
-        LaunchedEffect(javascriptInterfaces) {
-            wv.injectJavascriptInterfaces(javascriptInterfaces)
+        LaunchedEffect(javaScriptInterfaces) {
+            wv.injectJavascriptInterfaces(javaScriptInterfaces)
         }
 
         // Inject JS Bridge script when page finishes loading
@@ -239,15 +234,16 @@ actual fun ComposeWebView(
     WebViewContainer(modifier = modifier) { layoutParams ->
         AndroidView(
             factory = { context ->
-                val wv = factory?.invoke(context) ?: WebView(context).apply {
-                    this.layoutParams = layoutParams
-                }
+                val wv =
+                    factory?.invoke(context) ?: WebView(context).apply {
+                        this.layoutParams = layoutParams
+                    }
 
                 wv.apply {
                     webViewClient = client
                     webChromeClient = chromeClient
 
-                    injectJavascriptInterfaces(javascriptInterfaces)
+                    injectJavascriptInterfaces(javaScriptInterfaces)
                     jsBridge?.attach(this)
 
                     onDownloadStart?.let { listener ->
@@ -280,7 +276,7 @@ actual fun ComposeWebView(
                                     content.data,
                                     content.mimeType,
                                     content.encoding,
-                                    content.historyUrl
+                                    content.historyUrl,
                                 )
                             }
 
@@ -304,7 +300,7 @@ actual fun ComposeWebView(
                 onDispose(it)
                 state.webView = null
                 it.destroy() // Explicitly destroy to prevent leaks
-            }
+            },
         )
 
         if (state.isLoading) {
@@ -329,23 +325,24 @@ actual fun ComposeWebView(
     }
 
     DisposableEffect(lifecycleOwner, webView) {
-        val observer = LifecycleEventObserver { _, event ->
-            webView?.let { wv ->
-                when (event) {
-                    Lifecycle.Event.ON_RESUME -> {
-                        wv.onResume()
-                        wv.resumeTimers()
-                    }
+        val observer =
+            LifecycleEventObserver { _, event ->
+                webView?.let { wv ->
+                    when (event) {
+                        Lifecycle.Event.ON_RESUME -> {
+                            wv.onResume()
+                            wv.resumeTimers()
+                        }
 
-                    Lifecycle.Event.ON_PAUSE -> {
-                        wv.onPause()
-                        wv.pauseTimers()
-                    }
+                        Lifecycle.Event.ON_PAUSE -> {
+                            wv.onPause()
+                            wv.pauseTimers()
+                        }
 
-                    else -> Unit
+                        else -> Unit
+                    }
                 }
             }
-        }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
@@ -357,24 +354,27 @@ actual fun ComposeWebView(
 @Composable
 private fun WebViewContainer(
     modifier: Modifier = Modifier,
-    content: @Composable androidx.compose.foundation.layout.BoxWithConstraintsScope.(android.widget.FrameLayout.LayoutParams) -> Unit
+    content: @Composable BoxWithConstraintsScope.(FrameLayout.LayoutParams) -> Unit,
 ) {
     BoxWithConstraints(modifier = modifier) {
         val width =
-            if (constraints.hasFixedWidth)
+            if (constraints.hasFixedWidth) {
                 LayoutParams.MATCH_PARENT
-            else
+            } else {
                 LayoutParams.WRAP_CONTENT
+            }
         val height =
-            if (constraints.hasFixedHeight)
+            if (constraints.hasFixedHeight) {
                 LayoutParams.MATCH_PARENT
-            else
+            } else {
                 LayoutParams.WRAP_CONTENT
+            }
 
-        val layoutParams = android.widget.FrameLayout.LayoutParams(
-            width,
-            height
-        )
+        val layoutParams =
+            FrameLayout.LayoutParams(
+                width,
+                height,
+            )
         content(layoutParams)
     }
 }

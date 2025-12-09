@@ -11,24 +11,21 @@ kotlin {
     androidTarget {
         publishLibraryVariants("release")
         compilations.all {
-            compilerOptions.configure {
-                jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+            compileTaskProvider.configure {
+                compilerOptions {
+                    jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+                }
             }
         }
     }
-    
+
     iosX64()
     iosArm64()
     iosSimulatorArm64()
-    
+
     jvm("desktop")
-    
+
     js(IR) {
-        browser()
-    }
-    
-    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
-    wasmJs {
         browser()
     }
 
@@ -42,11 +39,12 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.kotlinx.serialization.json)
         }
-        
+
         commonTest.dependencies {
             implementation(kotlin("test"))
+            implementation(libs.kotlinx.coroutines.test)
         }
-        
+
         androidMain.dependencies {
             implementation(libs.androidx.core.ktx)
             implementation(libs.androidx.appcompat)
@@ -54,26 +52,31 @@ kotlin {
             implementation(libs.androidx.activity.compose)
             implementation(libs.androidx.lifecycle.runtime.compose)
         }
-        
-        iosMain.dependencies {
+
+        getByName("androidInstrumentedTest") {
+            dependencies {
+                implementation(libs.junit)
+                implementation(libs.androidx.junit)
+                implementation(libs.androidx.espresso.core)
+                implementation(libs.androidx.test.runner)
+                implementation(libs.androidx.compose.ui.test.junit4)
+            }
         }
-        
-        val desktopMain by getting {
+
+        iosMain.dependencies {
+            // No platform-specific dependencies needed for iOS
+        }
+
+        getByName("desktopMain") {
             dependencies {
                 implementation(compose.desktop.currentOs)
                 implementation(libs.kcef)
             }
         }
-        
-        val jsMain by getting {
+
+        getByName("jsMain") {
             dependencies {
                 implementation(compose.html.core)
-            }
-        }
-        
-        val wasmJsMain by getting {
-            dependencies {
-                // implementation(compose.html.core) // Not supported for Wasm yet
             }
         }
     }
@@ -94,7 +97,7 @@ android {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
@@ -104,15 +107,34 @@ android {
     }
 }
 
-// Publishing configuration for KMP is handled by the plugin, 
-// but we can configure the POM details here if needed.
-// For now, disabling the manual publication to avoid conflicts.
-/*
 publishing {
     publications {
-        register<MavenPublication>("release") {
-            // ...
+        withType<MavenPublication> {
+            pom {
+                name.set("Compose WebView")
+                description.set("A powerful and flexible WebView wrapper for Compose Multiplatform (Android, iOS, Desktop, Web).")
+                url.set("https://github.com/parkwoocheol/compose-webview")
+
+                licenses {
+                    license {
+                        name.set("MIT License")
+                        url.set("https://opensource.org/licenses/MIT")
+                    }
+                }
+
+                developers {
+                    developer {
+                        id.set("parkwoocheol")
+                        name.set("Woocheol Park")
+                    }
+                }
+
+                scm {
+                    connection.set("scm:git:git://github.com/parkwoocheol/compose-webview.git")
+                    developerConnection.set("scm:git:ssh://git@github.com/parkwoocheol/compose-webview.git")
+                    url.set("https://github.com/parkwoocheol/compose-webview")
+                }
+            }
         }
     }
 }
-*/
