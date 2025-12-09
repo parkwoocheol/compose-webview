@@ -247,8 +247,7 @@ actual fun WebView.platformSaveWebArchive(filename: String) {
     // Not supported
 }
 
-actual typealias ComposeWebViewClient = com.parkwoocheol.composewebview.client.ComposeWebViewClient
-actual typealias ComposeWebChromeClient = com.parkwoocheol.composewebview.client.ComposeWebChromeClient
+
 
 actual var WebView.platformJavaScriptEnabled: Boolean
     get() = true

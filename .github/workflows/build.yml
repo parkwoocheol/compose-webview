@@ -56,12 +56,21 @@ jobs:
       
       - name: Build Android
         run: ./gradlew :compose-webview:assembleDebug
+
+      - name: Test Android
+        run: ./gradlew :compose-webview:testDebugUnitTest
         
       - name: Build Desktop
         run: ./gradlew :compose-webview:compileKotlinDesktop
+
+      - name: Test Desktop
+        run: ./gradlew :compose-webview:desktopTest
         
       - name: Build Web (JS)
         run: ./gradlew :compose-webview:compileKotlinJs
+
+      - name: Test Web (JS)
+        run: ./gradlew :compose-webview:jsTest
 
   # 3. Build iOS (macOS)
   build-ios:
@@ -82,3 +91,6 @@ jobs:
       
       - name: Build iOS Framework
         run: ./gradlew :compose-webview:linkIosSimulatorArm64
+
+      - name: Test iOS
+        run: ./gradlew :compose-webview:iosSimulatorArm64Test
