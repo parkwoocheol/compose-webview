@@ -8,5 +8,5 @@ import com.parkwoocheol.composewebview.PlatformCustomView
 expect fun SampleCustomView(
     view: PlatformCustomView,
     modifier: Modifier = Modifier,
-    onRelease: () -> Unit = {}
+    onRelease: () -> Unit = {},
 )

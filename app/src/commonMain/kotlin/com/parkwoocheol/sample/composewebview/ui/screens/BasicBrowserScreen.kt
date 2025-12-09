@@ -40,7 +40,7 @@ fun BasicBrowserScreen(onBack: () -> Unit) {
         topBar = {
             AppTopBar(
                 title = "Basic Browser",
-                onBack = onBack
+                onBack = onBack,
             )
         },
         bottomBar = {
@@ -52,9 +52,9 @@ fun BasicBrowserScreen(onBack: () -> Unit) {
                 canGoForward = controller.canGoForward,
                 onBack = { controller.navigateBack() },
                 onForward = { controller.navigateForward() },
-                onReload = { controller.reload() }
+                onReload = { controller.reload() },
             )
-        }
+        },
     ) { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
             if (state.isLoading) {

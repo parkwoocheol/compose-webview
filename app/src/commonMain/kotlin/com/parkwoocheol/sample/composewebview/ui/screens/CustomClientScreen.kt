@@ -24,12 +24,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.parkwoocheol.composewebview.ComposeWebView
 import com.parkwoocheol.composewebview.client.ComposeWebViewClient
-import com.parkwoocheol.composewebview.rememberSaveableWebViewState
 import com.parkwoocheol.composewebview.platformBuiltInZoomControls
 import com.parkwoocheol.composewebview.platformDisplayZoomControls
 import com.parkwoocheol.composewebview.platformDomStorageEnabled
 import com.parkwoocheol.composewebview.platformJavaScriptEnabled
 import com.parkwoocheol.composewebview.platformSupportZoom
+import com.parkwoocheol.composewebview.rememberSaveableWebViewState
 import com.parkwoocheol.sample.composewebview.ui.components.AppTopBar
 
 @Composable
@@ -40,40 +40,42 @@ fun CustomClientScreen(onBack: () -> Unit) {
     var zoomEnabled by remember { mutableStateOf(true) }
 
     // Custom Client that logs page starts
-    val client = remember {
-        object : ComposeWebViewClient() {
-            // You can override methods here if needed, or just use the default
-            // For this sample, we just use the default but show how to pass it
+    val client =
+        remember {
+            object : ComposeWebViewClient() {
+                // You can override methods here if needed, or just use the default
+                // For this sample, we just use the default but show how to pass it
+            }
         }
-    }
 
     Scaffold(
         topBar = {
             AppTopBar(
                 title = "Custom Configuration",
-                onBack = onBack
+                onBack = onBack,
             )
-        }
+        },
     ) { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
             // Settings Panel
             Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     Text(
                         text = "WebView Settings",
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
                     )
-                    
+
                     SettingSwitch("JavaScript Enabled", jsEnabled) { jsEnabled = it }
                     SettingSwitch("DOM Storage Enabled", domStorageEnabled) { domStorageEnabled = it }
                     SettingSwitch("Zoom Support", zoomEnabled) { zoomEnabled = it }
@@ -88,14 +90,14 @@ fun CustomClientScreen(onBack: () -> Unit) {
                     client = client,
                     onCreated = { webView ->
                         // Apply settings dynamically
-                        // Note: In a real app, you might want to trigger a reload or re-creation 
+                        // Note: In a real app, you might want to trigger a reload or re-creation
                         // if some settings require it, but most WebView settings can be updated on the fly.
                         webView.platformJavaScriptEnabled = jsEnabled
                         webView.platformDomStorageEnabled = domStorageEnabled
                         webView.platformSupportZoom = zoomEnabled
                         webView.platformBuiltInZoomControls = zoomEnabled
                         webView.platformDisplayZoomControls = false
-                    }
+                    },
                 )
             }
         }
@@ -106,21 +108,21 @@ fun CustomClientScreen(onBack: () -> Unit) {
 private fun SettingSwitch(
     label: String,
     checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
+    onCheckedChange: (Boolean) -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             text = label,
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
         Switch(
             checked = checked,
-            onCheckedChange = onCheckedChange
+            onCheckedChange = onCheckedChange,
         )
     }
 }

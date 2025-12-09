@@ -8,7 +8,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Javascript
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Save
@@ -16,6 +15,10 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -31,10 +34,6 @@ import com.parkwoocheol.sample.composewebview.ui.theme.AppTheme
 import com.parkwoocheol.sample.composewebview.ui.theme.Primary
 import com.parkwoocheol.sample.composewebview.ui.theme.Secondary
 import com.parkwoocheol.sample.composewebview.ui.theme.Tertiary
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 
 enum class Screen {
     Main,
@@ -42,7 +41,7 @@ enum class Screen {
     TransientBrowser,
     HtmlJs,
     FullscreenVideo,
-    CustomClient
+    CustomClient,
 }
 
 data class Feature(
@@ -50,48 +49,51 @@ data class Feature(
     val description: String,
     val icon: ImageVector,
     val color: Color,
-    val screen: Screen
+    val screen: Screen,
 )
 
 @Composable
 fun MainScreen() {
-    val features = listOf(
-        Feature(
-            "Basic Browser",
-            "Standard WebView with navigation controls",
-            Icons.Default.Public,
-            Primary,
-            Screen.BasicBrowser
-        ),
-        Feature(
-            "Transient State",
-            "State lost on config change (lightweight)",
-            Icons.Default.Save,
-            Secondary,
-            Screen.TransientBrowser
-        ),
-        Feature(
-            "HTML & JS Bridge",
-            "Two-way communication with JavaScript",
-            Icons.Default.Javascript,
-            Tertiary,
-            Screen.HtmlJs
-        ),
-        Feature(
-            "Fullscreen Video",
-            "Native fullscreen video support",
-            Icons.Default.Videocam,
-            Color(0xFF8B5CF6), // Violet
-            Screen.FullscreenVideo
-        ),
-        Feature(
-            "Custom Client",
-            "Custom WebViewClient & Settings",
-            Icons.Default.Settings,
-            Color(0xFF10B981), // Emerald
-            Screen.CustomClient
+    val features =
+        listOf(
+            Feature(
+                "Basic Browser",
+                "Standard WebView with navigation controls",
+                Icons.Default.Public,
+                Primary,
+                Screen.BasicBrowser,
+            ),
+            Feature(
+                "Transient State",
+                "State lost on config change (lightweight)",
+                Icons.Default.Save,
+                Secondary,
+                Screen.TransientBrowser,
+            ),
+            Feature(
+                "HTML & JS Bridge",
+                "Two-way communication with JavaScript",
+                Icons.Default.Javascript,
+                Tertiary,
+                Screen.HtmlJs,
+            ),
+            Feature(
+                "Fullscreen Video",
+                "Native fullscreen video support",
+                Icons.Default.Videocam,
+                // Violet
+                Color(0xFF8B5CF6),
+                Screen.FullscreenVideo,
+            ),
+            Feature(
+                "Custom Client",
+                "Custom WebViewClient & Settings",
+                Icons.Default.Settings,
+                // Emerald
+                Color(0xFF10B981),
+                Screen.CustomClient,
+            ),
         )
-    )
 
     AppTheme {
         var currentScreen by remember { mutableStateOf(Screen.Main) }
@@ -99,16 +101,17 @@ fun MainScreen() {
         when (currentScreen) {
             Screen.Main -> {
                 Scaffold(
-                    topBar = { AppTopBar("Compose WebView") }
+                    topBar = { AppTopBar("Compose WebView") },
                 ) { paddingValues ->
                     LazyVerticalGrid(
                         columns = GridCells.Adaptive(minSize = 160.dp),
                         contentPadding = PaddingValues(16.dp),
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp),
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues)
+                        modifier =
+                            Modifier
+                                .fillMaxSize()
+                                .padding(paddingValues),
                     ) {
                         items(features) { feature ->
                             FeatureCard(
@@ -116,7 +119,7 @@ fun MainScreen() {
                                 description = feature.description,
                                 icon = feature.icon,
                                 color = feature.color,
-                                onClick = { currentScreen = feature.screen }
+                                onClick = { currentScreen = feature.screen },
                             )
                         }
                     }

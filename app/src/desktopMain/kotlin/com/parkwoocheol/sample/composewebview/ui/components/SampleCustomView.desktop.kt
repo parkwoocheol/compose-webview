@@ -9,10 +9,10 @@ import com.parkwoocheol.composewebview.PlatformCustomView
 actual fun SampleCustomView(
     view: PlatformCustomView,
     modifier: Modifier,
-    onRelease: () -> Unit
+    onRelease: () -> Unit,
 ) {
     SwingPanel(
         factory = { view },
-        modifier = modifier
+        modifier = modifier,
     )
 }

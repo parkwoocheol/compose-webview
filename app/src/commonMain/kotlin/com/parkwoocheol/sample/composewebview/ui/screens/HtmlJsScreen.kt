@@ -7,13 +7,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -25,21 +25,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.parkwoocheol.composewebview.ComposeWebView
 import com.parkwoocheol.composewebview.platformDomStorageEnabled
 import com.parkwoocheol.composewebview.platformJavaScriptEnabled
 import com.parkwoocheol.composewebview.rememberSaveableWebViewStateWithData
 import com.parkwoocheol.composewebview.rememberWebViewJsBridge
 import com.parkwoocheol.sample.composewebview.ui.components.AppTopBar
-import androidx.compose.material3.ButtonDefaults
-import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -50,7 +46,8 @@ data class UserResponse(val success: Boolean, val message: String)
 
 @Composable
 fun HtmlJsScreen(onBack: () -> Unit) {
-    val htmlContent = """
+    val htmlContent =
+        """
         <!DOCTYPE html>
         <html>
         <head>
@@ -132,7 +129,7 @@ fun HtmlJsScreen(onBack: () -> Unit) {
             </script>
         </body>
         </html>
-    """.trimIndent()
+        """.trimIndent()
 
     val state = rememberSaveableWebViewStateWithData(data = htmlContent)
     val bridge = rememberWebViewJsBridge()
@@ -162,19 +159,20 @@ fun HtmlJsScreen(onBack: () -> Unit) {
         topBar = {
             AppTopBar(
                 title = "HTML & JS Bridge",
-                onBack = onBack
+                onBack = onBack,
             )
-        }
+        },
     ) { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
             // WebView Area (Top Half)
             Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(16.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
             ) {
                 ComposeWebView(
                     state = state,
@@ -183,49 +181,52 @@ fun HtmlJsScreen(onBack: () -> Unit) {
                     onCreated = {
                         it.platformJavaScriptEnabled = true
                         it.platformDomStorageEnabled = true
-                    }
+                    },
                 )
             }
 
             // Command Center (Bottom Half)
             Card(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
                 shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             ) {
                 Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(24.dp)
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .padding(24.dp),
                 ) {
                     Text(
                         text = "Command Center",
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
                     )
-                    
+
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
                     ) {
                         Button(
                             onClick = {
                                 bridge.emit("nativeEvent", mapOf("message" to "Hello from Native!"))
                                 logs.add("Sent event 'nativeEvent' to JS")
                             },
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
                         ) {
                             Text("Send Event to JS")
                         }
                         Button(
                             onClick = { logs.clear() },
                             modifier = Modifier.weight(1f),
-                            colors = ButtonDefaults.filledTonalButtonColors()
+                            colors = ButtonDefaults.filledTonalButtonColors(),
                         ) {
                             Text("Clear Logs")
                         }
@@ -235,22 +236,23 @@ fun HtmlJsScreen(onBack: () -> Unit) {
                         text = "Communication Log",
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(bottom = 8.dp)
+                        modifier = Modifier.padding(bottom = 8.dp),
                     )
 
                     LazyColumn(
                         state = listState,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
-                            .padding(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        modifier =
+                            Modifier
+                                .fillMaxSize()
+                                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
+                                .padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         items(logs) { log ->
                             Text(
                                 text = log,
                                 style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = MaterialTheme.colorScheme.onSurface,
                             )
                         }
                     }

@@ -143,11 +143,12 @@ actual fun ComposeWebView(
     var fileChooserCallback by remember { mutableStateOf<ValueCallback<Array<Uri>>?>(null) }
     val launcher =
         rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            val uris = if (result.resultCode == Activity.RESULT_OK) {
-                WebChromeClient.FileChooserParams.parseResult(result.resultCode, result.data)
-            } else {
-                null
-            }
+            val uris =
+                if (result.resultCode == Activity.RESULT_OK) {
+                    WebChromeClient.FileChooserParams.parseResult(result.resultCode, result.data)
+                } else {
+                    null
+                }
             fileChooserCallback?.onReceiveValue(uris)
             fileChooserCallback = null
         }

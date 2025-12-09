@@ -11,11 +11,11 @@ import kotlinx.cinterop.ExperimentalForeignApi
 actual fun SampleCustomView(
     view: PlatformCustomView,
     modifier: Modifier,
-    onRelease: () -> Unit
+    onRelease: () -> Unit,
 ) {
     UIKitView(
         factory = { view },
         modifier = modifier,
-        onRelease = { onRelease() }
+        onRelease = { onRelease() },
     )
 }

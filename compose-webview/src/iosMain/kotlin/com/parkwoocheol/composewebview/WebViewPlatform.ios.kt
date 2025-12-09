@@ -15,7 +15,6 @@ import platform.Foundation.dataWithBytes
 import platform.Foundation.setValue
 import platform.UIKit.UIImage
 import platform.UIKit.UIView
-import platform.WebKit.WKPreferences
 import platform.WebKit.WKScriptMessage
 import platform.WebKit.WKScriptMessageHandlerProtocol
 import platform.WebKit.WKUserContentController

@@ -98,7 +98,8 @@ actual fun WebView.platformPostUrl(
     // Real binary posting in JS via form is tricky without Blob/FormData and fetch.
     // For a WebView wrapper, we might just try to send it as a hidden field if it's form data.
     // However, standard WebView postUrl sends raw body.
-    // JS iframe cannot easily do raw body POST navigation programmatically without fetch+Blob+URL.createObjectURL (which might not work for navigation in all cases) or a form.
+    // JS iframe cannot easily do raw body POST navigation programmatically without fetch+Blob+URL.createObjectURL
+    // (which might not work for navigation in all cases) or a form.
     // We will use a simplified approach: assume it's form data or just ignore for now if too complex for this scope.
     // Better approach: Use fetch to post, then navigate with result? No, that's not navigation.
     // Let's stick to a basic implementation or leave a comment if it's too complex.

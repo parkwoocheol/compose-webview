@@ -2,7 +2,6 @@ package com.parkwoocheol.sample.composewebview.ui.screens
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,7 +26,8 @@ import com.parkwoocheol.sample.composewebview.ui.components.AppTopBar
 @Composable
 fun TransientBrowserScreen(onBack: () -> Unit) {
     // HTML content with a counter that increments every second
-    val htmlContent = """
+    val htmlContent =
+        """
         <html>
         <head>
             <style>
@@ -58,7 +58,7 @@ fun TransientBrowserScreen(onBack: () -> Unit) {
             </script>
         </body>
         </html>
-    """.trimIndent()
+        """.trimIndent()
 
     // Transient state: Lost on configuration change
     val transientState = rememberWebViewStateWithData(data = htmlContent)
@@ -70,26 +70,27 @@ fun TransientBrowserScreen(onBack: () -> Unit) {
         topBar = {
             AppTopBar(
                 title = "Transient vs Saved State",
-                onBack = onBack
+                onBack = onBack,
             )
-        }
+        },
     ) { paddingValues ->
         Column(
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxSize()
-                .padding(16.dp)
+            modifier =
+                Modifier
+                    .padding(paddingValues)
+                    .fillMaxSize()
+                    .padding(16.dp),
         ) {
             Text(
                 text = "Rotate your device to see the difference!",
                 style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier.padding(bottom = 16.dp),
             )
 
             // Transient WebView
             WebViewCard(
                 title = "Transient State (Resets on Rotate)",
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             ) {
                 ComposeWebView(
                     state = transientState,
@@ -97,7 +98,7 @@ fun TransientBrowserScreen(onBack: () -> Unit) {
                     onCreated = {
                         it.platformJavaScriptEnabled = true
                         it.platformDomStorageEnabled = true
-                    }
+                    },
                 )
             }
 
@@ -106,7 +107,7 @@ fun TransientBrowserScreen(onBack: () -> Unit) {
             // Saved WebView
             WebViewCard(
                 title = "Saved State (Persists)",
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             ) {
                 ComposeWebView(
                     state = savedState,
@@ -114,7 +115,7 @@ fun TransientBrowserScreen(onBack: () -> Unit) {
                     onCreated = {
                         it.platformJavaScriptEnabled = true
                         it.platformDomStorageEnabled = true
-                    }
+                    },
                 )
             }
         }
@@ -125,23 +126,24 @@ fun TransientBrowserScreen(onBack: () -> Unit) {
 private fun WebViewCard(
     title: String,
     modifier: Modifier = Modifier,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp)
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp),
             ) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
                 )
             }
             Box(modifier = Modifier.weight(1f)) {

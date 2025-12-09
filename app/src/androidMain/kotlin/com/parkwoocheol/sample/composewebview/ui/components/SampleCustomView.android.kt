@@ -9,11 +9,11 @@ import com.parkwoocheol.composewebview.PlatformCustomView
 actual fun SampleCustomView(
     view: PlatformCustomView,
     modifier: Modifier,
-    onRelease: () -> Unit
+    onRelease: () -> Unit,
 ) {
     AndroidView(
         factory = { view },
         modifier = modifier,
-        onRelease = { onRelease() }
+        onRelease = { onRelease() },
     )
 }

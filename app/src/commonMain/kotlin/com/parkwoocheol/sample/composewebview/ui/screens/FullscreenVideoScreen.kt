@@ -28,16 +28,17 @@ fun FullscreenVideoScreen(onBack: () -> Unit) {
             if (state.customViewState == null) {
                 AppTopBar(
                     title = "Fullscreen Video Support",
-                    onBack = onBack
+                    onBack = onBack,
                 )
             }
-        }
+        },
     ) { paddingValues ->
         Box(
-            modifier = Modifier
-                .padding(if (state.customViewState == null) paddingValues else PaddingValues(all = 0.dp))
-                .fillMaxSize()
-                .background(Color.Black)
+            modifier =
+                Modifier
+                    .padding(if (state.customViewState == null) paddingValues else PaddingValues(all = 0.dp))
+                    .fillMaxSize()
+                    .background(Color.Black),
         ) {
             ComposeWebView(
                 state = state,
@@ -54,20 +55,22 @@ fun FullscreenVideoScreen(onBack: () -> Unit) {
                     // This block renders when the WebView requests a custom view (e.g. fullscreen video)
                     // We need to display the view provided by the WebChromeClient
                     Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color.Black)
+                        modifier =
+                            Modifier
+                                .fillMaxSize()
+                                .background(Color.Black),
                     ) {
                         SampleCustomView(
                             view = customViewState.view,
                             modifier = Modifier.fillMaxSize(),
                             onRelease = {
                                 // The WebChromeClient.onHideCustomView will handle the cleanup/callback
-                                // But we should ensure the view is detached if needed, though AndroidView handles removing it from its internal ViewGroup.
-                            }
+                                // But we should ensure the view is detached if needed,
+                                // though AndroidView handles removing it from its internal ViewGroup.
+                            },
                         )
                     }
-                }
+                },
             )
         }
     }
