@@ -2,7 +2,6 @@ package com.parkwoocheol.composewebview
 
 import androidx.compose.runtime.Immutable
 
-
 /**
  * Represents an error that occurred in the WebView.
  *
@@ -12,6 +11,5 @@ import androidx.compose.runtime.Immutable
 @Immutable
 data class WebViewError(
     val request: PlatformWebResourceRequest?,
-    val error: PlatformWebResourceError?
+    val error: PlatformWebResourceError?,
 )
-

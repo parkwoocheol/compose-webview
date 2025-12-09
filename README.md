@@ -8,7 +8,7 @@
 
 A powerful, flexible, and feature-rich WebView wrapper for **Jetpack Compose** and **Compose Multiplatform** (Android, iOS, Desktop, Web).
 
- Supports **Android**, **iOS**, **Desktop (JVM)**, and **Web (JS/Wasm)** with a unified API.
+ Supports **Android**, **iOS**, **Desktop (JVM)**, and **Web (JS)** with a unified API.
 
 ## Table of Contents
 
@@ -30,7 +30,7 @@ A powerful, flexible, and feature-rich WebView wrapper for **Jetpack Compose** a
 
 ## Features
 
-- **Multiplatform Support**: Supports Android, iOS, Desktop (CEF), and Web (JS/Wasm).
+- **Multiplatform Support**: Supports Android, iOS, Desktop (CEF), and Web (JS).
 - **Jetpack Compose Integration**: Seamlessly integrates native WebViews with Compose UI.
 - **Advanced JSBridge (Mobile Focused)**: A highly productive bridge for Android & iOS.
   - **Promise-based**: JavaScript calls return Promises, allowing `await` syntax (no callback hell).
@@ -49,7 +49,7 @@ A powerful, flexible, and feature-rich WebView wrapper for **Jetpack Compose** a
 - Android API 24+
 - iOS 14.0+
 - Desktop (JVM) 11+
-- Web (JS/Wasm)
+- Web (JS)
 - Jetpack Compose / Compose Multiplatform 1.9.3+
 - Kotlin 2.2.0+
 
@@ -59,9 +59,8 @@ A powerful, flexible, and feature-rich WebView wrapper for **Jetpack Compose** a
  |----------|----------------|--------|------|
  | **Android** | `AndroidView` (WebView) | ✅ Stable | Full feature support |
  | **iOS** | `UIKitView` (WKWebView) | ✅ Stable | Full feature support (Seamless JS Bridge) |
- | **Desktop** | `SwingPanel` (CEF via KCEF) | 🚧 Experimental | **WIP**: KCEF integration is in progress. Control APIs and JSBridge are implemented but require more testing. |
+ | **Desktop** | `SwingPanel` (CEF via KCEF) | 🚧 Experimental | **WIP**: KCEF integration is in progress. Basic browsing works, but advanced features are still being tested. |
  | **Web (JS)** | `Iframe` (DOM) | 🚧 Experimental | **WIP**: Basic navigation and JSBridge (via postMessage) are implemented but may have limitations. |
- | **Web (Wasm)** | Placeholder | 🚧 Experimental | Pending full DOM support in Wasm |
 
 ## 🎯 Project Focus & Comparison
 
@@ -77,7 +76,8 @@ We focused heavily on making the interaction between Kotlin and JavaScript as se
 
 ### 2. Platform Support Status
 
-* **Mobile (Android/iOS)**: Stable and Feature-Rich. Recommended for production.
+- **Mobile (Android/iOS)**: Stable and Feature-Rich. Recommended for production.
+
 - **Desktop & Web**: Currently **Experimental (WIP)**.
   - While we have implemented basic controls and JSBridge for these platforms, they are not as battle-tested as the mobile targets.
   - For **stable Desktop or Web requirements**, [KevinnZou's library](https://github.com/KevinnZou/compose-webview-multiplatform) is the **better choice**.
@@ -106,7 +106,7 @@ We focused heavily on making the interaction between Kotlin and JavaScript as se
 
    ```kotlin
    dependencies {
-           implementation("com.github.parkwoocheol:compose-webview:1.0.0") // Replace with latest version
+           implementation("com.github.parkwoocheol:compose-webview:<version>")
    }
    ```
 
@@ -114,7 +114,7 @@ We focused heavily on making the interaction between Kotlin and JavaScript as se
 
    ```groovy
    dependencies {
-           implementation 'com.github.parkwoocheol:compose-webview:1.0.0' // Replace with latest version
+           implementation 'com.github.parkwoocheol:compose-webview:<version>'
    }
    ```
 
@@ -459,7 +459,7 @@ fun ComposeWebView(
     url: String,
     modifier: Modifier = Modifier,
     controller: WebViewController = rememberWebViewController(),
-    javascriptInterfaces: Map<String, Any> = emptyMap(),
+    javaScriptInterfaces: Map<String, Any> = emptyMap(),
     onCreated: (WebView) -> Unit = {},
     onDispose: (WebView) -> Unit = {},
     client: ComposeWebViewClient = remember { ComposeWebViewClient() },
@@ -485,7 +485,7 @@ fun ComposeWebView(
     state: WebViewState,
     modifier: Modifier = Modifier,
     controller: WebViewController = rememberWebViewController(),
-    javascriptInterfaces: Map<String, Any> = emptyMap(),
+    javaScriptInterfaces: Map<String, Any> = emptyMap(),
     jsBridge: WebViewJsBridge? = null,
     // ... other parameters same as above
 )
@@ -661,10 +661,28 @@ Check out the sample app in the `app` module for complete working examples:
 
 ### Features Demonstrated
 
-1. **Basic Browser** (`BrowserScreen`)
-   - URL input and navigation
-   - Loading progress indicator
-   - Back/Forward navigation
+The sample app showcases the library's capabilities with a modern, beautiful UI:
+
+1. **Basic Browser** (`BasicBrowserScreen`)
+    - Standard WebView with navigation controls (Back, Forward, Reload).
+    - URL input field with loading progress indicator.
+
+2. **Transient vs Saved State** (`TransientBrowserScreen`)
+    - Demonstrates the difference between `rememberWebViewState` (transient) and `rememberSaveableWebViewState` (persisted).
+    - Rotate the device to see the transient state reset while the saved state persists.
+
+3. **HTML & JS Interaction** (`HtmlJsScreen`)
+    - **Bi-directional Communication**: Send data from Kotlin to JS and vice-versa.
+    - **Command Center**: Trigger Native events from UI and see JS logs in real-time.
+    - **Promise-based API**: Call Native functions from JS using `await`.
+
+4. **Fullscreen Video** (`FullscreenVideoScreen`)
+    - Native fullscreen video support (e.g., YouTube).
+    - Handles orientation changes and UI overlay automatically.
+
+5. **Custom Client** (`CustomClientScreen`)
+    - Configure WebView settings (JS, DOM Storage, Zoom) dynamically.
+    - Inject custom `WebViewClient` to intercept URLs (e.g., blocking specific domains).
 
 ### Running the Sample App
 
@@ -678,7 +696,7 @@ Or open the project in Android Studio and run the `app` module.
 
 We welcome contributions from the community! Whether it's reporting bugs, suggesting features, improving docs, or submitting code.
 
-### Quick Start
+### Contributing Quick Start
 
 1. Fork the repository
 2. Create your branch (`git checkout -b your-branch-name`)

@@ -1,12 +1,8 @@
 package com.parkwoocheol.composewebview
 
-import org.w3c.dom.HTMLElement
+import kotlinx.browser.window
 import org.w3c.dom.HTMLIFrameElement
 import org.w3c.dom.MessageEvent
-import kotlinx.browser.window
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 
 actual class WebView(val iframe: HTMLIFrameElement) {
     var bridge: NativeWebBridge? = null
@@ -14,6 +10,7 @@ actual class WebView(val iframe: HTMLIFrameElement) {
 
 actual typealias PlatformBitmap = Any // Placeholder
 actual typealias PlatformBundle = Any
+
 actual fun createPlatformBundle(): PlatformBundle = Any()
 
 // actual typealias PlatformCustomView = HTMLElement
@@ -26,6 +23,7 @@ actual class PlatformCustomViewCallback {
 }
 
 actual class PlatformWebResourceError
+
 actual class PlatformWebResourceRequest {
     actual val url: String = ""
     actual val method: String = "GET"
@@ -34,6 +32,7 @@ actual class PlatformWebResourceRequest {
 }
 
 actual fun WebView.platformSaveState(bundle: PlatformBundle): Any? = null
+
 actual fun WebView.platformRestoreState(bundle: PlatformBundle): Any? = null
 
 actual fun WebView.platformGoBack() {
@@ -43,6 +42,7 @@ actual fun WebView.platformGoBack() {
         println("Web: goBack failed (CORS?): ${e.message}")
     }
 }
+
 actual fun WebView.platformGoForward() {
     try {
         iframe.contentWindow?.history?.forward()
@@ -50,6 +50,7 @@ actual fun WebView.platformGoForward() {
         println("Web: goForward failed (CORS?): ${e.message}")
     }
 }
+
 actual fun WebView.platformReload() {
     try {
         iframe.contentWindow?.location?.reload()
@@ -57,6 +58,7 @@ actual fun WebView.platformReload() {
         println("Web: reload failed (CORS?): ${e.message}")
     }
 }
+
 actual fun WebView.platformStopLoading() {
     try {
         iframe.contentWindow?.stop()
@@ -64,19 +66,28 @@ actual fun WebView.platformStopLoading() {
         println("Web: stopLoading failed (CORS?): ${e.message}")
     }
 }
-actual fun WebView.platformLoadUrl(url: String, additionalHttpHeaders: Map<String, String>) {
+
+actual fun WebView.platformLoadUrl(
+    url: String,
+    additionalHttpHeaders: Map<String, String>,
+) {
     iframe.src = url
 }
+
 actual fun WebView.platformLoadDataWithBaseURL(
     baseUrl: String?,
     data: String,
     mimeType: String?,
     encoding: String?,
-    historyUrl: String?
+    historyUrl: String?,
 ) {
     // src = "data:${mimeType ?: "text/html"};charset=${encoding ?: "utf-8"},$data"
 }
-actual fun WebView.platformPostUrl(url: String, postData: ByteArray) {
+
+actual fun WebView.platformPostUrl(
+    url: String,
+    postData: ByteArray,
+) {
     // Create a form, add data, submit, remove form
     val form = kotlinx.browser.document.createElement("form") as org.w3c.dom.HTMLFormElement
     form.method = "POST"
@@ -87,7 +98,8 @@ actual fun WebView.platformPostUrl(url: String, postData: ByteArray) {
     // Real binary posting in JS via form is tricky without Blob/FormData and fetch.
     // For a WebView wrapper, we might just try to send it as a hidden field if it's form data.
     // However, standard WebView postUrl sends raw body.
-    // JS iframe cannot easily do raw body POST navigation programmatically without fetch+Blob+URL.createObjectURL (which might not work for navigation in all cases) or a form.
+    // JS iframe cannot easily do raw body POST navigation programmatically without fetch+Blob+URL.createObjectURL
+    // (which might not work for navigation in all cases) or a form.
     // We will use a simplified approach: assume it's form data or just ignore for now if too complex for this scope.
     // Better approach: Use fetch to post, then navigate with result? No, that's not navigation.
     // Let's stick to a basic implementation or leave a comment if it's too complex.
@@ -95,7 +107,10 @@ actual fun WebView.platformPostUrl(url: String, postData: ByteArray) {
     println("platformPostUrl not fully supported on JS target yet")
 }
 
-actual fun WebView.platformEvaluateJavascript(script: String, callback: ((String) -> Unit)?) {
+actual fun WebView.platformEvaluateJavascript(
+    script: String,
+    callback: ((String) -> Unit)?,
+) {
     try {
         // contentWindow.eval is restricted in many cases.
         // We can try to inject a script tag or use eval if same-origin.
@@ -108,20 +123,23 @@ actual fun WebView.platformEvaluateJavascript(script: String, callback: ((String
     }
 }
 
-actual fun WebView.platformAddJavascriptInterface(obj: Any, name: String) {
+actual fun WebView.platformAddJavascriptInterface(
+    obj: Any,
+    name: String,
+) {
     if (obj is NativeWebBridge) {
         this.bridge = obj
-        
+
         // 1. Setup Message Listener on Parent Window
         window.addEventListener("message", { event ->
             val messageEvent = event as MessageEvent
             // Verify source is our iframe (optional but good practice)
             // if (messageEvent.source != iframe.contentWindow) return@addEventListener
-            
+
             val data = messageEvent.data
-            // We expect data to be a JSON string or object. 
+            // We expect data to be a JSON string or object.
             // If it's from our polyfill, it should be an object: { type: 'jsBridgeCall', ... }
-            
+
             // In Kotlin JS, data is Any?. We need to cast or check properties dynamically.
             // Using dynamic for simplicity
             val d = data.asDynamic()
@@ -129,14 +147,15 @@ actual fun WebView.platformAddJavascriptInterface(obj: Any, name: String) {
                 val method = d.method as String
                 val dataStr = d.data as? String
                 val callbackId = d.callbackId as? String
-                
+
                 obj.call(method, dataStr, callbackId)
             }
         })
-        
+
         // 2. Inject Polyfill Script
         // This script adapts window.AppBridgeNative.call(...) to window.parent.postMessage(...)
-        val polyfill = """
+        val polyfill =
+            """
             window.$name = {
                 call: function(method, data, callbackId) {
                     window.parent.postMessage({
@@ -147,8 +166,8 @@ actual fun WebView.platformAddJavascriptInterface(obj: Any, name: String) {
                     }, '*');
                 }
             };
-        """.trimIndent()
-        
+            """.trimIndent()
+
         this.platformEvaluateJavascript(polyfill, null)
     }
 }
@@ -210,11 +229,17 @@ actual fun WebView.platformPageDown(bottom: Boolean): Boolean {
     return false
 }
 
-actual fun WebView.platformScrollTo(x: Int, y: Int) {
+actual fun WebView.platformScrollTo(
+    x: Int,
+    y: Int,
+) {
     iframe.contentWindow?.scrollTo(x.toDouble(), y.toDouble())
 }
 
-actual fun WebView.platformScrollBy(x: Int, y: Int) {
+actual fun WebView.platformScrollBy(
+    x: Int,
+    y: Int,
+) {
     iframe.contentWindow?.scrollBy(x.toDouble(), y.toDouble())
 }
 
@@ -222,5 +247,32 @@ actual fun WebView.platformSaveWebArchive(filename: String) {
     // Not supported
 }
 
-actual typealias ComposeWebViewClient = com.parkwoocheol.composewebview.client.ComposeWebViewClient
-actual typealias ComposeWebChromeClient = com.parkwoocheol.composewebview.client.ComposeWebChromeClient
+actual var WebView.platformJavaScriptEnabled: Boolean
+    get() = true
+    set(value) {
+        // JS is always enabled in browser
+    }
+
+actual var WebView.platformDomStorageEnabled: Boolean
+    get() = true
+    set(value) {
+        // DOM storage is available in browser
+    }
+
+actual var WebView.platformSupportZoom: Boolean
+    get() = false
+    set(value) {
+        // Browser handles zoom
+    }
+
+actual var WebView.platformBuiltInZoomControls: Boolean
+    get() = false
+    set(value) {
+        // Browser handles zoom
+    }
+
+actual var WebView.platformDisplayZoomControls: Boolean
+    get() = false
+    set(value) {
+        // Browser handles zoom
+    }

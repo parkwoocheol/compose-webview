@@ -11,12 +11,43 @@ actual open class ComposeWebViewClient {
     actual open var webViewState: WebViewState? = null
     actual open var webViewController: WebViewController? = null
 
-    actual open fun onPageStarted(view: WebView?, url: String?, favicon: PlatformBitmap?) {}
-    actual open fun onPageFinished(view: WebView?, url: String?) {}
-    actual open fun onReceivedError(view: WebView?, request: PlatformWebResourceRequest?, error: PlatformWebResourceError?) {}
-    actual open fun shouldOverrideUrlLoading(view: WebView?, request: PlatformWebResourceRequest?): Boolean = false
+    actual open fun onPageStarted(
+        view: WebView?,
+        url: String?,
+        favicon: PlatformBitmap?,
+    ) {
+        webViewState?.loadingState = com.parkwoocheol.composewebview.LoadingState.Loading(0.0f)
+        webViewState?.lastLoadedUrl = url
+    }
+
+    actual open fun onPageFinished(
+        view: WebView?,
+        url: String?,
+    ) {
+        webViewState?.loadingState = com.parkwoocheol.composewebview.LoadingState.Finished
+        view?.let {
+            webViewController?.canGoBack = it.browser.canGoBack()
+            webViewController?.canGoForward = it.browser.canGoForward()
+        }
+    }
+
+    actual open fun onReceivedError(
+        view: WebView?,
+        request: PlatformWebResourceRequest?,
+        error: PlatformWebResourceError?,
+    ) {
+        // TODO: Map KCEF errors to WebViewError
+    }
+
+    actual open fun shouldOverrideUrlLoading(
+        view: WebView?,
+        request: PlatformWebResourceRequest?,
+    ): Boolean = false
 }
 
 actual open class ComposeWebChromeClient {
-    actual open fun onProgressChanged(view: WebView?, newProgress: Int) {}
+    actual open fun onProgressChanged(
+        view: WebView?,
+        newProgress: Int,
+    ) {}
 }

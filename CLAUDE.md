@@ -4,169 +4,143 @@ This document helps Claude AI (and other AI assistants) understand and work with
 
 ## Project Overview
 
-**ComposeWebView** is a Jetpack Compose library that provides a powerful WebView wrapper with:
+**ComposeWebView** is a **Compose Multiplatform** library that provides a powerful WebView wrapper for:
+
+- **Android** (System WebView)
+- **iOS** (WKWebView)
+- **Desktop** (CEF via KCEF)
+- **Web** (IFrame)
+
+**Key Features**:
+
 - Type-safe JavaScript ↔ Kotlin bridge (JSBridge)
 - Reactive state management
 - Lifecycle handling
 - Custom view support (fullscreen videos, etc.)
-
-**Target**: Android developers using Jetpack Compose
+- **Cross-platform support**
 
 ## Project Structure
 
-```
+```text
 compose-webview/
 ├── compose-webview/          # Main library module
-│   └── src/main/kotlin/com/parkwoocheol/composewebview/
-│       ├── ComposeWebView.kt        # Main composable, two overloads (url/state)
-│       ├── WebViewState.kt          # State holder (loadingState, errors, etc.)
-│       ├── WebViewController.kt     # Navigation controller (20+ utility methods)
-│       ├── WebViewJsBridge.kt       # JS↔Kotlin bridge with serialization
-│       ├── WebContent.kt            # Sealed class for content types
-│       ├── WebViewError.kt          # Error data classes
-│       ├── BridgeSerializer.kt      # Interface for custom serializers
-│       └── client/
-│           ├── ComposeWebViewClient.kt
-│           └── ComposeWebChromeClient.kt
-├── app/                      # Sample app with 4 demo screens
-│   └── src/main/kotlin/.../MainActivity.kt
-│       ├── BrowserScreen         # Full browser with URL bar
-│       ├── HtmlJsScreen          # JSBridge demo
-│       ├── VideoScreen           # Fullscreen video
-│       └── CustomClientScreen    # URL blocking example
+│   ├── src/
+│   │   ├── commonMain/kotlin/com/parkwoocheol/composewebview/
+│   │   │   ├── ComposeWebView.kt        # Main composable
+│   │   │   ├── WebViewPlatform.kt       # Expect/Actual definitions
+│   │   │   ├── WebViewState.kt          # State holder
+│   │   │   ├── WebViewController.kt     # Navigation controller
+│   │   │   ├── WebViewJsBridge.kt       # JS↔Kotlin bridge
+│   │   │   └── client/                  # WebViewClient/ChromeClient
+│   │   ├── androidMain/      # Android implementation
+│   │   ├── desktopMain/      # Desktop implementation (KCEF)
+│   │   ├── iosMain/          # iOS implementation (WKWebView)
+│   │   └── jsMain/           # Web implementation (IFrame)
+├── app/                      # Sample app (Multiplatform)
+│   ├── src/
+│   │   ├── commonMain/       # Shared UI code
+│   │   ├── androidMain/
+│   │   ├── desktopMain/
+│   │   └── iosMain/
 ├── README.md                 # User-facing documentation
-├── CONTRIBUTING.md           # Contributor guide (casual tone)
-├── CODE_OF_CONDUCT.md        # Community guidelines
-└── DEPLOYMENT.md             # GitHub Packages deployment guide (Korean)
+├── CLAUDE.md                 # AI Assistant guide
+└── build.gradle.kts          # Root build script
 ```
 
 ## Key Concepts
 
-### 1. Two ComposeWebView Overloads
+### 1. Multiplatform Architecture
+
+- **Common API**: Defined in `commonMain` (e.g., `ComposeWebView`, `WebViewState`).
+- **Platform Implementation**: Uses `expect`/`actual` pattern in `WebViewPlatform.kt`.
+- **Desktop (CEF)**: Uses `dev.datlag:kcef` to embed Chromium. Requires `JogAmp` maven repository.
+- **iOS**: Uses `WKWebView` with `UIKitView`.
+- **Web**: Uses `HTMLIFrameElement` with `HtmlView`.
+
+### 2. Two ComposeWebView Overloads
 
 **Simple (URL-based):**
+
 ```kotlin
 ComposeWebView(url = "https://example.com")
 ```
 
 **Advanced (State-based):**
+
 ```kotlin
 val state = rememberWebViewState(url = "...")
 val controller = rememberWebViewController()
 ComposeWebView(state = state, controller = controller)
 ```
 
-### 2. JSBridge
+### 3. JSBridge
 
-Uses **optional** kotlinx-serialization by default, but supports custom serializers (Gson, Moshi).
+Uses **optional** kotlinx-serialization by default, but supports custom serializers.
 
 **Key features:**
+
 - Type-safe: `bridge.register<Input, Output>("name") { ... }`
 - Promise-based JavaScript API: `window.AppBridge.call('name', data)`
 - Event emission: `bridge.emit("event", data)`
-- Custom serializer support via `BridgeSerializer` interface
 
-### 3. State Management
+### 4. State Management
 
 `WebViewState` tracks:
+
 - `loadingState: LoadingState` (Idle/Loading/Finished)
 - `lastLoadedUrl: String?`
 - `errorsForCurrentRequest: List<WebViewError>`
-- `pageTitle`, `pageIcon`, `jsDialogState`, `customViewState`
-
-### 4. Controller
-
-`WebViewController` provides 20+ methods:
-- Navigation: `loadUrl()`, `navigateBack()`, `reload()`
-- Content: `loadHtml()`, `postUrl()`
-- Utilities: `zoomIn()`, `clearCache()`, `findAllAsync()`, etc.
+- `pageTitle`, `pageIcon`
 
 ## Common Tasks
 
 ### Adding a New Feature
 
-1. Check existing code in relevant files (use symbolic tools)
-2. Match existing patterns (KDoc, naming, Composable guidelines)
-3. Update README if it's a public API change
-4. Test with sample app
+1. **Define in Common**: Add `expect` function/property in `WebViewPlatform.kt`.
+2. **Implement in Platforms**: Add `actual` implementation in `androidMain`, `desktopMain`, `iosMain`, `jsMain`.
+3. **Update API**: Add public API in `WebViewController` or `WebViewState` if needed.
+4. **Test**: Verify on all platforms using the sample app.
 
 ### Modifying JSBridge
 
 - Core logic: `WebViewJsBridge.kt`
-- Serialization: `BridgeSerializer.kt` (interface) + default impl in WebViewJsBridge
+- Serialization: `BridgeSerializer.kt`
 - Injection: `ComposeWebView.kt` (injects JS script on page load)
-
-### Updating Documentation
-
-- **README.md**: User-facing, comprehensive examples
-- **KDoc**: All public APIs need documentation
-- **Sample app**: Add demo if feature is visual/interactive
 
 ## Code Style
 
-- **Kotlin conventions**: PascalCase classes, camelCase functions
-- **Indentation**: 4 spaces
-- **Composables**: Uppercase start, `Modifier` as last param with default
-- **State**: Prefer immutable, use `remember`/`LaunchedEffect` appropriately
+- **Kotlin conventions**: PascalCase classes, camelCase functions.
+- **Spotless**: Run `./gradlew :spotlessApply` before committing.
+- **Composables**: Uppercase start, `Modifier` as last param.
 
 ## Important Notes
 
 ### Dependencies
 
-- **kotlinx-serialization is OPTIONAL** - only needed if using default serializer
-- Users can provide custom `BridgeSerializer` for Gson/Moshi
-
-### Overloads
-
-`ComposeWebView` has TWO overloads:
-1. Simple: Takes `url: String` directly
-2. Advanced: Takes `state: WebViewState` + optional `jsBridge`
-
-Don't confuse them when suggesting code!
+- **KCEF**: Used for Desktop. Requires `maven("https://jogamp.org/deployment/maven")` in `build.gradle.kts`.
+- **kotlinx-serialization**: Optional.
 
 ### Sample App
 
-Located in `app/` module, demonstrates 4 key use cases:
-- Basic browser (URL bar, navigation, loading)
-- JSBridge (bidirectional communication)
-- Fullscreen video (custom view handling)
-- Custom client (URL blocking)
+Demonstrates 4 key use cases across platforms:
+
+- Basic browser
+- JSBridge
+- Fullscreen video
+- Custom client
 
 ### Deployment
 
-Uses GitHub Packages (see DEPLOYMENT.md - Korean)
+Uses GitHub Packages. See `DEPLOYMENT.md`.
 
 ## When Working on This Project
 
-1. **Read before writing**: Always check existing implementations
-2. **Use symbolic tools**: Don't read entire files unnecessarily
-3. **Match existing patterns**: Consistency is key
-4. **Keep it simple**: Don't over-engineer
-5. **Test with sample app**: Verify changes work
-
-## File Reading Strategy
-
-1. Start with `get_symbols_overview` for new files
-2. Use `find_symbol` with `include_body=true` for specific symbols
-3. Only read full files when absolutely necessary
-4. Use `find_referencing_symbols` to understand symbol usage
-
-## Questions to Ask
-
-Before making changes:
-- Is this consistent with existing patterns?
-- Does this need documentation updates?
-- Should this be demonstrated in the sample app?
-- Is this a breaking change?
-
-## Tone & Communication
-
-- **Documentation**: Clear, concise, example-driven
-- **Comments**: Explain "why", not "what"
-- **CONTRIBUTING.md**: Casual, friendly, not overly formal
-- **README.md**: Professional but approachable
+1. **Think Multiplatform**: Always consider how a change affects Android, iOS, Desktop, and Web.
+2. **Check `expect`/`actual`**: Ensure all platforms are implemented.
+3. **Run Spotless**: `./gradlew :spotlessApply` is mandatory.
+4. **Test Locally**: Verify builds and tests (`./gradlew :compose-webview:allTests`).
 
 ---
 
-**Last Updated**: 2025-12-01
+**Last Updated**: 2025-12-09
 **Maintainer**: parkwoocheol

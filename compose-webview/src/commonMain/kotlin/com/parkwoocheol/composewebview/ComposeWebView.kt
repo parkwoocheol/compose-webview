@@ -16,7 +16,7 @@ import com.parkwoocheol.composewebview.client.ComposeWebViewClient
  * @param url The URL to load.
  * @param modifier The modifier to be applied to the layout.
  * @param controller The controller to control the WebView (load, back, forward, post, evaluateJS, etc.).
- * @param javascriptInterfaces A map of interface objects to inject into JavaScript. Key is the name, Value is the object.
+ * @param javaScriptInterfaces A map of interface objects to inject into JavaScript. Key is the name, Value is the object.
  * @param onCreated Called when the WebView is created. Use this to configure settings.
  * @param onDispose Called when the WebView is disposed.
  * @param client The [ComposeWebViewClient] to be used.
@@ -28,6 +28,8 @@ import com.parkwoocheol.composewebview.client.ComposeWebViewClient
  * @param jsConfirmContent A composable that is displayed when the WebView requests a JS Confirm.
  * @param jsPromptContent A composable that is displayed when the WebView requests a JS Prompt.
  * @param customViewContent A composable that is displayed when the WebView requests a custom view (e.g. fullscreen video).
+ *                          This is platform-agnostic, but the implementation of the view itself might be platform-specific.
+ *                          See [CustomViewState] for details.
  * @param onPageStarted Callback for [ComposeWebViewClient.onPageStarted].
  * @param onPageFinished Callback for [ComposeWebViewClient.onPageFinished].
  * @param onReceivedError Callback for [ComposeWebViewClient.onReceivedError].
@@ -40,7 +42,7 @@ expect fun ComposeWebView(
     url: String,
     modifier: Modifier = Modifier,
     controller: WebViewController = rememberWebViewController(),
-    javascriptInterfaces: Map<String, Any> = emptyMap(),
+    javaScriptInterfaces: Map<String, Any> = emptyMap(),
     onCreated: (WebView) -> Unit = {},
     onDispose: (WebView) -> Unit = {},
     client: ComposeWebViewClient = remember { ComposeWebViewClient() },
@@ -55,10 +57,9 @@ expect fun ComposeWebView(
     onPageStarted: (WebView, String?, PlatformBitmap?) -> Unit = { _, _, _ -> },
     onPageFinished: (WebView, String?) -> Unit = { _, _ -> },
     onReceivedError: (WebView, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit = { _, _, _ -> },
-
     onProgressChanged: (WebView, Int) -> Unit = { _, _ -> },
     onDownloadStart: ((String, String, String, String, Long) -> Unit)? = null,
-    onFindResultReceived: ((Int, Int, Boolean) -> Unit)? = null
+    onFindResultReceived: ((Int, Int, Boolean) -> Unit)? = null,
 )
 
 /**
@@ -71,7 +72,7 @@ expect fun ComposeWebView(
  * @param state The state of the WebView, observing loading, title, etc.
  * @param modifier The modifier to be applied to the layout.
  * @param controller The controller to control the WebView (load, back, forward, post, evaluateJS, etc.).
- * @param javascriptInterfaces A map of interface objects to inject into JavaScript. Key is the name, Value is the object.
+ * @param javaScriptInterfaces A map of interface objects to inject into JavaScript. Key is the name, Value is the object.
  * @param onCreated Called when the WebView is created. Use this to configure settings.
  * @param onDispose Called when the WebView is disposed.
  * @param client The [ComposeWebViewClient] to be used.
@@ -96,7 +97,7 @@ expect fun ComposeWebView(
     state: WebViewState,
     modifier: Modifier = Modifier,
     controller: WebViewController = rememberWebViewController(),
-    javascriptInterfaces: Map<String, Any> = emptyMap(),
+    javaScriptInterfaces: Map<String, Any> = emptyMap(),
     onCreated: (WebView) -> Unit = {},
     onDispose: (WebView) -> Unit = {},
     client: ComposeWebViewClient = remember { ComposeWebViewClient() },
@@ -112,8 +113,7 @@ expect fun ComposeWebView(
     onPageStarted: (WebView, String?, PlatformBitmap?) -> Unit = { _, _, _ -> },
     onPageFinished: (WebView, String?) -> Unit = { _, _ -> },
     onReceivedError: (WebView, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit = { _, _, _ -> },
-
     onProgressChanged: (WebView, Int) -> Unit = { _, _ -> },
     onDownloadStart: ((String, String, String, String, Long) -> Unit)? = null,
-    onFindResultReceived: ((Int, Int, Boolean) -> Unit)? = null
+    onFindResultReceived: ((Int, Int, Boolean) -> Unit)? = null,
 )

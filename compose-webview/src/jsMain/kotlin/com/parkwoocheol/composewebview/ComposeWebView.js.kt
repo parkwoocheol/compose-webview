@@ -6,18 +6,20 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import com.parkwoocheol.composewebview.client.ComposeWebChromeClient
 import com.parkwoocheol.composewebview.client.ComposeWebViewClient
-import org.jetbrains.compose.web.css.*
-import org.jetbrains.compose.web.dom.*
-import org.jetbrains.compose.web.attributes.*
+import org.jetbrains.compose.web.css.border
+import org.jetbrains.compose.web.css.height
+import org.jetbrains.compose.web.css.percent
+import org.jetbrains.compose.web.css.px
+import org.jetbrains.compose.web.css.width
+import org.jetbrains.compose.web.dom.Iframe
 import org.w3c.dom.HTMLIFrameElement
-import com.parkwoocheol.composewebview.LoadingState
 
 @Composable
 actual fun ComposeWebView(
     url: String,
     modifier: Modifier,
     controller: WebViewController,
-    javascriptInterfaces: Map<String, Any>,
+    javaScriptInterfaces: Map<String, Any>,
     onCreated: (WebView) -> Unit,
     onDispose: (WebView) -> Unit,
     client: ComposeWebViewClient,
@@ -34,13 +36,13 @@ actual fun ComposeWebView(
     onReceivedError: (WebView, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit,
     onProgressChanged: (WebView, Int) -> Unit,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
-    onFindResultReceived: ((Int, Int, Boolean) -> Unit)?
+    onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
 ) {
     // Use Iframe from org.jetbrains.compose.web.dom
     // Note: This works best when using Compose HTML (DOM).
     // If using Compose Multiplatform (Canvas), this might not render correctly without an overlay.
     // But this is the standard way to access DOM elements in KMP Web.
-    
+
     org.jetbrains.compose.web.dom.Iframe(
         attrs = {
             attr("src", url)
@@ -53,7 +55,7 @@ actual fun ComposeWebView(
                 onCreated(WebView(it as HTMLIFrameElement))
                 onDispose { onDispose(WebView(it as HTMLIFrameElement)) }
             }
-        }
+        },
     )
 }
 
@@ -62,7 +64,7 @@ actual fun ComposeWebView(
     state: WebViewState,
     modifier: Modifier,
     controller: WebViewController,
-    javascriptInterfaces: Map<String, Any>,
+    javaScriptInterfaces: Map<String, Any>,
     onCreated: (WebView) -> Unit,
     onDispose: (WebView) -> Unit,
     client: ComposeWebViewClient,
@@ -80,7 +82,7 @@ actual fun ComposeWebView(
     onReceivedError: (WebView, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit,
     onProgressChanged: (WebView, Int) -> Unit,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
-    onFindResultReceived: ((Int, Int, Boolean) -> Unit)?
+    onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
 ) {
     LaunchedEffect(state) {
         snapshotFlow { state.content }.collect { content ->
@@ -109,12 +111,12 @@ actual fun ComposeWebView(
             ref {
                 val webView = WebView(it as HTMLIFrameElement)
                 state.webView = webView
-                
+
                 // Attach JSBridge
                 jsBridge?.attach(webView)
-                
+
                 onCreated(webView)
-                
+
                 // Handle Load Events
                 it.onload = { _ ->
                     state.loadingState = LoadingState.Finished
@@ -123,12 +125,12 @@ actual fun ComposeWebView(
                         webView.platformEvaluateJavascript(bridge.jsScript, null)
                     }
                 }
-                
-                onDispose { 
+
+                onDispose {
                     onDispose(webView)
                     state.webView = null
                 }
             }
-        }
+        },
     )
 }

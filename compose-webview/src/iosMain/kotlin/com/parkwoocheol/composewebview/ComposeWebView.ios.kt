@@ -17,7 +17,7 @@ actual fun ComposeWebView(
     url: String,
     modifier: Modifier,
     controller: WebViewController,
-    javascriptInterfaces: Map<String, Any>,
+    javaScriptInterfaces: Map<String, Any>,
     onCreated: (WebView) -> Unit,
     onDispose: (WebView) -> Unit,
     client: ComposeWebViewClient,
@@ -32,17 +32,16 @@ actual fun ComposeWebView(
     onPageStarted: (WebView, String?, PlatformBitmap?) -> Unit,
     onPageFinished: (WebView, String?) -> Unit,
     onReceivedError: (WebView, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit,
-
     onProgressChanged: (WebView, Int) -> Unit,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
-    onFindResultReceived: ((Int, Int, Boolean) -> Unit)?
+    onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
 ) {
     val state = rememberSaveableWebViewState(url = url)
     ComposeWebView(
         state = state,
         modifier = modifier,
         controller = controller,
-        javascriptInterfaces = javascriptInterfaces,
+        javaScriptInterfaces = javaScriptInterfaces,
         onCreated = onCreated,
         onDispose = onDispose,
         client = client,
@@ -59,7 +58,7 @@ actual fun ComposeWebView(
         onReceivedError = onReceivedError,
         onProgressChanged = onProgressChanged,
         onDownloadStart = onDownloadStart,
-        onFindResultReceived = onFindResultReceived
+        onFindResultReceived = onFindResultReceived,
     )
 }
 
@@ -69,7 +68,7 @@ actual fun ComposeWebView(
     state: WebViewState,
     modifier: Modifier,
     controller: WebViewController,
-    javascriptInterfaces: Map<String, Any>,
+    javaScriptInterfaces: Map<String, Any>,
     onCreated: (WebView) -> Unit,
     onDispose: (WebView) -> Unit,
     client: ComposeWebViewClient,
@@ -85,35 +84,35 @@ actual fun ComposeWebView(
     onPageStarted: (WebView, String?, PlatformBitmap?) -> Unit,
     onPageFinished: (WebView, String?) -> Unit,
     onReceivedError: (WebView, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit,
-
     onProgressChanged: (WebView, Int) -> Unit,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
-    onFindResultReceived: ((Int, Int, Boolean) -> Unit)?
+    onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
 ) {
-    val webView = state.webView ?: remember {
-        val config = WKWebViewConfiguration()
-        WKWebView(frame = platform.CoreGraphics.CGRectMake(0.0, 0.0, 0.0, 0.0), configuration = config).apply {
-            allowsBackForwardNavigationGestures = true
-        }
-    }.also { state.webView = it }
+    val webView =
+        state.webView ?: remember {
+            val config = WKWebViewConfiguration()
+            WKWebView(frame = platform.CoreGraphics.CGRectMake(0.0, 0.0, 0.0, 0.0), configuration = config).apply {
+                allowsBackForwardNavigationGestures = true
+            }
+        }.also { state.webView = it }
 
     // Connect controller
     // In Android implementation, this is done via LaunchedEffect
     // We need to replicate that logic here or in commonMain if possible.
     // But WebViewController logic is in commonMain now, but the connection logic was in ComposeWebView.kt (Android).
     // Let's check ComposeWebView.android.kt to see how it connects.
-    
+
     // It calls:
     // LaunchedEffect(webView, navigator) {
     //     with(navigator) { webView.handleNavigationEvents() }
     // }
-    
+
     // We should do the same here.
-    
+
     androidx.compose.runtime.LaunchedEffect(webView, controller) {
         controller.handleNavigationEvents(webView)
     }
-    
+
     // Load URL if needed
     androidx.compose.runtime.LaunchedEffect(state.lastLoadedUrl) {
         state.lastLoadedUrl?.let { url ->
@@ -138,6 +137,6 @@ actual fun ComposeWebView(
         modifier = modifier,
         onRelease = {
             onDispose(webView)
-        }
+        },
     )
 }

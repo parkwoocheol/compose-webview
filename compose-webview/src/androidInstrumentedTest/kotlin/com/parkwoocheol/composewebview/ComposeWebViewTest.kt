@@ -1,7 +1,6 @@
 package com.parkwoocheol.composewebview
 
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Rule
 import org.junit.Test
@@ -9,7 +8,6 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class ComposeWebViewTest {
-
     @get:Rule
     val composeTestRule = createComposeRule()
 
@@ -22,7 +20,7 @@ class ComposeWebViewTest {
                 state = state,
                 onCreated = {
                     it.settings.javaScriptEnabled = true
-                }
+                },
             )
         }
 
