@@ -58,7 +58,7 @@ jobs:
         run: ./gradlew :compose-webview:assembleDebug
         
       - name: Build Desktop
-        run: ./gradlew :compose-webview:jvmJar
+        run: ./gradlew :compose-webview:compileKotlinDesktop
         
       - name: Build Web (JS)
         run: ./gradlew :compose-webview:jsBrowserDistribution
@@ -81,4 +81,4 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
       
       - name: Build iOS Framework
-        run: ./gradlew :compose-webview:linkDebugFrameworkIosSimulatorArm64
+        run: ./gradlew :compose-webview:linkIosSimulatorArm64
