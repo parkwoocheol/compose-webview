@@ -91,3 +91,4 @@ debug.log
 
 # MkDocs
 site/
+!.agent/

@@ -1,0 +1,1 @@
+../../.agent/knowledge/architecture.md
