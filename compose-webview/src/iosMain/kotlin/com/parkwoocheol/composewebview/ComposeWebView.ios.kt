@@ -130,19 +130,42 @@ internal actual fun ComposeWebViewImpl(
     val delegate = remember(client) { ComposeWebViewDelegate(client) }
     val uiDelegate = remember(state) { ComposeWebViewUIDelegate(state) }
 
-    UIKitView(
-        factory = {
-            val cvClient = client as ComposeWebViewClient
-            cvClient.webViewState = state
-            cvClient.webViewController = controller
-            webView.navigationDelegate = delegate
-            webView.UIDelegate = uiDelegate
-            onCreated(webView)
-            webView
-        },
-        modifier = modifier,
-        onRelease = {
-            onDispose(webView)
-        },
-    )
+    // Use a Box to overlay loading/error/dialogs on top of the WebView
+    androidx.compose.foundation.layout.Box(modifier = modifier) {
+        UIKitView(
+            factory = {
+                val cvClient = client as ComposeWebViewClient
+                cvClient.webViewState = state
+                cvClient.webViewController = controller
+                webView.navigationDelegate = delegate
+                webView.UIDelegate = uiDelegate
+                onCreated(webView)
+                webView
+            },
+            modifier = androidx.compose.ui.Modifier.matchParentSize(),
+            onRelease = {
+                onDispose(webView)
+            },
+        )
+
+        if (state.isLoading) {
+            loadingContent()
+        }
+
+        if (state.errorsForCurrentRequest.isNotEmpty()) {
+            errorContent(state.errorsForCurrentRequest)
+        }
+
+        state.jsDialogState?.let { dialogState ->
+            when (dialogState) {
+                is JsDialogState.Alert -> jsAlertContent(dialogState)
+                is JsDialogState.Confirm -> jsConfirmContent(dialogState)
+                is JsDialogState.Prompt -> jsPromptContent(dialogState)
+            }
+        }
+
+        state.customViewState?.let { customView ->
+            customViewContent?.invoke(customView)
+        }
+    }
 }

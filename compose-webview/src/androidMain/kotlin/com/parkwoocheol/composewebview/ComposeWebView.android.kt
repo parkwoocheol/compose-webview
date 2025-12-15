@@ -250,6 +250,9 @@ internal actual fun ComposeWebViewImpl(
                     }
 
                 wv.apply {
+                    // Inject context for DownloadUtils
+                    DownloadUtils.setContext(context.applicationContext)
+
                     webViewClient = client
                     webChromeClient = chromeClient
 
