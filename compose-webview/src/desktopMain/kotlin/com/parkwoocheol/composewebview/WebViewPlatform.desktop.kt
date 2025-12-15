@@ -27,7 +27,9 @@ class DesktopWebView(val browser: KCEFBrowser) : JPanel(BorderLayout()) {
 
 actual typealias WebView = DesktopWebView
 
-actual typealias PlatformBitmap = BufferedImage
+actual abstract class PlatformPermissionRequest
+
+actual typealias PlatformBitmap = java.awt.image.BufferedImage
 actual typealias PlatformBundle = Any
 
 actual fun createPlatformBundle(): PlatformBundle = Any()

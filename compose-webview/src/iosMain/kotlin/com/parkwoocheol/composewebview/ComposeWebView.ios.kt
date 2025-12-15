@@ -7,6 +7,7 @@ import androidx.compose.ui.interop.UIKitView
 import com.parkwoocheol.composewebview.client.ComposeWebChromeClient
 import com.parkwoocheol.composewebview.client.ComposeWebViewClient
 import com.parkwoocheol.composewebview.client.ComposeWebViewDelegate
+import com.parkwoocheol.composewebview.client.ComposeWebViewUIDelegate
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.WebKit.WKWebView
 import platform.WebKit.WKWebViewConfiguration
@@ -35,6 +36,7 @@ internal actual fun ComposeWebViewImpl(
     onProgressChanged: (WebView, Int) -> Unit,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
+    onPermissionRequest: (PlatformPermissionRequest) -> Unit,
 ) {
     val state = rememberSaveableWebViewState(url = url)
     ComposeWebView(
@@ -59,6 +61,7 @@ internal actual fun ComposeWebViewImpl(
         onProgressChanged = onProgressChanged,
         onDownloadStart = onDownloadStart,
         onFindResultReceived = onFindResultReceived,
+        onPermissionRequest = onPermissionRequest,
     )
 }
 
@@ -87,6 +90,7 @@ internal actual fun ComposeWebViewImpl(
     onProgressChanged: (WebView, Int) -> Unit,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
+    onPermissionRequest: (PlatformPermissionRequest) -> Unit,
 ) {
     val webView =
         state.webView ?: remember {
@@ -124,6 +128,7 @@ internal actual fun ComposeWebViewImpl(
     }
 
     val delegate = remember(client) { ComposeWebViewDelegate(client) }
+    val uiDelegate = remember(state) { ComposeWebViewUIDelegate(state) }
 
     UIKitView(
         factory = {
@@ -131,6 +136,7 @@ internal actual fun ComposeWebViewImpl(
             cvClient.webViewState = state
             cvClient.webViewController = controller
             webView.navigationDelegate = delegate
+            webView.UIDelegate = uiDelegate
             onCreated(webView)
             webView
         },

@@ -5,6 +5,8 @@ package com.parkwoocheol.composewebview
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 
+actual typealias PlatformPermissionRequest = android.webkit.PermissionRequest
+
 actual typealias WebView = android.webkit.WebView
 
 actual typealias PlatformBitmap = android.graphics.Bitmap

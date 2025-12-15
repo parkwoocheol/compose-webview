@@ -25,6 +25,8 @@ expect class PlatformWebResourceRequest {
     val isForMainFrame: Boolean
 }
 
+expect abstract class PlatformPermissionRequest
+
 /**
  * Saves the state of the WebView to the given bundle.
  */

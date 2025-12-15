@@ -22,6 +22,9 @@ import platform.WebKit.WKUserScript
 import platform.WebKit.WKUserScriptInjectionTime
 import platform.WebKit.WKWebView
 import platform.darwin.NSObject
+expect fun <T> T.runOnMainThread(block: T.() -> Unit)
+
+actual abstract class PlatformPermissionRequest
 
 actual typealias WebView = WKWebView
 
