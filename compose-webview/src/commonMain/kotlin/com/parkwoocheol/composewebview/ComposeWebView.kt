@@ -60,6 +60,7 @@ fun ComposeWebView(
     onProgressChanged: (WebView, Int) -> Unit = { _, _ -> },
     onDownloadStart: ((String, String, String, String, Long) -> Unit)? = null,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)? = null,
+    onPermissionRequest: (PlatformPermissionRequest) -> Unit = { },
 ) {
     ComposeWebViewImpl(
         url = url,
@@ -83,6 +84,7 @@ fun ComposeWebView(
         onProgressChanged = onProgressChanged,
         onDownloadStart = onDownloadStart,
         onFindResultReceived = onFindResultReceived,
+        onPermissionRequest = onPermissionRequest,
     )
 }
 
@@ -109,6 +111,7 @@ internal expect fun ComposeWebViewImpl(
     onProgressChanged: (WebView, Int) -> Unit,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
+    onPermissionRequest: (PlatformPermissionRequest) -> Unit,
 )
 
 /**
@@ -165,6 +168,7 @@ fun ComposeWebView(
     onProgressChanged: (WebView, Int) -> Unit = { _, _ -> },
     onDownloadStart: ((String, String, String, String, Long) -> Unit)? = null,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)? = null,
+    onPermissionRequest: (PlatformPermissionRequest) -> Unit = { },
 ) {
     ComposeWebViewImpl(
         state = state,
@@ -189,6 +193,7 @@ fun ComposeWebView(
         onProgressChanged = onProgressChanged,
         onDownloadStart = onDownloadStart,
         onFindResultReceived = onFindResultReceived,
+        onPermissionRequest = onPermissionRequest,
     )
 }
 
@@ -216,4 +221,5 @@ internal expect fun ComposeWebViewImpl(
     onProgressChanged: (WebView, Int) -> Unit,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
+    onPermissionRequest: (PlatformPermissionRequest) -> Unit,
 )

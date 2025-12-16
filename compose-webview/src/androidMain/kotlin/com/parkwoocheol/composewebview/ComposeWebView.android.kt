@@ -85,8 +85,13 @@ internal actual fun ComposeWebViewImpl(
     onProgressChanged: (WebView, Int) -> Unit,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
+    onPermissionRequest: (PlatformPermissionRequest) -> Unit,
 ) {
     val state = rememberSaveableWebViewState(url = url)
+
+    // Connect permissions callback
+    chromeClient.onPermissionRequestCallback = onPermissionRequest
+
     ComposeWebView(
         state = state,
         modifier = modifier,
@@ -136,9 +141,13 @@ internal actual fun ComposeWebViewImpl(
     onProgressChanged: (WebView, Int) -> Unit,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
+    onPermissionRequest: (PlatformPermissionRequest) -> Unit,
 ) {
     val webView = state.webView
     val lifecycleOwner = LocalLifecycleOwner.current
+
+    // Connect permissions callback
+    chromeClient.onPermissionRequestCallback = onPermissionRequest
 
     var fileChooserCallback by remember { mutableStateOf<ValueCallback<Array<Uri>>?>(null) }
     val launcher =
@@ -241,6 +250,9 @@ internal actual fun ComposeWebViewImpl(
                     }
 
                 wv.apply {
+                    // Inject context for DownloadUtils
+                    DownloadUtils.setContext(context.applicationContext)
+
                     webViewClient = client
                     webChromeClient = chromeClient
 

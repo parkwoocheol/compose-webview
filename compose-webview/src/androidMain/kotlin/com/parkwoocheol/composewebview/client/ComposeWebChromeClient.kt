@@ -18,6 +18,11 @@ actual open class ComposeWebChromeClient : WebChromeClient() {
     internal var onShowFileChooserCallback: (
         (WebView, android.webkit.ValueCallback<Array<android.net.Uri>>, android.webkit.WebChromeClient.FileChooserParams) -> Boolean
     )? = null
+    internal var onPermissionRequestCallback: ((android.webkit.PermissionRequest) -> Unit)? = null
+
+    override fun onPermissionRequest(request: android.webkit.PermissionRequest) {
+        onPermissionRequestCallback?.invoke(request) ?: super.onPermissionRequest(request)
+    }
 
     actual override fun onProgressChanged(
         view: WebView?,

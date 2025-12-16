@@ -92,6 +92,17 @@ internal class ComposeWebViewDelegate(
         decidePolicyForNavigationAction: WKNavigationAction,
         decisionHandler: (WKNavigationActionPolicy) -> Unit,
     ) {
+        val requestUrl = decidePolicyForNavigationAction.request.URL
+        val scheme = requestUrl?.scheme
+
+        if (scheme != null && !scheme.startsWith("http") && !scheme.startsWith("file")) {
+            if (platform.UIKit.UIApplication.sharedApplication.canOpenURL(requestUrl)) {
+                platform.UIKit.UIApplication.sharedApplication.openURL(requestUrl)
+                decisionHandler(WKNavigationActionPolicy.WKNavigationActionPolicyCancel)
+                return
+            }
+        }
+
         val request =
             PlatformWebResourceRequest(
                 decidePolicyForNavigationAction.request,

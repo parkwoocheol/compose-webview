@@ -23,6 +23,18 @@ import platform.WebKit.WKUserScriptInjectionTime
 import platform.WebKit.WKWebView
 import platform.darwin.NSObject
 
+fun <T> T.runOnMainThread(block: T.() -> Unit) {
+    if (platform.Foundation.NSThread.isMainThread) {
+        block()
+    } else {
+        platform.darwin.dispatch_async(platform.darwin.dispatch_get_main_queue()) {
+            block()
+        }
+    }
+}
+
+actual abstract class PlatformPermissionRequest
+
 actual typealias WebView = WKWebView
 
 actual class PlatformWebResourceError(val impl: NSError)

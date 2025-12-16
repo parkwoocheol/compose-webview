@@ -7,6 +7,7 @@ import androidx.compose.ui.interop.UIKitView
 import com.parkwoocheol.composewebview.client.ComposeWebChromeClient
 import com.parkwoocheol.composewebview.client.ComposeWebViewClient
 import com.parkwoocheol.composewebview.client.ComposeWebViewDelegate
+import com.parkwoocheol.composewebview.client.ComposeWebViewUIDelegate
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.WebKit.WKWebView
 import platform.WebKit.WKWebViewConfiguration
@@ -35,6 +36,7 @@ internal actual fun ComposeWebViewImpl(
     onProgressChanged: (WebView, Int) -> Unit,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
+    onPermissionRequest: (PlatformPermissionRequest) -> Unit,
 ) {
     val state = rememberSaveableWebViewState(url = url)
     ComposeWebView(
@@ -59,6 +61,7 @@ internal actual fun ComposeWebViewImpl(
         onProgressChanged = onProgressChanged,
         onDownloadStart = onDownloadStart,
         onFindResultReceived = onFindResultReceived,
+        onPermissionRequest = onPermissionRequest,
     )
 }
 
@@ -87,6 +90,7 @@ internal actual fun ComposeWebViewImpl(
     onProgressChanged: (WebView, Int) -> Unit,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
+    onPermissionRequest: (PlatformPermissionRequest) -> Unit,
 ) {
     val webView =
         state.webView ?: remember {
@@ -124,19 +128,44 @@ internal actual fun ComposeWebViewImpl(
     }
 
     val delegate = remember(client) { ComposeWebViewDelegate(client) }
+    val uiDelegate = remember(state) { ComposeWebViewUIDelegate(state) }
 
-    UIKitView(
-        factory = {
-            val cvClient = client as ComposeWebViewClient
-            cvClient.webViewState = state
-            cvClient.webViewController = controller
-            webView.navigationDelegate = delegate
-            onCreated(webView)
-            webView
-        },
-        modifier = modifier,
-        onRelease = {
-            onDispose(webView)
-        },
-    )
+    // Use a Box to overlay loading/error/dialogs on top of the WebView
+    androidx.compose.foundation.layout.Box(modifier = modifier) {
+        UIKitView(
+            factory = {
+                val cvClient = client as ComposeWebViewClient
+                cvClient.webViewState = state
+                cvClient.webViewController = controller
+                webView.navigationDelegate = delegate
+                webView.UIDelegate = uiDelegate
+                onCreated(webView)
+                webView
+            },
+            modifier = androidx.compose.ui.Modifier.matchParentSize(),
+            onRelease = {
+                onDispose(webView)
+            },
+        )
+
+        if (state.isLoading) {
+            loadingContent()
+        }
+
+        if (state.errorsForCurrentRequest.isNotEmpty()) {
+            errorContent(state.errorsForCurrentRequest)
+        }
+
+        state.jsDialogState?.let { dialogState ->
+            when (dialogState) {
+                is JsDialogState.Alert -> jsAlertContent(dialogState)
+                is JsDialogState.Confirm -> jsConfirmContent(dialogState)
+                is JsDialogState.Prompt -> jsPromptContent(dialogState)
+            }
+        }
+
+        state.customViewState?.let { customView ->
+            customViewContent?.invoke(customView)
+        }
+    }
 }

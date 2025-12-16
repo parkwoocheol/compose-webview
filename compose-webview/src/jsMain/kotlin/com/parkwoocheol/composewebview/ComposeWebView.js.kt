@@ -37,6 +37,7 @@ internal actual fun ComposeWebViewImpl(
     onProgressChanged: (WebView, Int) -> Unit,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
+    onPermissionRequest: (PlatformPermissionRequest) -> Unit,
 ) {
     // Use Iframe from org.jetbrains.compose.web.dom
     // Note: This works best when using Compose HTML (DOM).
@@ -83,6 +84,7 @@ internal actual fun ComposeWebViewImpl(
     onProgressChanged: (WebView, Int) -> Unit,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
+    onPermissionRequest: (PlatformPermissionRequest) -> Unit,
 ) {
     LaunchedEffect(state) {
         snapshotFlow { state.content }.collect { content ->
