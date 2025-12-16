@@ -24,6 +24,8 @@ actual class PlatformCustomViewCallback {
 
 actual class PlatformWebResourceError
 
+actual abstract class PlatformPermissionRequest
+
 actual class PlatformWebResourceRequest {
     actual val url: String = ""
     actual val method: String = "GET"

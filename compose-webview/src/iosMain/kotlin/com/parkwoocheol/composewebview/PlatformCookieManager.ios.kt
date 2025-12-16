@@ -20,33 +20,34 @@ actual object PlatformCookieManager {
             cookieStore.getAllCookies { cookies ->
                 val nsUrl = platform.Foundation.NSURL.URLWithString(url)
                 val host = nsUrl?.host
-                
-                val platformCookies = (cookies as? List<NSHTTPCookie>)?.mapNotNull { cookie ->
-                    // Basic domain matching:
-                    // If cookie domain is ".google.com", it matches "google.com", "www.google.com"
-                    // If cookie domain is "google.com", it matches "google.com"
-                    // We also accept if specific host is not parsed (return all? or none? Safe to return generic list if URL weak)
-                    // For strictness, if host is present, we filter.
-                    
-                    if (host != null && cookie.domain.isNotEmpty()) {
-                        val domain = cookie.domain
-                        // A simple check: host ends with domain (ignoring leading dot logic nuances for brevity)
-                        // Real logic is more complex (Public Suffix List etc), but this suffices for 90%
-                        val cleanDomain = if (domain.startsWith(".")) domain.substring(1) else domain
-                        if (!host.endsWith(cleanDomain, ignoreCase = true)) {
-                            return@mapNotNull null
-                        }
-                    }
 
-                    PlatformCookie(
-                        name = cookie.name,
-                        value = cookie.value,
-                        domain = cookie.domain,
-                        path = cookie.path,
-                        secure = cookie.isSecure(),
-                        httpOnly = cookie.isHTTPOnly(),
-                    )
-                } ?: emptyList()
+                val platformCookies =
+                    (cookies as? List<NSHTTPCookie>)?.mapNotNull { cookie ->
+                        // Basic domain matching:
+                        // If cookie domain is ".google.com", it matches "google.com", "www.google.com"
+                        // If cookie domain is "google.com", it matches "google.com"
+                        // We also accept if specific host is not parsed (return all? or none? Safe to return generic list if URL weak)
+                        // For strictness, if host is present, we filter.
+
+                        if (host != null && cookie.domain.isNotEmpty()) {
+                            val domain = cookie.domain
+                            // A simple check: host ends with domain (ignoring leading dot logic nuances for brevity)
+                            // Real logic is more complex (Public Suffix List etc), but this suffices for 90%
+                            val cleanDomain = if (domain.startsWith(".")) domain.substring(1) else domain
+                            if (!host.endsWith(cleanDomain, ignoreCase = true)) {
+                                return@mapNotNull null
+                            }
+                        }
+
+                        PlatformCookie(
+                            name = cookie.name,
+                            value = cookie.value,
+                            domain = cookie.domain,
+                            path = cookie.path,
+                            secure = cookie.isSecure(),
+                            httpOnly = cookie.isHTTPOnly(),
+                        )
+                    } ?: emptyList()
 
                 continuation.resume(platformCookies)
             }
@@ -61,7 +62,8 @@ actual object PlatformCookieManager {
             mapOf<Any?, Any?>(
                 NSHTTPCookieName to cookie.name,
                 NSHTTPCookieValue to cookie.value,
-                NSHTTPCookieDomain to (cookie.domain ?: ""), // Domain is required for iOS cookies usually
+                // Domain is required for iOS cookies usually
+                NSHTTPCookieDomain to (cookie.domain ?: ""),
                 NSHTTPCookiePath to (cookie.path ?: "/"),
                 NSHTTPCookieSecure to cookie.secure,
             )

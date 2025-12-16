@@ -10,7 +10,8 @@ data class PlatformCookie(
     val path: String? = null,
     val secure: Boolean = false,
     val httpOnly: Boolean = false,
-    val maxAge: Long? = null, // Seconds
+    // Seconds
+    val maxAge: Long? = null,
 )
 
 /**
@@ -25,7 +26,10 @@ expect object PlatformCookieManager {
     /**
      * Sets a cookie for a specific URL.
      */
-    suspend fun setCookie(url: String, cookie: PlatformCookie)
+    suspend fun setCookie(
+        url: String,
+        cookie: PlatformCookie,
+    )
 
     /**
      * Removes all cookies.

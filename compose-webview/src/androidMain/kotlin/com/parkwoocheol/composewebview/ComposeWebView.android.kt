@@ -88,7 +88,7 @@ internal actual fun ComposeWebViewImpl(
     onPermissionRequest: (PlatformPermissionRequest) -> Unit,
 ) {
     val state = rememberSaveableWebViewState(url = url)
-    
+
     // Connect permissions callback
     chromeClient.onPermissionRequestCallback = onPermissionRequest
 

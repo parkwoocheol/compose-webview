@@ -1,7 +1,5 @@
 package com.parkwoocheol.composewebview
 
-import dev.datlag.kcef.KCEF
-
 /**
  * Desktop implementation of [PlatformCookieManager] using KCEF.
  */

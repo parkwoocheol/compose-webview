@@ -3,8 +3,6 @@ package com.parkwoocheol.composewebview.client
 import com.parkwoocheol.composewebview.JsDialogState
 import com.parkwoocheol.composewebview.WebViewState
 import kotlinx.cinterop.ExperimentalForeignApi
-import platform.Foundation.NSURL
-import platform.Foundation.NSURLRequest
 import platform.WebKit.WKFrameInfo
 import platform.WebKit.WKNavigationAction
 import platform.WebKit.WKUIDelegateProtocol
@@ -15,15 +13,14 @@ import platform.darwin.NSObject
 
 @Suppress("CONFLICTING_OVERLOADS")
 internal class ComposeWebViewUIDelegate(
-    private val state: WebViewState
+    private val state: WebViewState,
 ) : NSObject(), WKUIDelegateProtocol {
-
     @OptIn(ExperimentalForeignApi::class)
     override fun webView(
         webView: WKWebView,
         createWebViewWithConfiguration: WKWebViewConfiguration,
         forNavigationAction: WKNavigationAction,
-        windowFeatures: WKWindowFeatures
+        windowFeatures: WKWindowFeatures,
     ): WKWebView? {
         // Handle target="_blank"
         if (forNavigationAction.targetFrame == null) {
@@ -37,13 +34,14 @@ internal class ComposeWebViewUIDelegate(
         webView: WKWebView,
         runJavaScriptAlertPanelWithMessage: String,
         initiatedByFrame: WKFrameInfo,
-        completionHandler: () -> Unit
+        completionHandler: () -> Unit,
     ) {
         if (state.jsDialogState == null) {
-            state.jsDialogState = JsDialogState.Alert(runJavaScriptAlertPanelWithMessage) {
-                completionHandler()
-                state.jsDialogState = null
-            }
+            state.jsDialogState =
+                JsDialogState.Alert(runJavaScriptAlertPanelWithMessage) {
+                    completionHandler()
+                    state.jsDialogState = null
+                }
         } else {
             completionHandler()
         }
@@ -54,13 +52,14 @@ internal class ComposeWebViewUIDelegate(
         webView: WKWebView,
         runJavaScriptConfirmPanelWithMessage: String,
         initiatedByFrame: WKFrameInfo,
-        completionHandler: (Boolean) -> Unit
+        completionHandler: (Boolean) -> Unit,
     ) {
         if (state.jsDialogState == null) {
-            state.jsDialogState = JsDialogState.Confirm(runJavaScriptConfirmPanelWithMessage) { result ->
-                completionHandler(result)
-                state.jsDialogState = null
-            }
+            state.jsDialogState =
+                JsDialogState.Confirm(runJavaScriptConfirmPanelWithMessage) { result ->
+                    completionHandler(result)
+                    state.jsDialogState = null
+                }
         } else {
             completionHandler(false)
         }
@@ -72,13 +71,14 @@ internal class ComposeWebViewUIDelegate(
         runJavaScriptTextInputPanelWithPrompt: String,
         defaultText: String?,
         initiatedByFrame: WKFrameInfo,
-        completionHandler: (String?) -> Unit
+        completionHandler: (String?) -> Unit,
     ) {
         if (state.jsDialogState == null) {
-            state.jsDialogState = JsDialogState.Prompt(runJavaScriptTextInputPanelWithPrompt, defaultText ?: "") { result ->
-                completionHandler(result)
-                state.jsDialogState = null
-            }
+            state.jsDialogState =
+                JsDialogState.Prompt(runJavaScriptTextInputPanelWithPrompt, defaultText ?: "") { result ->
+                    completionHandler(result)
+                    state.jsDialogState = null
+                }
         } else {
             completionHandler(null)
         }

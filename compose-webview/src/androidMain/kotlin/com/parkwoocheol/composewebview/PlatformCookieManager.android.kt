@@ -32,14 +32,15 @@ actual object PlatformCookieManager {
         cookie: PlatformCookie,
     ) = withContext(Dispatchers.IO) {
         val cookieManager = CookieManager.getInstance()
-        val cookieValue = buildString {
-            append("${cookie.name}=${cookie.value}")
-            cookie.domain?.let { append("; Domain=$it") }
-            cookie.path?.let { append("; Path=$it") }
-            if (cookie.secure) append("; Secure")
-            if (cookie.httpOnly) append("; HttpOnly")
-            cookie.maxAge?.let { append("; Max-Age=$it") }
-        }
+        val cookieValue =
+            buildString {
+                append("${cookie.name}=${cookie.value}")
+                cookie.domain?.let { append("; Domain=$it") }
+                cookie.path?.let { append("; Path=$it") }
+                if (cookie.secure) append("; Secure")
+                if (cookie.httpOnly) append("; HttpOnly")
+                cookie.maxAge?.let { append("; Max-Age=$it") }
+            }
         cookieManager.setCookie(url, cookieValue)
     }
 

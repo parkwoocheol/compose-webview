@@ -26,7 +26,7 @@ actual object DownloadUtils {
         val context = contextRef?.get() ?: return
         val finalFileName = title ?: URLUtil.guessFileName(url, contentDisposition, mimeType)
         val finalDescription = description ?: "Downloading file..."
-        
+
         val request =
             DownloadManager.Request(Uri.parse(url)).apply {
                 setMimeType(mimeType)
@@ -36,7 +36,7 @@ actual object DownloadUtils {
                 setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
                 setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, finalFileName)
             }
-        
+
         val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         downloadManager.enqueue(request)
     }

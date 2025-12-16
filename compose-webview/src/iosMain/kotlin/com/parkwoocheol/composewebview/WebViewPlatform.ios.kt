@@ -22,7 +22,16 @@ import platform.WebKit.WKUserScript
 import platform.WebKit.WKUserScriptInjectionTime
 import platform.WebKit.WKWebView
 import platform.darwin.NSObject
-expect fun <T> T.runOnMainThread(block: T.() -> Unit)
+
+fun <T> T.runOnMainThread(block: T.() -> Unit) {
+    if (platform.Foundation.NSThread.isMainThread) {
+        block()
+    } else {
+        platform.darwin.dispatch_async(platform.darwin.dispatch_get_main_queue()) {
+            block()
+        }
+    }
+}
 
 actual abstract class PlatformPermissionRequest
 
