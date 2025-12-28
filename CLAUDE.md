@@ -1,1 +1,0 @@
-.agent/rules/project.md
