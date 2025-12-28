@@ -18,6 +18,7 @@ DEPLOYMENT.md
 build/
 *.jks
 *.keystore
+*.txt
 
 RELEASE_NOTES.md
 

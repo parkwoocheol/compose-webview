@@ -1,0 +1,150 @@
+// ============================================
+// Template for Composable Component
+// ============================================
+
+package com.parkwoocheol.composewebview
+
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+
+/**
+ * Brief description of what this Composable does.
+ *
+ * Detailed description explaining the purpose, behavior, and usage.
+ *
+ * @param parameter1 Description of first parameter
+ * @param parameter2 Description of second parameter
+ * @param modifier Modifier to be applied to the component
+ * @param onEvent Optional callback for events
+ *
+ * Example:
+ * ```kotlin
+ * YourComposable(
+ *     parameter1 = "value",
+ *     parameter2 = 42,
+ *     modifier = Modifier.fillMaxSize()
+ * ) { event ->
+ *     println("Event: $event")
+ * }
+ * ```
+ */
+@Composable
+fun YourComposable(
+    parameter1: String,
+    parameter2: Int = 0,
+    modifier: Modifier = Modifier,
+    onEvent: ((String) -> Unit)? = null
+) {
+    // Remember state if needed
+    var internalState by remember { mutableStateOf("initial") }
+
+    // LaunchedEffect for side effects
+    LaunchedEffect(parameter1) {
+        // Perform async operations or side effects
+    }
+
+    // DisposableEffect for cleanup
+    DisposableEffect(Unit) {
+        // Setup code
+
+        onDispose {
+            // Cleanup code
+        }
+    }
+
+    // Composable content
+    // TODO: Implement your UI here
+}
+
+// ============================================
+// State Management Pattern
+// ============================================
+
+/**
+ * State holder for [YourComposable].
+ *
+ * Use `rememberYourComposableState()` to create and remember instances.
+ *
+ * @param initialValue Initial value for the state
+ */
+@Stable
+class YourComposableState(
+    initialValue: String
+) {
+    /**
+     * Current value of the state.
+     */
+    var value by mutableStateOf(initialValue)
+        private set
+
+    /**
+     * Update the value.
+     *
+     * @param newValue The new value
+     */
+    fun updateValue(newValue: String) {
+        value = newValue
+    }
+}
+
+/**
+ * Remember a [YourComposableState].
+ *
+ * @param initialValue Initial value for the state
+ * @return Remembered state instance
+ */
+@Composable
+fun rememberYourComposableState(
+    initialValue: String = ""
+): YourComposableState {
+    return remember { YourComposableState(initialValue) }
+}
+
+// ============================================
+// Usage Example
+// ============================================
+
+/*
+@Composable
+fun ExampleUsage() {
+    val state = rememberYourComposableState(initialValue = "Hello")
+
+    YourComposable(
+        parameter1 = state.value,
+        parameter2 = 42,
+        modifier = Modifier.fillMaxSize()
+    ) { event ->
+        state.updateValue(event)
+    }
+}
+*/
+
+// ============================================
+// Best Practices:
+// ============================================
+// 1. Use @Stable or @Immutable annotations for state holders
+// 2. Provide reasonable defaults for optional parameters
+// 3. Use Modifier as the last parameter (convention)
+// 4. Document all public APIs with KDoc
+// 5. Follow naming conventions:
+//    - Composables: PascalCase
+//    - State holders: [Name]State
+//    - Remember functions: remember[Name]State
+// 6. Keep Composables small and focused
+// 7. Extract complex logic into ViewModels or state holders
+// 8. Use remember { } for expensive calculations
+// 9. Use LaunchedEffect for coroutines
+// 10. Use DisposableEffect for cleanup
+
+// ============================================
+// Checklist:
+// ============================================
+// [ ] KDoc added with description and examples
+// [ ] All parameters documented
+// [ ] Reasonable defaults provided
+// [ ] Modifier parameter included
+// [ ] State management considered
+// [ ] Side effects handled properly
+// [ ] Preview added (if applicable)
+// [ ] Tests written
+// [ ] Run: ./gradlew spotlessApply
