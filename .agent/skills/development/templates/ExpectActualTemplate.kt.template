@@ -1,0 +1,133 @@
+// ============================================
+// Template for expect/actual implementation
+// ============================================
+
+// --------------------------------------------
+// Step 1: Define in commonMain
+// File: compose-webview/src/commonMain/kotlin/com/parkwoocheol/composewebview/YourFeature.kt
+// --------------------------------------------
+
+package com.parkwoocheol.composewebview
+
+/**
+ * Brief description of what this feature does.
+ *
+ * Detailed description explaining the purpose and usage.
+ *
+ * @param parameterName Description of the parameter
+ * @return Description of what is returned
+ *
+ * Example:
+ * ```kotlin
+ * val feature = YourFeature("example")
+ * val result = feature.doSomething()
+ * ```
+ */
+expect class YourFeature(parameterName: String) {
+    /**
+     * Description of this method.
+     *
+     * @return Description of return value
+     */
+    fun doSomething(): String
+
+    /**
+     * Description of another method.
+     *
+     * @param input Description of input parameter
+     * @return Description of return value
+     */
+    fun doSomethingElse(input: Int): Boolean
+}
+
+// --------------------------------------------
+// Step 2: Implement in androidMain
+// File: compose-webview/src/androidMain/kotlin/com/parkwoocheol/composewebview/YourFeature.android.kt
+// --------------------------------------------
+
+package com.parkwoocheol.composewebview
+
+import android.webkit.WebView
+
+actual class YourFeature actual constructor(private val parameterName: String) {
+    actual fun doSomething(): String {
+        // Android-specific implementation using WebView
+        return "Android implementation: $parameterName"
+    }
+
+    actual fun doSomethingElse(input: Int): Boolean {
+        // Android-specific logic
+        return input > 0
+    }
+}
+
+// --------------------------------------------
+// Step 3: Implement in iosMain
+// File: compose-webview/src/iosMain/kotlin/com/parkwoocheol/composewebview/YourFeature.ios.kt
+// --------------------------------------------
+
+package com.parkwoocheol.composewebview
+
+import platform.WebKit.WKWebView
+
+actual class YourFeature actual constructor(private val parameterName: String) {
+    actual fun doSomething(): String {
+        // iOS-specific implementation using WKWebView
+        return "iOS implementation: $parameterName"
+    }
+
+    actual fun doSomethingElse(input: Int): Boolean {
+        // iOS-specific logic
+        return input > 0
+    }
+}
+
+// --------------------------------------------
+// Step 4: Implement in desktopMain
+// File: compose-webview/src/desktopMain/kotlin/com/parkwoocheol/composewebview/YourFeature.desktop.kt
+// --------------------------------------------
+
+package com.parkwoocheol.composewebview
+
+actual class YourFeature actual constructor(private val parameterName: String) {
+    actual fun doSomething(): String {
+        // Desktop-specific implementation using CEF
+        return "Desktop implementation: $parameterName"
+    }
+
+    actual fun doSomethingElse(input: Int): Boolean {
+        // Desktop-specific logic
+        return input > 0
+    }
+}
+
+// --------------------------------------------
+// Step 5: Implement in jsMain
+// File: compose-webview/src/jsMain/kotlin/com/parkwoocheol/composewebview/YourFeature.js.kt
+// --------------------------------------------
+
+package com.parkwoocheol.composewebview
+
+actual class YourFeature actual constructor(private val parameterName: String) {
+    actual fun doSomething(): String {
+        // Web/JS-specific implementation
+        return "Web implementation: $parameterName"
+    }
+
+    actual fun doSomethingElse(input: Int): Boolean {
+        // Web-specific logic
+        return input > 0
+    }
+}
+
+// ============================================
+// Checklist after implementation:
+// ============================================
+// [ ] All 4 platforms have actual implementations
+// [ ] Signatures match exactly (parameters, return types)
+// [ ] KDoc added to public APIs
+// [ ] Tests written in commonTest
+// [ ] Platform-specific tests if needed
+// [ ] Run: ./gradlew spotlessApply
+// [ ] Run: bash .agent/skills/development/scripts/platform_status.sh
+// [ ] Run: bash .agent/skills/development/scripts/test_all.sh
