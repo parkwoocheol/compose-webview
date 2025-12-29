@@ -494,38 +494,108 @@ fun WebViewWithErrorHandling() {
 
 ### Custom WebView Configuration
 
-Full control over WebView settings and clients:
+Configure WebView behavior using `WebViewSettings`:
 
 ```kotlin
 @Composable
 fun CustomWebView() {
     val state = rememberSaveableWebViewState(url = "https://example.com")
 
+    val settings = WebViewSettings(
+        userAgent = "MyApp/1.0",
+        javaScriptEnabled = true,
+        domStorageEnabled = true,
+        cacheMode = CacheMode.CACHE_ELSE_NETWORK,
+        supportZoom = true,
+        loadWithOverviewMode = true,
+        useWideViewPort = true,
+        mediaPlaybackRequiresUserAction = false,
+        allowFileAccess = false,
+        allowContentAccess = false
+    )
+
+    ComposeWebView(
+        state = state,
+        settings = settings,
+        modifier = Modifier.fillMaxSize(),
+        onCreated = { webView ->
+            // Additional platform-specific configuration
+        },
+        onDispose = { webView ->
+            // Custom cleanup logic
+        }
+    )
+}
+```
+
+### Scroll Position Tracking
+
+Track and respond to scroll position changes:
+
+```kotlin
+@Composable
+fun ScrollTrackingWebView() {
+    val state = rememberSaveableWebViewState(url = "https://example.com")
+    var showScrollToTop by remember { mutableStateOf(false) }
+
+    // Observe scroll position changes
+    LaunchedEffect(state.scrollPosition) {
+        val (x, y) = state.scrollPosition
+        showScrollToTop = y > 500 // Show button when scrolled down 500px
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        ComposeWebView(
+            state = state,
+            modifier = Modifier.fillMaxSize()
+        )
+
+        // Floating "Back to Top" button
+        if (showScrollToTop) {
+            FloatingActionButton(
+                onClick = {
+                    val controller = rememberWebViewController()
+                    controller.scrollTo(0, 0)
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp)
+            ) {
+                Icon(Icons.Default.ArrowUpward, "Scroll to top")
+            }
+        }
+    }
+}
+```
+
+### Console Message Debugging
+
+Capture JavaScript console messages for debugging:
+
+```kotlin
+@Composable
+fun DebuggableWebView() {
+    val state = rememberSaveableWebViewState(url = "https://example.com")
+
     ComposeWebView(
         state = state,
         modifier = Modifier.fillMaxSize(),
-        onCreated = { webView ->
-            webView.settings.apply {
-                javaScriptEnabled = true
-                domStorageEnabled = true
-                databaseEnabled = true
-                setSupportZoom(true)
-                builtInZoomControls = true
-                displayZoomControls = false
-                loadWithOverviewMode = true
-                useWideViewPort = true
-                javaScriptCanOpenWindowsAutomatically = true
-                mediaPlaybackRequiresUserGesture = false
-                allowFileAccess = true
-                allowContentAccess = true
+        onConsoleMessage = { webView, message ->
+            when (message.level) {
+                ConsoleMessageLevel.ERROR -> {
+                    Log.e("WebView", "[${message.sourceId}:${message.lineNumber}] ${message.message}")
+                }
+                ConsoleMessageLevel.WARNING -> {
+                    Log.w("WebView", message.message)
+                }
+                ConsoleMessageLevel.LOG -> {
+                    Log.d("WebView", message.message)
+                }
+                else -> {
+                    Log.v("WebView", message.message)
+                }
             }
-        },
-        client = { /* Custom WebViewClient */ },
-        chromeClient = { /* Custom WebChromeClient */ },
-        onDispose = { webView ->
-            // Custom cleanup logic
-            webView.clearCache(true)
-            webView.clearHistory()
+            false // Return true to suppress default logging
         }
     )
 }
@@ -542,6 +612,7 @@ Main composable function for displaying WebView.
 fun ComposeWebView(
     url: String,
     modifier: Modifier = Modifier,
+    settings: WebViewSettings = WebViewSettings.Default,
     controller: WebViewController = rememberWebViewController(),
     javaScriptInterfaces: Map<String, Any> = emptyMap(),
     onCreated: (WebView) -> Unit = {},
@@ -560,7 +631,9 @@ fun ComposeWebView(
     onReceivedError: (WebView, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit = { _, _, _ -> },
     onProgressChanged: (WebView, Int) -> Unit = { _, _ -> },
     onDownloadStart: ((String, String, String, String, Long) -> Unit)? = null,
-    onFindResultReceived: ((Int, Int, Boolean) -> Unit)? = null
+    onFindResultReceived: ((Int, Int, Boolean) -> Unit)? = null,
+    onPermissionRequest: (PlatformPermissionRequest) -> Unit = { },
+    onConsoleMessage: ((WebView, ConsoleMessage) -> Boolean)? = null
 )
 
 // Alternative overload with state
@@ -568,6 +641,7 @@ fun ComposeWebView(
 fun ComposeWebView(
     state: WebViewState,
     modifier: Modifier = Modifier,
+    settings: WebViewSettings = WebViewSettings.Default,
     controller: WebViewController = rememberWebViewController(),
     javaScriptInterfaces: Map<String, Any> = emptyMap(),
     jsBridge: WebViewJsBridge? = null,
@@ -589,6 +663,7 @@ class WebViewState(
     val isLoading: Boolean
     var pageTitle: String?
     var pageIcon: Bitmap?
+    var scrollPosition: ScrollPosition
     val errorsForCurrentRequest: List<WebViewError>
     var jsDialogState: JsDialogState?
     var customViewState: CustomViewState?
