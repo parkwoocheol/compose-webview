@@ -93,3 +93,6 @@ debug.log
 # MkDocs
 site/
 !.agent/
+
+# Work plans (local only)
+.plan/

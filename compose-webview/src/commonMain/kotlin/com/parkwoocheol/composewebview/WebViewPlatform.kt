@@ -16,7 +16,25 @@ expect class PlatformCustomViewCallback {
     fun onCustomViewHidden()
 }
 
-expect class PlatformWebResourceError
+/**
+ * Platform-specific WebView resource error.
+ *
+ * Provides common error information across all platforms.
+ */
+expect class PlatformWebResourceError {
+    /**
+     * The error code. Platform-specific interpretation:
+     * - Android: WebViewClient.ERROR_* constants
+     * - iOS: NSError code
+     * - Desktop/Web: -1 (unknown)
+     */
+    val errorCode: Int
+
+    /**
+     * Human-readable error description.
+     */
+    val description: String
+}
 
 expect class PlatformWebResourceRequest {
     val url: String

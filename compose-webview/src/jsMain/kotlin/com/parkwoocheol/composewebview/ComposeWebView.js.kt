@@ -18,6 +18,7 @@ import org.w3c.dom.HTMLIFrameElement
 internal actual fun ComposeWebViewImpl(
     url: String,
     modifier: Modifier,
+    settings: WebViewSettings,
     controller: WebViewController,
     javaScriptInterfaces: Map<String, Any>,
     onCreated: (WebView) -> Unit,
@@ -44,6 +45,9 @@ internal actual fun ComposeWebViewImpl(
     // If using Compose Multiplatform (Canvas), this might not render correctly without an overlay.
     // But this is the standard way to access DOM elements in KMP Web.
 
+    // Note: Web platform (iframe) has very limited configuration options
+    // Most WebViewSettings cannot be applied as iframe is controlled by the browser
+
     org.jetbrains.compose.web.dom.Iframe(
         attrs = {
             attr("src", url)
@@ -64,6 +68,7 @@ internal actual fun ComposeWebViewImpl(
 internal actual fun ComposeWebViewImpl(
     state: WebViewState,
     modifier: Modifier,
+    settings: WebViewSettings,
     controller: WebViewController,
     javaScriptInterfaces: Map<String, Any>,
     onCreated: (WebView) -> Unit,
@@ -100,6 +105,10 @@ internal actual fun ComposeWebViewImpl(
             controller.handleNavigationEvents(webView)
         }
     }
+
+    // Note: Web platform (iframe) has very limited configuration options
+    // Most WebViewSettings cannot be applied as iframe is controlled by the browser
+    // Settings like JavaScript, cache mode, user agent, etc. are browser-controlled
 
     val url = state.lastLoadedUrl ?: ""
     Iframe(

@@ -37,7 +37,10 @@ actual abstract class PlatformPermissionRequest
 
 actual typealias WebView = WKWebView
 
-actual class PlatformWebResourceError(val impl: NSError)
+actual class PlatformWebResourceError(val impl: NSError) {
+    actual val errorCode: Int get() = impl.code.toInt()
+    actual val description: String get() = impl.localizedDescription ?: "Unknown error"
+}
 
 actual class PlatformWebResourceRequest(val impl: NSURLRequest, val isMainFrame: Boolean) {
     actual val url: String get() = impl.URL?.absoluteString ?: ""

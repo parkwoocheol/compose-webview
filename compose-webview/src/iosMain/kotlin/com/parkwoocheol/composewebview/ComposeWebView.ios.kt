@@ -17,6 +17,7 @@ import platform.WebKit.WKWebViewConfiguration
 internal actual fun ComposeWebViewImpl(
     url: String,
     modifier: Modifier,
+    settings: WebViewSettings,
     controller: WebViewController,
     javaScriptInterfaces: Map<String, Any>,
     onCreated: (WebView) -> Unit,
@@ -42,6 +43,7 @@ internal actual fun ComposeWebViewImpl(
     ComposeWebView(
         state = state,
         modifier = modifier,
+        settings = settings,
         controller = controller,
         javaScriptInterfaces = javaScriptInterfaces,
         onCreated = onCreated,
@@ -70,6 +72,7 @@ internal actual fun ComposeWebViewImpl(
 internal actual fun ComposeWebViewImpl(
     state: WebViewState,
     modifier: Modifier,
+    settings: WebViewSettings,
     controller: WebViewController,
     javaScriptInterfaces: Map<String, Any>,
     onCreated: (WebView) -> Unit,
@@ -94,11 +97,38 @@ internal actual fun ComposeWebViewImpl(
 ) {
     val webView =
         state.webView ?: remember {
-            val config = WKWebViewConfiguration()
+            val config =
+                WKWebViewConfiguration().apply {
+                    // Apply settings to configuration
+                    applySettings(settings)
+                }
             WKWebView(frame = platform.CoreGraphics.CGRectMake(0.0, 0.0, 0.0, 0.0), configuration = config).apply {
                 allowsBackForwardNavigationGestures = true
+                // Apply additional settings to webView instance
+                applyWebViewSettings(settings)
             }
         }.also { state.webView = it }
+
+    // Observe estimatedProgress for onProgressChanged callback
+    // Using LaunchedEffect with periodic polling since Kotlin/Native KVO is complex
+    androidx.compose.runtime.LaunchedEffect(webView) {
+        var lastProgress = -1
+        while (true) {
+            kotlinx.coroutines.delay(100) // Poll every 100ms
+            val progress = webView.estimatedProgress
+            val progressInt = (progress * 100).toInt()
+            if (progressInt != lastProgress) {
+                lastProgress = progressInt
+                state.loadingState =
+                    if (progressInt >= 100) {
+                        LoadingState.Finished
+                    } else {
+                        LoadingState.Loading(progress.toFloat())
+                    }
+                onProgressChanged(webView, progressInt)
+            }
+        }
+    }
 
     // Connect controller
     // In Android implementation, this is done via LaunchedEffect
@@ -168,4 +198,38 @@ internal actual fun ComposeWebViewImpl(
             customViewContent?.invoke(customView)
         }
     }
+}
+
+@OptIn(ExperimentalForeignApi::class)
+private fun WKWebViewConfiguration.applySettings(webViewSettings: WebViewSettings) {
+    preferences.apply {
+        // JavaScript (Note: WKWebView JavaScript is always enabled by default)
+        // javaScriptEnabled property is not available in WKPreferences
+        // JavaScript can be controlled via setValue:forKey: if needed
+    }
+
+    // User Agent
+    webViewSettings.userAgent?.let { ua ->
+        applicationNameForUserAgent = ua
+    }
+
+    // Media Playback
+    mediaTypesRequiringUserActionForPlayback =
+        if (webViewSettings.mediaPlaybackRequiresUserAction) {
+            platform.WebKit.WKAudiovisualMediaTypeAll
+        } else {
+            platform.WebKit.WKAudiovisualMediaTypeNone
+        }
+
+    // File Access is not directly configurable in WKWebView
+    // allowFileAccessFromFileURLs is available via preferences for iOS 14+
+}
+
+@OptIn(ExperimentalForeignApi::class)
+private fun WKWebView.applyWebViewSettings(webViewSettings: WebViewSettings) {
+    // Allow inline media playback
+    configuration.allowsInlineMediaPlayback = true
+
+    // Most settings are applied via configuration
+    // iOS WKWebView has limited settings compared to Android WebView
 }

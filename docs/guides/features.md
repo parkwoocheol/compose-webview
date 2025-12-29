@@ -4,22 +4,48 @@ This guide covers advanced capabilities of `compose-webview` such as File Upload
 
 ---
 
+## Platform Support Matrix
+
+| Feature | Android | iOS | Desktop | Web |
+|---------|:-------:|:---:|:-------:|:---:|
+| File Uploads | ✅ | ✅ (native) | ❌ | ❌ |
+| Downloads | ✅ | ⚠️ | ❌ | ❌ |
+| Custom View (Fullscreen) | ✅ | ❌ | ❌ | ❌ |
+| Progress Callback | ✅ | ✅ | ❌ | ❌ |
+
+**Legend**: ✅ Supported | ⚠️ Partial | ❌ Not supported
+
+---
+
 ## File Uploads
 
 Uploading files (e.g., via `<input type="file">`) is often a hassle to implement in Android WebViews because it requires handling `WebChromeClient.onShowFileChooser`.
 
-`compose-webview` handles this **automatically** on Android.
+### Platform Support
 
-### How it works
+| Platform | Status | Notes |
+|----------|--------|-------|
+| **Android** | ✅ Automatic | Uses `onShowFileChooser` internally |
+| **iOS** | ✅ Native | WKWebView handles file uploads by default |
+| **Desktop/Web** | ❌ Not supported | |
+
+### How it works (Android)
 
 The library internally uses `rememberLauncherForActivityResult` to launch the Android File Picker intent when the WebView requests a file. When the user selects a file, the result is automatically passed back to the WebView.
 
 !!! check "No Extra Code"
     You do NOT need to implement `onShowFileChooser` or handle Activity results manually. It works out-of-the-box.
 
+### How it works (iOS)
+
+iOS's `WKWebView` **natively supports file uploads** without any additional configuration. The system automatically presents a file picker when a web page requests file input.
+
+!!! note "iOS 18.4+ Custom Implementation"
+    Starting from iOS 18.4, you can optionally implement `WKUIDelegate.runOpenPanelWith` for custom file picker UI. However, this is not required for basic file upload functionality.
+
 ### Permissions
 
-Standard Android file picking usually does not require runtime permissions on modern Android versions (API 21+). However, if your web page requests camera access (e.g., `<input type="file" capture>`), ensure you have declared and requested `CAMERA` code in your app.
+Standard Android file picking usually does not require runtime permissions on modern Android versions (API 21+). However, if your web page requests camera access (e.g., `<input type="file" capture>`), ensure you have declared and requested `CAMERA` permission in your app.
 
 ---
 

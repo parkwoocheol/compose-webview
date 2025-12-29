@@ -70,6 +70,45 @@ Visit the documentation site for comprehensive guides, API references, and advan
  | **Desktop** | `SwingPanel` (CEF via KCEF) | 🚧 Experimental | **WIP**: KCEF integration is in progress. Basic browsing works, but advanced features are still being tested. |
  | **Web (JS)** | `Iframe` (DOM) | 🚧 Experimental | **WIP**: Basic navigation and JSBridge (via postMessage) are implemented but may have limitations. |
 
+### API Support Matrix
+
+<details>
+<summary>Click to expand detailed API support by platform</summary>
+
+#### Core Navigation APIs
+
+| API | Android | iOS | Desktop | Web |
+|-----|:-------:|:---:|:-------:|:---:|
+| `loadUrl()` | ✅ | ✅ | ✅ | ✅ |
+| `loadHtml()` | ✅ | ✅ | ✅ | ⚠️ |
+| `postUrl()` | ✅ | ✅ | ❌ | ❌ |
+| `evaluateJavascript()` | ✅ | ✅ | ✅ | ⚠️ |
+| `navigateBack/Forward` | ✅ | ✅ | ✅ | ⚠️ |
+| `reload() / stopLoading()` | ✅ | ✅ | ✅ | ⚠️ |
+
+#### Callbacks & Events
+
+| Callback | Android | iOS | Desktop | Web |
+|----------|:-------:|:---:|:-------:|:---:|
+| `onPageStarted` | ✅ | ✅ | ✅ | ❌ |
+| `onPageFinished` | ✅ | ✅ | ✅ | ✅ |
+| `onProgressChanged` | ✅ | ✅ | ❌ | ❌ |
+| `onReceivedError` | ✅ | ✅ | ⚠️ | ❌ |
+| `shouldOverrideUrlLoading` | ✅ | ✅ | ✅ | ❌ |
+| JS Dialogs (Alert/Confirm/Prompt) | ✅ | ✅ | ❌ | ❌ |
+
+#### JSBridge
+
+| Feature | Android | iOS | Desktop | Web |
+|---------|:-------:|:---:|:-------:|:---:|
+| `register()` handler | ✅ | ✅ | ✅ | ✅ |
+| `emit()` events | ✅ | ✅ | ⚠️ | ⚠️ |
+| Promise-based response | ✅ | ✅ | ⚠️ | ⚠️ |
+
+**Legend**: ✅ Supported | ⚠️ Partial/Limited | ❌ Not supported
+
+</details>
+
 ## 🎯 Project Focus & Comparison
 
 This library has a slightly different focus compared to other WebView libraries (like `KevinnZou/compose-webview-multiplatform`), primarily targeting **Mobile productivity**.

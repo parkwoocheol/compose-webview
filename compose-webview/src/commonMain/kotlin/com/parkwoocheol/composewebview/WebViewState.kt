@@ -1,6 +1,7 @@
 package com.parkwoocheol.composewebview
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -14,7 +15,10 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 
 /**
  * Sealed class for constraining possible loading states.
- * See [Loading] and [Finished].
+ *
+ * Represents the current state of the WebView's content loading process.
+ * This provides a more granular view of the loading lifecycle compared to
+ * a simple boolean flag.
  */
 sealed class LoadingState {
     /**
@@ -31,10 +35,43 @@ sealed class LoadingState {
     data class Loading(val progress: Float) : LoadingState()
 
     /**
-     * Describes a webview that has finished loading content.
+     * Describes a webview that has finished loading content successfully.
      */
     data object Finished : LoadingState()
+
+    /**
+     * Describes a webview that failed to load content due to an error.
+     *
+     * @property error The error that caused the loading to fail.
+     */
+    data class Failed(val error: WebViewError) : LoadingState()
+
+    /**
+     * Describes a webview whose loading was cancelled by the user or programmatically.
+     * This occurs when [WebViewController.stopLoading] is called during a page load.
+     */
+    data object Cancelled : LoadingState()
 }
+
+/**
+ * Represents the scroll position of the WebView.
+ *
+ * **Platform Support:**
+ * | Platform | Support | Notes |
+ * |----------|---------|-------|
+ * | Android  | ✅ Full | onScrollChanged listener |
+ * | iOS      | ✅ Full | UIScrollView contentOffset |
+ * | Desktop  | ⚠️ Partial | Limited CEF scroll tracking |
+ * | Web      | ✅ Full | onscroll event |
+ *
+ * @property x Horizontal scroll position in pixels.
+ * @property y Vertical scroll position in pixels.
+ */
+@Immutable
+data class ScrollPosition(
+    val x: Int = 0,
+    val y: Int = 0,
+)
 
 /**
  * State holder for the [ComposeWebView].
@@ -100,6 +137,15 @@ class WebViewState(webContent: WebContent) {
      * Null if no custom view is active.
      */
     var customViewState: CustomViewState? by mutableStateOf(null)
+        internal set
+
+    /**
+     * The current scroll position of the WebView.
+     *
+     * Note: Not all platforms support real-time scroll position tracking.
+     * Refer to [ScrollPosition] documentation for platform support details.
+     */
+    var scrollPosition: ScrollPosition by mutableStateOf(ScrollPosition())
         internal set
 
     /**

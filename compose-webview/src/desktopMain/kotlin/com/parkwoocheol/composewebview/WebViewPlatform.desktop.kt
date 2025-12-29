@@ -42,7 +42,10 @@ actual class PlatformCustomViewCallback {
     }
 }
 
-actual class PlatformWebResourceError
+actual class PlatformWebResourceError {
+    actual val errorCode: Int = -1
+    actual val description: String = "Unknown error"
+}
 
 actual class PlatformWebResourceRequest(
     actual val url: String = "",
