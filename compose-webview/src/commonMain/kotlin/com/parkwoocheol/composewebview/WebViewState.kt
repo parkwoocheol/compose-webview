@@ -1,6 +1,7 @@
 package com.parkwoocheol.composewebview
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -14,7 +15,10 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 
 /**
  * Sealed class for constraining possible loading states.
- * See [Loading] and [Finished].
+ *
+ * Represents the current state of the WebView's content loading process.
+ * This provides a more granular view of the loading lifecycle compared to
+ * a simple boolean flag.
  */
 sealed class LoadingState {
     /**
@@ -31,10 +35,43 @@ sealed class LoadingState {
     data class Loading(val progress: Float) : LoadingState()
 
     /**
-     * Describes a webview that has finished loading content.
+     * Describes a webview that has finished loading content successfully.
      */
     data object Finished : LoadingState()
+
+    /**
+     * Describes a webview that failed to load content due to an error.
+     *
+     * @property error The error that caused the loading to fail.
+     */
+    data class Failed(val error: WebViewError) : LoadingState()
+
+    /**
+     * Describes a webview whose loading was cancelled by the user or programmatically.
+     * This occurs when [WebViewController.stopLoading] is called during a page load.
+     */
+    data object Cancelled : LoadingState()
 }
+
+/**
+ * Represents the scroll position of the WebView.
+ *
+ * **Platform Support:**
+ * | Platform | Support | Implementation |
+ * |----------|---------|----------------|
+ * | Android  | ✅ Full | setOnScrollChangeListener - real-time tracking |
+ * | iOS      | ✅ Full | scrollView.contentOffset polling (100ms intervals) |
+ * | Desktop  | ❌ Not supported | CEF limitations - requires JavaScript injection |
+ * | Web      | ⚠️ Limited | onscroll event - same-origin only (CORS restrictions) |
+ *
+ * @property x Horizontal scroll position in pixels.
+ * @property y Vertical scroll position in pixels.
+ */
+@Immutable
+data class ScrollPosition(
+    val x: Int = 0,
+    val y: Int = 0,
+)
 
 /**
  * State holder for the [ComposeWebView].
@@ -59,6 +96,15 @@ class WebViewState(webContent: WebContent) {
 
     /**
      * The current loading state of the WebView.
+     *
+     * **Platform Support:**
+     * - **Initializing**: All platforms
+     * - **Loading(progress)**: Android (real-time), iOS (100ms polling), Desktop/Web (limited)
+     * - **Finished**: All platforms
+     * - **Failed**: Android, iOS, Desktop (partial), Web (limited)
+     * - **Cancelled**: All platforms
+     *
+     * See [LoadingState] for detailed state descriptions.
      */
     var loadingState: LoadingState by mutableStateOf(LoadingState.Initializing)
         internal set
@@ -77,6 +123,14 @@ class WebViewState(webContent: WebContent) {
 
     /**
      * The favicon of the current page.
+     *
+     * **Platform Support:**
+     * | Platform | Support | Notes |
+     * |----------|---------|-------|
+     * | Android  | ✅ Full | WebChromeClient.onReceivedIcon |
+     * | iOS      | ⚠️ Limited | Not directly available, requires custom handling |
+     * | Desktop  | ⚠️ Limited | KCEF favicon handling limited |
+     * | Web      | ⚠️ Limited | CORS restrictions apply |
      */
     var pageIcon: PlatformBitmap? by mutableStateOf(null)
 
@@ -91,6 +145,14 @@ class WebViewState(webContent: WebContent) {
     /**
      * The state of any active JavaScript dialog (Alert, Confirm, Prompt).
      * Null if no dialog is active.
+     *
+     * **Platform Support:**
+     * | Platform | Support | Notes |
+     * |----------|---------|-------|
+     * | Android  | ✅ Full | WebChromeClient callbacks |
+     * | iOS      | ✅ Full | WKUIDelegate callbacks |
+     * | Desktop  | ❌ Not supported | KCEF dialog handling different |
+     * | Web      | ❌ Not supported | Browser handles dialogs natively |
      */
     var jsDialogState: JsDialogState? by mutableStateOf(null)
         internal set
@@ -98,8 +160,25 @@ class WebViewState(webContent: WebContent) {
     /**
      * The state of any active custom view (e.g., fullscreen video).
      * Null if no custom view is active.
+     *
+     * **Platform Support:**
+     * | Platform | Support | Notes |
+     * |----------|---------|-------|
+     * | Android  | ✅ Full | WebChromeClient.onShowCustomView |
+     * | iOS      | ❌ Not supported | WKWebView handles fullscreen natively |
+     * | Desktop  | ❌ Not supported | KCEF handles fullscreen separately |
+     * | Web      | ❌ Not supported | Browser handles fullscreen natively |
      */
     var customViewState: CustomViewState? by mutableStateOf(null)
+        internal set
+
+    /**
+     * The current scroll position of the WebView.
+     *
+     * Note: Not all platforms support real-time scroll position tracking.
+     * Refer to [ScrollPosition] documentation for platform support details.
+     */
+    var scrollPosition: ScrollPosition by mutableStateOf(ScrollPosition())
         internal set
 
     /**

@@ -18,6 +18,7 @@ import org.w3c.dom.HTMLIFrameElement
 internal actual fun ComposeWebViewImpl(
     url: String,
     modifier: Modifier,
+    settings: WebViewSettings,
     controller: WebViewController,
     javaScriptInterfaces: Map<String, Any>,
     onCreated: (WebView) -> Unit,
@@ -38,11 +39,18 @@ internal actual fun ComposeWebViewImpl(
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
     onPermissionRequest: (PlatformPermissionRequest) -> Unit,
+    onConsoleMessage: ((WebView, ConsoleMessage) -> Boolean)?,
 ) {
+    // Connect callbacks
+    chromeClient.onConsoleMessageCallback = onConsoleMessage
+
     // Use Iframe from org.jetbrains.compose.web.dom
     // Note: This works best when using Compose HTML (DOM).
     // If using Compose Multiplatform (Canvas), this might not render correctly without an overlay.
     // But this is the standard way to access DOM elements in KMP Web.
+
+    // Note: Web platform (iframe) has very limited configuration options
+    // Most WebViewSettings cannot be applied as iframe is controlled by the browser
 
     org.jetbrains.compose.web.dom.Iframe(
         attrs = {
@@ -53,8 +61,10 @@ internal actual fun ComposeWebViewImpl(
                 border(0.px)
             }
             ref {
-                onCreated(WebView(it as HTMLIFrameElement))
-                onDispose { onDispose(WebView(it as HTMLIFrameElement)) }
+                val iframe = it as HTMLIFrameElement
+                val webView = WebView(iframe)
+                onCreated(webView)
+                onDispose { onDispose(webView) }
             }
         },
     )
@@ -64,6 +74,7 @@ internal actual fun ComposeWebViewImpl(
 internal actual fun ComposeWebViewImpl(
     state: WebViewState,
     modifier: Modifier,
+    settings: WebViewSettings,
     controller: WebViewController,
     javaScriptInterfaces: Map<String, Any>,
     onCreated: (WebView) -> Unit,
@@ -85,7 +96,11 @@ internal actual fun ComposeWebViewImpl(
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
     onPermissionRequest: (PlatformPermissionRequest) -> Unit,
+    onConsoleMessage: ((WebView, ConsoleMessage) -> Boolean)?,
 ) {
+    // Connect callbacks
+    chromeClient.onConsoleMessageCallback = onConsoleMessage
+
     LaunchedEffect(state) {
         snapshotFlow { state.content }.collect { content ->
             if (content is WebContent.Url) {
@@ -101,6 +116,10 @@ internal actual fun ComposeWebViewImpl(
         }
     }
 
+    // Note: Web platform (iframe) has very limited configuration options
+    // Most WebViewSettings cannot be applied as iframe is controlled by the browser
+    // Settings like JavaScript, cache mode, user agent, etc. are browser-controlled
+
     val url = state.lastLoadedUrl ?: ""
     Iframe(
         attrs = {
@@ -111,16 +130,32 @@ internal actual fun ComposeWebViewImpl(
                 border(0.px)
             }
             ref {
-                val webView = WebView(it as HTMLIFrameElement)
+                val iframe = it as HTMLIFrameElement
+                val webView = WebView(iframe)
                 state.webView = webView
 
                 // Attach JSBridge
                 jsBridge?.attach(webView)
 
+                // Try to set up scroll tracking (only works for same-origin iframes)
+                try {
+                    iframe.contentWindow?.addEventListener("scroll", { _ ->
+                        try {
+                            val scrollX = iframe.contentWindow?.scrollX?.toInt() ?: 0
+                            val scrollY = iframe.contentWindow?.scrollY?.toInt() ?: 0
+                            state.scrollPosition = ScrollPosition(scrollX, scrollY)
+                        } catch (e: dynamic) {
+                            // CORS restriction - cannot access scroll position
+                        }
+                    })
+                } catch (e: dynamic) {
+                    // CORS restriction - cannot add event listener
+                }
+
                 onCreated(webView)
 
                 // Handle Load Events
-                it.onload = { _ ->
+                iframe.onload = { _ ->
                     state.loadingState = LoadingState.Finished
                     // Inject JS Bridge script
                     jsBridge?.let { bridge ->

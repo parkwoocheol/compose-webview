@@ -26,6 +26,7 @@ import javax.swing.JPanel
 internal actual fun ComposeWebViewImpl(
     url: String,
     modifier: Modifier,
+    settings: WebViewSettings,
     controller: WebViewController,
     javaScriptInterfaces: Map<String, Any>,
     onCreated: (WebView) -> Unit,
@@ -46,11 +47,17 @@ internal actual fun ComposeWebViewImpl(
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
     onPermissionRequest: (PlatformPermissionRequest) -> Unit,
+    onConsoleMessage: ((WebView, ConsoleMessage) -> Boolean)?,
 ) {
     val state = rememberWebViewState(url)
+
+    // Connect callbacks
+    chromeClient.onConsoleMessageCallback = onConsoleMessage
+
     ComposeWebView(
         state = state,
         modifier = modifier,
+        settings = settings,
         controller = controller,
         javaScriptInterfaces = javaScriptInterfaces,
         onCreated = onCreated,
@@ -72,6 +79,7 @@ internal actual fun ComposeWebViewImpl(
         onDownloadStart = onDownloadStart,
         onFindResultReceived = onFindResultReceived,
         onPermissionRequest = onPermissionRequest,
+        onConsoleMessage = onConsoleMessage,
     )
 }
 
@@ -79,6 +87,7 @@ internal actual fun ComposeWebViewImpl(
 internal actual fun ComposeWebViewImpl(
     state: WebViewState,
     modifier: Modifier,
+    settings: WebViewSettings,
     controller: WebViewController,
     javaScriptInterfaces: Map<String, Any>,
     onCreated: (WebView) -> Unit,
@@ -100,15 +109,29 @@ internal actual fun ComposeWebViewImpl(
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
     onPermissionRequest: (PlatformPermissionRequest) -> Unit,
+    onConsoleMessage: ((WebView, ConsoleMessage) -> Boolean)?,
 ) {
+    // Connect callbacks
+    chromeClient.onConsoleMessageCallback = onConsoleMessage
+
     var initialized by remember { mutableStateOf(false) }
     var browser: KCEFBrowser? by remember { mutableStateOf(null) }
 
     LaunchedEffect(Unit) {
         // Initialize KCEF (downloads binaries if needed)
         KCEF.init(builder = {
-            // Configure if needed
-            // addArgs("--no-sandbox")
+            // Apply WebView settings to CEF
+            // Note: CEF has limited runtime configuration
+            // Most settings need to be applied at builder time
+            if (!settings.javaScriptEnabled) {
+                addArgs("--disable-javascript")
+            }
+
+            settings.userAgent?.let { ua ->
+                addArgs("--user-agent=$ua")
+            }
+
+            // Apply other settings as CEF arguments if possible
         }, onError = {
             it?.printStackTrace()
         }, onRestartRequired = {

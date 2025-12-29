@@ -4,6 +4,37 @@ Handling network errors or page load failures gracefully is essential for a robu
 
 ---
 
+## Platform Support
+
+| Feature | Android | iOS | Desktop | Web | Notes |
+|---------|:-------:|:---:|:-------:|:---:|-------|
+| Typed Error Handling | ✅ Full | ✅ Full | ⚠️ Partial | ⚠️ Limited | Structured error information |
+| `onReceivedError` Callback | ✅ | ✅ | ⚠️ | ⚠️ | Platform-specific error objects |
+| `errorContent` UI | ✅ | ✅ | ✅ | ✅ | Custom error display |
+| HTTP Error Detection | ✅ | ✅ | ⚠️ | ❌ | Via `onReceivedHttpError` |
+
+---
+
+## WebViewError Data Class
+
+All errors are wrapped in a typed `WebViewError` data class for consistent handling across platforms:
+
+```kotlin
+data class WebViewError(
+    val errorCode: Int,           // Platform-specific error code
+    val description: String,      // Human-readable description
+    val failingUrl: String? = null // The URL that failed to load
+)
+```
+
+**Platform-Specific Error Codes:**
+
+- **Android**: Maps to `WebViewClient` error constants (e.g., `ERROR_HOST_LOOKUP`, `ERROR_CONNECT`, `ERROR_TIMEOUT`)
+- **iOS**: Maps to `NSURLError` codes (e.g., `NSURLErrorNotConnectedToInternet`, `NSURLErrorTimedOut`)
+- **Desktop/Web**: Limited error information available
+
+---
+
 ## Observing Errors
 
 You can listen for errors via the `onReceivedError` callback. This corresponds to the standard `WebViewClient.onReceivedError`.
@@ -12,12 +43,26 @@ You can listen for errors via the `onReceivedError` callback. This corresponds t
 ComposeWebView(
     url = "https://example.com",
     onReceivedError = { webView, request, error ->
-        // request: WebResourceRequest?
-        // error: WebResourceError?
-        
+        // request: WebResourceRequest? (platform-specific)
+        // error: WebResourceError? (platform-specific)
+
         Log.e("WebView", "Failed to load ${request?.url}: ${error?.description}")
     }
 )
+```
+
+**Accessing Typed Errors:**
+
+```kotlin
+val state = rememberWebViewState(url = "https://example.com")
+
+// Access errors from state
+LaunchedEffect(state.errorsForCurrentRequest) {
+    state.errorsForCurrentRequest.forEach { error ->
+        println("Error ${error.errorCode}: ${error.description}")
+        println("Failed URL: ${error.failingUrl}")
+    }
+}
 ```
 
 ---

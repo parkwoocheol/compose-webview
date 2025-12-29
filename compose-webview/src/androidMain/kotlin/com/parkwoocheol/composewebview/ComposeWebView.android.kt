@@ -66,6 +66,7 @@ import kotlinx.coroutines.withContext
 internal actual fun ComposeWebViewImpl(
     url: String,
     modifier: Modifier,
+    settings: WebViewSettings,
     controller: WebViewController,
     javaScriptInterfaces: Map<String, Any>,
     onCreated: (WebView) -> Unit,
@@ -86,15 +87,18 @@ internal actual fun ComposeWebViewImpl(
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
     onPermissionRequest: (PlatformPermissionRequest) -> Unit,
+    onConsoleMessage: ((WebView, ConsoleMessage) -> Boolean)?,
 ) {
     val state = rememberSaveableWebViewState(url = url)
 
-    // Connect permissions callback
+    // Connect callbacks
     chromeClient.onPermissionRequestCallback = onPermissionRequest
+    chromeClient.onConsoleMessageCallback = onConsoleMessage
 
     ComposeWebView(
         state = state,
         modifier = modifier,
+        settings = settings,
         controller = controller,
         javaScriptInterfaces = javaScriptInterfaces,
         onCreated = onCreated,
@@ -114,6 +118,8 @@ internal actual fun ComposeWebViewImpl(
         onProgressChanged = onProgressChanged,
         onDownloadStart = onDownloadStart,
         onFindResultReceived = onFindResultReceived,
+        onPermissionRequest = onPermissionRequest,
+        onConsoleMessage = onConsoleMessage,
     )
 }
 
@@ -121,6 +127,7 @@ internal actual fun ComposeWebViewImpl(
 internal actual fun ComposeWebViewImpl(
     state: WebViewState,
     modifier: Modifier,
+    settings: WebViewSettings,
     controller: WebViewController,
     javaScriptInterfaces: Map<String, Any>,
     onCreated: (WebView) -> Unit,
@@ -142,12 +149,14 @@ internal actual fun ComposeWebViewImpl(
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
     onPermissionRequest: (PlatformPermissionRequest) -> Unit,
+    onConsoleMessage: ((WebView, ConsoleMessage) -> Boolean)?,
 ) {
     val webView = state.webView
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    // Connect permissions callback
+    // Connect callbacks
     chromeClient.onPermissionRequestCallback = onPermissionRequest
+    chromeClient.onConsoleMessageCallback = onConsoleMessage
 
     var fileChooserCallback by remember { mutableStateOf<ValueCallback<Array<Uri>>?>(null) }
     val launcher =
@@ -253,6 +262,9 @@ internal actual fun ComposeWebViewImpl(
                     // Inject context for DownloadUtils
                     DownloadUtils.setContext(context.applicationContext)
 
+                    // Apply WebView settings
+                    applySettings(settings)
+
                     webViewClient = client
                     webChromeClient = chromeClient
 
@@ -269,6 +281,11 @@ internal actual fun ComposeWebViewImpl(
                         setFindListener { activeMatchOrdinal, numberOfMatches, isDoneCounting ->
                             listener(activeMatchOrdinal, numberOfMatches, isDoneCounting)
                         }
+                    }
+
+                    // Track scroll position
+                    setOnScrollChangeListener { _, scrollX, scrollY, _, _ ->
+                        state.scrollPosition = ScrollPosition(scrollX, scrollY)
                     }
                 }.also {
                     // Restore state if available
@@ -396,5 +413,50 @@ private fun WebViewContainer(
 private fun WebView.injectJavascriptInterfaces(interfaces: Map<String, Any>) {
     interfaces.forEach { (name, obj) ->
         addJavascriptInterface(obj, name)
+    }
+}
+
+@SuppressLint("SetJavaScriptEnabled")
+private fun WebView.applySettings(webViewSettings: WebViewSettings) {
+    settings.apply {
+        // JavaScript
+        javaScriptEnabled = webViewSettings.javaScriptEnabled
+
+        // DOM Storage
+        domStorageEnabled = webViewSettings.domStorageEnabled
+
+        // Cache Mode
+        cacheMode =
+            when (webViewSettings.cacheMode) {
+                CacheMode.DEFAULT -> android.webkit.WebSettings.LOAD_DEFAULT
+                CacheMode.CACHE_ELSE_NETWORK -> android.webkit.WebSettings.LOAD_CACHE_ELSE_NETWORK
+                CacheMode.NO_CACHE -> android.webkit.WebSettings.LOAD_NO_CACHE
+                CacheMode.CACHE_ONLY -> android.webkit.WebSettings.LOAD_CACHE_ONLY
+            }
+
+        // File Access
+        allowFileAccess = webViewSettings.allowFileAccess
+        allowContentAccess = webViewSettings.allowContentAccess
+
+        // Zoom
+        setSupportZoom(webViewSettings.supportZoom)
+        builtInZoomControls = webViewSettings.supportZoom
+        displayZoomControls = false // Hide zoom controls UI
+
+        // Viewport
+        loadWithOverviewMode = webViewSettings.loadWithOverviewMode
+        useWideViewPort = webViewSettings.useWideViewPort
+
+        // File URL Access
+        allowFileAccessFromFileURLs = webViewSettings.allowFileAccessFromFileURLs
+        allowUniversalAccessFromFileURLs = webViewSettings.allowUniversalAccessFromFileURLs
+
+        // Media Playback
+        mediaPlaybackRequiresUserGesture = webViewSettings.mediaPlaybackRequiresUserAction
+
+        // User Agent
+        webViewSettings.userAgent?.let { ua ->
+            userAgentString = ua
+        }
     }
 }

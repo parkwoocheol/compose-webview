@@ -22,7 +22,10 @@ actual class PlatformCustomViewCallback(val impl: android.webkit.WebChromeClient
     }
 }
 
-actual class PlatformWebResourceError(val impl: WebResourceError)
+actual class PlatformWebResourceError(val impl: WebResourceError) {
+    actual val errorCode: Int get() = impl.errorCode
+    actual val description: String get() = impl.description?.toString() ?: "Unknown error"
+}
 
 actual class PlatformWebResourceRequest(val impl: WebResourceRequest) {
     actual val url: String get() = impl.url.toString()

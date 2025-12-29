@@ -15,6 +15,7 @@ import com.parkwoocheol.composewebview.client.ComposeWebViewClient
  *
  * @param url The URL to load.
  * @param modifier The modifier to be applied to the layout.
+ * @param settings Configuration settings for the WebView behavior.
  * @param controller The controller to control the WebView (load, back, forward, post, evaluateJS, etc.).
  * @param javaScriptInterfaces A map of interface objects to inject into JavaScript. Key is the name, Value is the object.
  * @param onCreated Called when the WebView is created. Use this to configure settings.
@@ -36,11 +37,13 @@ import com.parkwoocheol.composewebview.client.ComposeWebViewClient
  * @param onProgressChanged Callback for [ComposeWebChromeClient.onProgressChanged].
  * @param onDownloadStart Callback for [android.webkit.DownloadListener.onDownloadStart].
  * @param onFindResultReceived Callback for [WebView.FindListener.onFindResultReceived].
+ * @param onConsoleMessage Callback for console messages from JavaScript.
  */
 @Composable
 fun ComposeWebView(
     url: String,
     modifier: Modifier = Modifier,
+    settings: WebViewSettings = WebViewSettings.Default,
     controller: WebViewController = rememberWebViewController(),
     javaScriptInterfaces: Map<String, Any> = emptyMap(),
     onCreated: (WebView) -> Unit = {},
@@ -61,10 +64,12 @@ fun ComposeWebView(
     onDownloadStart: ((String, String, String, String, Long) -> Unit)? = null,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)? = null,
     onPermissionRequest: (PlatformPermissionRequest) -> Unit = { },
+    onConsoleMessage: ((WebView, ConsoleMessage) -> Boolean)? = null,
 ) {
     ComposeWebViewImpl(
         url = url,
         modifier = modifier,
+        settings = settings,
         controller = controller,
         javaScriptInterfaces = javaScriptInterfaces,
         onCreated = onCreated,
@@ -85,6 +90,7 @@ fun ComposeWebView(
         onDownloadStart = onDownloadStart,
         onFindResultReceived = onFindResultReceived,
         onPermissionRequest = onPermissionRequest,
+        onConsoleMessage = onConsoleMessage,
     )
 }
 
@@ -92,6 +98,7 @@ fun ComposeWebView(
 internal expect fun ComposeWebViewImpl(
     url: String,
     modifier: Modifier,
+    settings: WebViewSettings,
     controller: WebViewController,
     javaScriptInterfaces: Map<String, Any>,
     onCreated: (WebView) -> Unit,
@@ -112,6 +119,7 @@ internal expect fun ComposeWebViewImpl(
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
     onPermissionRequest: (PlatformPermissionRequest) -> Unit,
+    onConsoleMessage: ((WebView, ConsoleMessage) -> Boolean)?,
 )
 
 /**
@@ -123,6 +131,7 @@ internal expect fun ComposeWebViewImpl(
  *
  * @param state The state of the WebView, observing loading, title, etc.
  * @param modifier The modifier to be applied to the layout.
+ * @param settings Configuration settings for the WebView behavior.
  * @param controller The controller to control the WebView (load, back, forward, post, evaluateJS, etc.).
  * @param javaScriptInterfaces A map of interface objects to inject into JavaScript. Key is the name, Value is the object.
  * @param onCreated Called when the WebView is created. Use this to configure settings.
@@ -143,11 +152,13 @@ internal expect fun ComposeWebViewImpl(
  * @param onProgressChanged Callback for [ComposeWebChromeClient.onProgressChanged].
  * @param onDownloadStart Callback for [android.webkit.DownloadListener.onDownloadStart].
  * @param onFindResultReceived Callback for [WebView.FindListener.onFindResultReceived].
+ * @param onConsoleMessage Callback for console messages from JavaScript.
  */
 @Composable
 fun ComposeWebView(
     state: WebViewState,
     modifier: Modifier = Modifier,
+    settings: WebViewSettings = WebViewSettings.Default,
     controller: WebViewController = rememberWebViewController(),
     javaScriptInterfaces: Map<String, Any> = emptyMap(),
     onCreated: (WebView) -> Unit = {},
@@ -169,10 +180,12 @@ fun ComposeWebView(
     onDownloadStart: ((String, String, String, String, Long) -> Unit)? = null,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)? = null,
     onPermissionRequest: (PlatformPermissionRequest) -> Unit = { },
+    onConsoleMessage: ((WebView, ConsoleMessage) -> Boolean)? = null,
 ) {
     ComposeWebViewImpl(
         state = state,
         modifier = modifier,
+        settings = settings,
         controller = controller,
         javaScriptInterfaces = javaScriptInterfaces,
         onCreated = onCreated,
@@ -194,6 +207,7 @@ fun ComposeWebView(
         onDownloadStart = onDownloadStart,
         onFindResultReceived = onFindResultReceived,
         onPermissionRequest = onPermissionRequest,
+        onConsoleMessage = onConsoleMessage,
     )
 }
 
@@ -201,6 +215,7 @@ fun ComposeWebView(
 internal expect fun ComposeWebViewImpl(
     state: WebViewState,
     modifier: Modifier,
+    settings: WebViewSettings,
     controller: WebViewController,
     javaScriptInterfaces: Map<String, Any>,
     onCreated: (WebView) -> Unit,
@@ -222,4 +237,5 @@ internal expect fun ComposeWebViewImpl(
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
     onPermissionRequest: (PlatformPermissionRequest) -> Unit,
+    onConsoleMessage: ((WebView, ConsoleMessage) -> Boolean)?,
 )

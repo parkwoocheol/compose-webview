@@ -69,16 +69,24 @@ ComposeWebView(state = state)
 
 The `WebViewState` object exposes reactive properties that you can observe in your Composables.
 
-| Property | Type | Description |
-| :--- | :--- | :--- |
-| `lastLoadedUrl` | `String?` | The URL currently loaded in the WebView. |
-| `isLoading` | `Boolean` | `true` if a page is currently loading. |
-| `loadingState` | `LoadingState` | Detailed loading progress (Initial, Loading(0.0-1.0), Finished). |
-| `pageTitle` | `String?` | The title of the current page. |
-| `pageIcon` | `Bitmap?` | The favicon of the current page. |
-| `errorsForCurrentRequest` | `List<WebViewError>` | List of errors encountered during the current load. |
+### Available Properties
 
-### Example: Observing Progress
+| Property | Type | Description | Platform Support |
+| :--- | :--- | :--- | :--- |
+| `lastLoadedUrl` | `String?` | The URL currently loaded in the WebView. | All platforms |
+| `isLoading` | `Boolean` | `true` if a page is currently loading. | All platforms |
+| `loadingState` | `LoadingState` | Detailed loading progress (Initializing, Loading, Finished, Failed, Cancelled). | All platforms* |
+| `pageTitle` | `String?` | The title of the current page. | All platforms |
+| `pageIcon` | `Bitmap?` | The favicon of the current page. | Android, iOS, Desktop |
+| `scrollPosition` | `ScrollPosition` | Current scroll position (x, y) in pixels. | Android (real-time), iOS (100ms polling), Web (CORS-limited)** |
+| `errorsForCurrentRequest` | `List<WebViewError>` | List of errors encountered during the current load. | Android, iOS, Desktop (partial), Web (limited) |
+| `jsDialogState` | `JsDialogState?` | Active JavaScript dialog (Alert, Confirm, Prompt). | Android, iOS |
+| `customViewState` | `CustomViewState?` | Custom view state (e.g., fullscreen video). | Android |
+
+\* **LoadingState progress**: Android (real-time), iOS (100ms polling), Desktop/Web (limited)
+\*\* **Web scrollPosition**: Only works for same-origin iframes due to CORS restrictions
+
+### Example: Observing Loading Progress
 
 ```kotlin
 val state = rememberSaveableWebViewState(url = "https://example.com")
@@ -88,3 +96,29 @@ if (state.isLoading) {
     LinearProgressIndicator(progress = progress)
 }
 ```
+
+### Example: Tracking Scroll Position
+
+```kotlin
+val state = rememberSaveableWebViewState(url = "https://example.com")
+
+// Observe scroll position changes
+LaunchedEffect(state.scrollPosition) {
+    val (x, y) = state.scrollPosition
+    println("User scrolled to: x=$x, y=$y")
+
+    // Example: Show "Back to Top" button when scrolled down
+    if (y > 500) {
+        showBackToTopButton = true
+    }
+}
+
+ComposeWebView(state = state)
+```
+
+**Platform-Specific Behavior:**
+
+- **Android**: Scroll position updates in real-time via `setOnScrollChangeListener`
+- **iOS**: Scroll position updates every 100ms via polling of `scrollView.contentOffset`
+- **Desktop**: Not supported (KCEF API limitations)
+- **Web**: Only works for same-origin iframes; cross-origin iframes always report (0, 0) due to CORS

@@ -70,6 +70,82 @@ Visit the documentation site for comprehensive guides, API references, and advan
  | **Desktop** | `SwingPanel` (CEF via KCEF) | 🚧 Experimental | **WIP**: KCEF integration is in progress. Basic browsing works, but advanced features are still being tested. |
  | **Web (JS)** | `Iframe` (DOM) | 🚧 Experimental | **WIP**: Basic navigation and JSBridge (via postMessage) are implemented but may have limitations. |
 
+### API Support Matrix
+
+<details>
+<summary>Click to expand detailed API support by platform</summary>
+
+#### Core Navigation APIs
+
+| API | Android | iOS | Desktop | Web | Notes |
+|-----|:-------:|:---:|:-------:|:---:|-------|
+| `loadUrl()` | ✅ | ✅ | ✅ | ✅ | Headers: Android/iOS only |
+| `loadHtml()` | ✅ | ✅ | ✅ | ⚠️ | Web: CORS restrictions |
+| `postUrl()` | ✅ | ✅ | ❌ | ❌ | Desktop/Web not supported |
+| `evaluateJavascript()` | ✅ | ✅ | ✅ | ⚠️ | Web: CORS restricted |
+| `navigateBack/Forward` | ✅ | ✅ | ✅ | ⚠️ | Web: CORS restricted |
+| `reload() / stopLoading()` | ✅ | ✅ | ✅ | ⚠️ | Web: CORS restricted |
+
+#### Control & Navigation
+
+| API | Android | iOS | Desktop | Web | Notes |
+|-----|:-------:|:---:|:-------:|:---:|-------|
+| `zoomIn/Out/By()` | ✅ | ❌ | ✅ | ❌ | iOS: Pinch-to-zoom only |
+| `scrollTo/By()` | ✅ | ✅ | ❌ | ✅ | Desktop not supported |
+| `pageUp/Down()` | ✅ | ⚠️ | ❌ | ⚠️ | Via scrollBy on iOS/Web |
+| `findAllAsync()` | ✅ | ❌ | ❌ | ❌ | Android only |
+| `clearCache/History()` | ✅ | ❌ | ❌ | ❌ | Android only |
+
+#### State Management
+
+| Feature | Android | iOS | Desktop | Web | Notes |
+|---------|:-------:|:---:|:-------:|:---:|-------|
+| `LoadingState` | ✅ | ✅ | ⚠️ | ⚠️ | All states supported on Android/iOS |
+| `LoadingState.Loading(progress)` | ✅ | ✅ | ❌ | ❌ | iOS: 100ms polling |
+| `ScrollPosition` | ✅ | ✅ | ❌ | ⚠️ | Real-time (Android), Polling (iOS), CORS (Web) |
+| `WebViewError` | ✅ | ✅ | ⚠️ | ⚠️ | Typed error categories |
+| `jsDialogState` | ✅ | ✅ | ❌ | ❌ | Alert/Confirm/Prompt |
+| `customViewState` | ✅ | ❌ | ❌ | ❌ | Fullscreen video (Android only) |
+
+#### Configuration (WebViewSettings)
+
+| Setting | Android | iOS | Desktop | Web | Notes |
+|---------|:-------:|:---:|:-------:|:---:|-------|
+| `userAgent` | ✅ | ✅ | ✅ | ❌ | Browser controlled on Web |
+| `javaScriptEnabled` | ✅ | ✅* | ✅ | ❌ | *iOS: Always enabled |
+| `domStorageEnabled` | ✅ | ✅ | ⚠️ | ❌ | Limited on Desktop |
+| `cacheMode` | ✅ | ⚠️ | ⚠️ | ❌ | Full support on Android |
+| `supportZoom` | ✅ | ⚠️** | ✅ | ❌ | **iOS: Pinch-to-zoom only |
+| `mediaPlaybackRequiresUserAction` | ✅ | ✅ | ⚠️ | ❌ | Autoplay control |
+
+#### Callbacks & Events
+
+| Callback | Android | iOS | Desktop | Web | Notes |
+|----------|:-------:|:---:|:-------:|:---:|-------|
+| `onPageStarted` | ✅ | ✅ | ✅ | ❌ | Navigation started |
+| `onPageFinished` | ✅ | ✅ | ✅ | ✅ | Navigation completed |
+| `onProgressChanged` | ✅ | ✅ | ❌ | ❌ | iOS: 100ms polling |
+| `onReceivedError` | ✅ | ✅ | ⚠️ | ❌ | Typed error information |
+| `onConsoleMessage` | ✅ | ✅ | ❌ | ❌ | JavaScript console debugging |
+| `shouldOverrideUrlLoading` | ✅ | ✅ | ✅ | ❌ | Custom URL handling |
+| JS Dialogs (Alert/Confirm/Prompt) | ✅ | ✅ | ❌ | ❌ | Custom dialog UI |
+| Custom View (Fullscreen) | ✅ | ❌ | ❌ | ❌ | Video fullscreen (Android) |
+| File Upload | ✅ | ✅ | ❌ | ❌ | Native file picker |
+| Download Handling | ✅ | ⚠️ | ❌ | ❌ | `onDownloadStart` callback |
+
+#### JSBridge
+
+| Feature | Android | iOS | Desktop | Web | Notes |
+|---------|:-------:|:---:|:-------:|:---:|-------|
+| `register()` handler | ✅ | ✅ | ✅ | ✅ | Kotlin ↔ JavaScript calls |
+| `emit()` events | ✅ | ✅ | ⚠️ | ⚠️ | Event bus system |
+| Promise-based response | ✅ | ✅ | ⚠️ | ⚠️ | Async/await support |
+| Type-safe serialization | ✅ | ✅ | ✅ | ✅ | Kotlinx Serialization |
+
+**Legend**: ✅ Full Support | ⚠️ Partial/Limited | ❌ Not Supported
+
+</details>
+
 ## 🎯 Project Focus & Comparison
 
 This library has a slightly different focus compared to other WebView libraries (like `KevinnZou/compose-webview-multiplatform`), primarily targeting **Mobile productivity**.

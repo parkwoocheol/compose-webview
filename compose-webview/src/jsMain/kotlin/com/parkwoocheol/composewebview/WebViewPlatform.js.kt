@@ -22,7 +22,10 @@ actual class PlatformCustomViewCallback {
     }
 }
 
-actual class PlatformWebResourceError
+actual class PlatformWebResourceError {
+    actual val errorCode: Int = -1
+    actual val description: String = "Unknown error"
+}
 
 actual abstract class PlatformPermissionRequest
 
