@@ -57,12 +57,12 @@ sealed class LoadingState {
  * Represents the scroll position of the WebView.
  *
  * **Platform Support:**
- * | Platform | Support | Notes |
- * |----------|---------|-------|
- * | Android  | ✅ Full | onScrollChanged listener |
- * | iOS      | ✅ Full | UIScrollView contentOffset |
- * | Desktop  | ⚠️ Partial | Limited CEF scroll tracking |
- * | Web      | ✅ Full | onscroll event |
+ * | Platform | Support | Implementation |
+ * |----------|---------|----------------|
+ * | Android  | ✅ Full | setOnScrollChangeListener - real-time tracking |
+ * | iOS      | ✅ Full | scrollView.contentOffset polling (100ms intervals) |
+ * | Desktop  | ❌ Not supported | CEF limitations - requires JavaScript injection |
+ * | Web      | ⚠️ Limited | onscroll event - same-origin only (CORS restrictions) |
  *
  * @property x Horizontal scroll position in pixels.
  * @property y Vertical scroll position in pixels.

@@ -61,8 +61,10 @@ internal actual fun ComposeWebViewImpl(
                 border(0.px)
             }
             ref {
-                onCreated(WebView(it as HTMLIFrameElement))
-                onDispose { onDispose(WebView(it as HTMLIFrameElement)) }
+                val iframe = it as HTMLIFrameElement
+                val webView = WebView(iframe)
+                onCreated(webView)
+                onDispose { onDispose(webView) }
             }
         },
     )
@@ -128,16 +130,32 @@ internal actual fun ComposeWebViewImpl(
                 border(0.px)
             }
             ref {
-                val webView = WebView(it as HTMLIFrameElement)
+                val iframe = it as HTMLIFrameElement
+                val webView = WebView(iframe)
                 state.webView = webView
 
                 // Attach JSBridge
                 jsBridge?.attach(webView)
 
+                // Try to set up scroll tracking (only works for same-origin iframes)
+                try {
+                    iframe.contentWindow?.addEventListener("scroll", { _ ->
+                        try {
+                            val scrollX = iframe.contentWindow?.scrollX?.toInt() ?: 0
+                            val scrollY = iframe.contentWindow?.scrollY?.toInt() ?: 0
+                            state.scrollPosition = ScrollPosition(scrollX, scrollY)
+                        } catch (e: dynamic) {
+                            // CORS restriction - cannot access scroll position
+                        }
+                    })
+                } catch (e: dynamic) {
+                    // CORS restriction - cannot add event listener
+                }
+
                 onCreated(webView)
 
                 // Handle Load Events
-                it.onload = { _ ->
+                iframe.onload = { _ ->
                     state.loadingState = LoadingState.Finished
                     // Inject JS Bridge script
                     jsBridge?.let { bridge ->

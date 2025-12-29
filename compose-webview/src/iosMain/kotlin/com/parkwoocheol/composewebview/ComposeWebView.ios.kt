@@ -9,6 +9,7 @@ import com.parkwoocheol.composewebview.client.ComposeWebViewClient
 import com.parkwoocheol.composewebview.client.ComposeWebViewDelegate
 import com.parkwoocheol.composewebview.client.ComposeWebViewUIDelegate
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.useContents
 import platform.WebKit.WKWebView
 import platform.WebKit.WKWebViewConfiguration
 
@@ -119,12 +120,16 @@ internal actual fun ComposeWebViewImpl(
             }
         }.also { state.webView = it }
 
-    // Observe estimatedProgress for onProgressChanged callback
+    // Observe estimatedProgress for onProgressChanged callback and scroll position
     // Using LaunchedEffect with periodic polling since Kotlin/Native KVO is complex
     androidx.compose.runtime.LaunchedEffect(webView) {
         var lastProgress = -1
+        var lastScrollX = -1
+        var lastScrollY = -1
         while (true) {
             kotlinx.coroutines.delay(100) // Poll every 100ms
+
+            // Track progress
             val progress = webView.estimatedProgress
             val progressInt = (progress * 100).toInt()
             if (progressInt != lastProgress) {
@@ -136,6 +141,20 @@ internal actual fun ComposeWebViewImpl(
                         LoadingState.Loading(progress.toFloat())
                     }
                 onProgressChanged(webView, progressInt)
+            }
+
+            // Track scroll position
+            val offset = webView.scrollView.contentOffset
+            var scrollX = 0
+            var scrollY = 0
+            offset.useContents {
+                scrollX = this.x.toInt()
+                scrollY = this.y.toInt()
+            }
+            if (scrollX != lastScrollX || scrollY != lastScrollY) {
+                lastScrollX = scrollX
+                lastScrollY = scrollY
+                state.scrollPosition = ScrollPosition(scrollX, scrollY)
             }
         }
     }

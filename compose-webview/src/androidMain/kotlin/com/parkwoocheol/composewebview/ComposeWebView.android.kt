@@ -282,6 +282,11 @@ internal actual fun ComposeWebViewImpl(
                             listener(activeMatchOrdinal, numberOfMatches, isDoneCounting)
                         }
                     }
+
+                    // Track scroll position
+                    setOnScrollChangeListener { _, scrollX, scrollY, _, _ ->
+                        state.scrollPosition = ScrollPosition(scrollX, scrollY)
+                    }
                 }.also {
                     // Restore state if available
                     state.bundle?.let { bundle ->
