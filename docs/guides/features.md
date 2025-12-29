@@ -1,6 +1,6 @@
 # Advanced Features
 
-This guide covers advanced capabilities of `compose-webview` such as File Uploads, Downloads, and Custom Views (Fullscreen Video).
+This guide covers advanced capabilities of `compose-webview` including WebView Configuration, State Management, JavaScript Debugging, File Uploads, Downloads, and Custom Views (Fullscreen Video).
 
 ---
 
@@ -8,12 +8,166 @@ This guide covers advanced capabilities of `compose-webview` such as File Upload
 
 | Feature | Android | iOS | Desktop | Web |
 |---------|:-------:|:---:|:-------:|:---:|
-| File Uploads | ✅ | ✅ (native) | ❌ | ❌ |
+| WebViewSettings Configuration | ✅ | ⚠️ | ⚠️ | ❌ |
+| Console Message Debugging | ✅ | ✅ | ❌ | ❌ |
+| Scroll Position Tracking | ✅ | ✅ | ❌ | ⚠️ |
+| Loading State with Progress | ✅ | ✅ | ⚠️ | ⚠️ |
+| Typed Error Handling | ✅ | ✅ | ⚠️ | ⚠️ |
+| File Uploads | ✅ | ✅ | ❌ | ❌ |
 | Downloads | ✅ | ⚠️ | ❌ | ❌ |
 | Custom View (Fullscreen) | ✅ | ❌ | ❌ | ❌ |
-| Progress Callback | ✅ | ✅ | ❌ | ❌ |
+| JS Dialogs (Alert/Confirm/Prompt) | ✅ | ✅ | ❌ | ❌ |
 
-**Legend**: ✅ Supported | ⚠️ Partial | ❌ Not supported
+**Legend**: ✅ Full Support | ⚠️ Partial/Limited | ❌ Not Supported
+
+---
+
+## WebView Configuration (WebViewSettings)
+
+Configure WebView behavior with a unified API across platforms.
+
+### Basic Usage
+
+```kotlin
+val settings = WebViewSettings(
+    userAgent = "MyApp/1.0",
+    javaScriptEnabled = true,
+    domStorageEnabled = true,
+    cacheMode = CacheMode.CACHE_ELSE_NETWORK,
+    supportZoom = true,
+    mediaPlaybackRequiresUserAction = false
+)
+
+ComposeWebView(
+    state = webViewState,
+    settings = settings
+)
+```
+
+### Available Settings
+
+| Setting | Android | iOS | Desktop | Web | Notes |
+|---------|:-------:|:---:|:-------:|:---:|-------|
+| `userAgent` | ✅ | ✅ | ✅ | ❌ | Custom user agent string |
+| `javaScriptEnabled` | ✅ | ✅* | ✅ | ❌ | *iOS: Always enabled |
+| `domStorageEnabled` | ✅ | ✅ | ⚠️ | ❌ | localStorage/sessionStorage |
+| `cacheMode` | ✅ | ⚠️ | ⚠️ | ❌ | Cache behavior control |
+| `supportZoom` | ✅ | ⚠️** | ✅ | ❌ | **iOS: Pinch-to-zoom only |
+| `mediaPlaybackRequiresUserAction` | ✅ | ✅ | ⚠️ | ❌ | Autoplay control |
+
+!!! info "Platform-Specific Behavior"
+    - **iOS**: JavaScript is always enabled and cannot be disabled. The `javaScriptEnabled` setting is ignored.
+    - **iOS**: Programmatic zoom (`zoomIn()`/`zoomOut()`) is not supported. Only user pinch-to-zoom gestures work.
+    - **Web**: Settings are browser-controlled and cannot be modified from the iframe.
+
+### Cache Modes
+
+```kotlin
+enum class CacheMode {
+    DEFAULT,              // Use cache when available
+    CACHE_ELSE_NETWORK,  // Prefer cache, fallback to network
+    NO_CACHE,            // Always load from network
+    CACHE_ONLY           // Only use cache, don't fetch
+}
+```
+
+---
+
+## Console Message Debugging
+
+Capture and debug JavaScript console messages from your WebView.
+
+### Platform Support
+
+| Platform | Status | Implementation |
+|----------|--------|----------------|
+| **Android** | ✅ Full | `WebChromeClient.onConsoleMessage` |
+| **iOS** | ✅ Full | Custom message handler |
+| **Desktop/Web** | ❌ Not supported | - |
+
+### Usage
+
+```kotlin
+ComposeWebView(
+    state = webViewState,
+    onConsoleMessage = { webView, message ->
+        when (message.level) {
+            ConsoleMessageLevel.ERROR -> {
+                Log.e("WebView", "[${message.sourceId}:${message.lineNumber}] ${message.message}")
+            }
+            ConsoleMessageLevel.WARNING -> {
+                Log.w("WebView", message.message)
+            }
+            ConsoleMessageLevel.LOG -> {
+                Log.d("WebView", message.message)
+            }
+            else -> {
+                Log.v("WebView", message.message)
+            }
+        }
+        false // Return true to suppress default logging
+    }
+)
+```
+
+### ConsoleMessage Data Class
+
+```kotlin
+data class ConsoleMessage(
+    val message: String,           // Console message text
+    val sourceId: String = "",     // Source file URL
+    val lineNumber: Int = 0,       // Line number in source
+    val level: ConsoleMessageLevel // Severity level
+)
+
+enum class ConsoleMessageLevel {
+    LOG, DEBUG, WARNING, ERROR, TIP
+}
+```
+
+---
+
+## Scroll Position Tracking
+
+Track the WebView's scroll position in real-time.
+
+### Platform Support
+
+| Platform | Support | Implementation | Update Frequency |
+|----------|---------|----------------|------------------|
+| **Android** | ✅ Full | `setOnScrollChangeListener` | Real-time |
+| **iOS** | ✅ Full | `contentOffset` polling | 100ms intervals |
+| **Desktop** | ❌ Not supported | CEF limitations | - |
+| **Web** | ⚠️ Limited | `onscroll` event | CORS restricted (same-origin only) |
+
+### Usage
+
+```kotlin
+val webViewState = rememberWebViewState(url = "https://example.com")
+
+// Access scroll position from state
+LaunchedEffect(webViewState.scrollPosition) {
+    val (x, y) = webViewState.scrollPosition
+    println("Scrolled to: x=$x, y=$y")
+}
+
+ComposeWebView(state = webViewState)
+```
+
+### ScrollPosition Data Class
+
+```kotlin
+@Immutable
+data class ScrollPosition(
+    val x: Int = 0,  // Horizontal scroll position in pixels
+    val y: Int = 0   // Vertical scroll position in pixels
+)
+```
+
+!!! warning "Platform Limitations"
+    - **iOS**: Uses polling (100ms intervals) instead of real-time updates due to Kotlin/Native KVO complexity.
+    - **Web**: Only works for same-origin iframes. Cross-origin iframes will always report (0, 0) due to CORS restrictions.
+    - **Desktop**: Not supported due to KCEF API limitations.
 
 ---
 

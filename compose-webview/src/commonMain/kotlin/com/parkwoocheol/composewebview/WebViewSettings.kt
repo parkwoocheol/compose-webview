@@ -43,7 +43,7 @@ enum class CacheMode {
  *
  * This class provides a unified interface for configuring WebView settings.
  * Note that not all settings are supported on all platforms - refer to the
- * platform support documentation for each property.
+ * platform support tables below.
  *
  * **Example:**
  * ```kotlin
@@ -59,14 +59,33 @@ enum class CacheMode {
  * )
  * ```
  *
+ * **Platform Support Summary:**
+ * | Setting | Android | iOS | Desktop | Web |
+ * |---------|:-------:|:---:|:-------:|:---:|
+ * | userAgent | ✅ | ✅ | ✅ | ❌ |
+ * | javaScriptEnabled | ✅ | ✅* | ✅ | ❌ |
+ * | domStorageEnabled | ✅ | ✅ | ⚠️ | ❌ |
+ * | cacheMode | ✅ | ⚠️ | ⚠️ | ❌ |
+ * | allowFileAccess | ✅ | ⚠️ | ⚠️ | ❌ |
+ * | allowContentAccess | ✅ | ❌ | ❌ | ❌ |
+ * | supportZoom | ✅ | ⚠️** | ✅ | ❌ |
+ * | loadWithOverviewMode | ✅ | ❌ | ❌ | ❌ |
+ * | useWideViewPort | ✅ | ⚠️ | ⚠️ | ❌ |
+ * | allowFileAccessFromFileURLs | ✅ | ⚠️ | ⚠️ | ❌ |
+ * | allowUniversalAccessFromFileURLs | ✅ | ⚠️ | ⚠️ | ❌ |
+ * | mediaPlaybackRequiresUserAction | ✅ | ✅ | ⚠️ | ❌ |
+ *
+ * *iOS: JavaScript always enabled, setting is ignored
+ * **iOS: User pinch-to-zoom only, no programmatic zoom
+ *
  * @property userAgent Custom user agent string. If null, platform default is used.
- * @property javaScriptEnabled Enable JavaScript execution. Default: true.
+ * @property javaScriptEnabled Enable JavaScript execution. Default: true. (iOS: always enabled)
  * @property domStorageEnabled Enable DOM storage API. Default: true.
  * @property cacheMode Cache behavior mode. Default: CacheMode.DEFAULT.
  * @property allowFileAccess Allow access to file:// URLs. Default: false (security).
- * @property allowContentAccess Allow access to content:// URLs (Android). Default: false.
- * @property supportZoom Enable zoom controls. Default: true.
- * @property loadWithOverviewMode Load page with overview mode (Android). Default: true.
+ * @property allowContentAccess Allow access to content:// URLs (Android only). Default: false.
+ * @property supportZoom Enable zoom controls. Default: true. (iOS: pinch-to-zoom only)
+ * @property loadWithOverviewMode Load page with overview mode (Android only). Default: true.
  * @property useWideViewPort Enable viewport meta tag support. Default: true.
  * @property allowFileAccessFromFileURLs Allow file access from file URLs. Default: false (security).
  * @property allowUniversalAccessFromFileURLs Allow universal access from file URLs. Default: false (security).

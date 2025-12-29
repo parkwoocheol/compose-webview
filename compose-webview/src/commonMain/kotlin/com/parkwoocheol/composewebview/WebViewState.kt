@@ -96,6 +96,15 @@ class WebViewState(webContent: WebContent) {
 
     /**
      * The current loading state of the WebView.
+     *
+     * **Platform Support:**
+     * - **Initializing**: All platforms
+     * - **Loading(progress)**: Android (real-time), iOS (100ms polling), Desktop/Web (limited)
+     * - **Finished**: All platforms
+     * - **Failed**: Android, iOS, Desktop (partial), Web (limited)
+     * - **Cancelled**: All platforms
+     *
+     * See [LoadingState] for detailed state descriptions.
      */
     var loadingState: LoadingState by mutableStateOf(LoadingState.Initializing)
         internal set
@@ -114,6 +123,14 @@ class WebViewState(webContent: WebContent) {
 
     /**
      * The favicon of the current page.
+     *
+     * **Platform Support:**
+     * | Platform | Support | Notes |
+     * |----------|---------|-------|
+     * | Android  | ✅ Full | WebChromeClient.onReceivedIcon |
+     * | iOS      | ⚠️ Limited | Not directly available, requires custom handling |
+     * | Desktop  | ⚠️ Limited | KCEF favicon handling limited |
+     * | Web      | ⚠️ Limited | CORS restrictions apply |
      */
     var pageIcon: PlatformBitmap? by mutableStateOf(null)
 
@@ -128,6 +145,14 @@ class WebViewState(webContent: WebContent) {
     /**
      * The state of any active JavaScript dialog (Alert, Confirm, Prompt).
      * Null if no dialog is active.
+     *
+     * **Platform Support:**
+     * | Platform | Support | Notes |
+     * |----------|---------|-------|
+     * | Android  | ✅ Full | WebChromeClient callbacks |
+     * | iOS      | ✅ Full | WKUIDelegate callbacks |
+     * | Desktop  | ❌ Not supported | KCEF dialog handling different |
+     * | Web      | ❌ Not supported | Browser handles dialogs natively |
      */
     var jsDialogState: JsDialogState? by mutableStateOf(null)
         internal set
@@ -135,6 +160,14 @@ class WebViewState(webContent: WebContent) {
     /**
      * The state of any active custom view (e.g., fullscreen video).
      * Null if no custom view is active.
+     *
+     * **Platform Support:**
+     * | Platform | Support | Notes |
+     * |----------|---------|-------|
+     * | Android  | ✅ Full | WebChromeClient.onShowCustomView |
+     * | iOS      | ❌ Not supported | WKWebView handles fullscreen natively |
+     * | Desktop  | ❌ Not supported | KCEF handles fullscreen separately |
+     * | Web      | ❌ Not supported | Browser handles fullscreen natively |
      */
     var customViewState: CustomViewState? by mutableStateOf(null)
         internal set

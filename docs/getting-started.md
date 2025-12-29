@@ -89,16 +89,17 @@ Use `ComposeWebView` directly with a URL.
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.parkwoocheol.composewebview.ComposeWebView
+import com.parkwoocheol.composewebview.WebViewSettings
 
 @Composable
 fun MyBrowser() {
     ComposeWebView(
         url = "https://google.com",
         modifier = Modifier.fillMaxSize(),
-        onCreated = { webView ->
-            // Configure native WebView settings if needed
-            webView.settings.javaScriptEnabled = true
-        }
+        settings = WebViewSettings(
+            javaScriptEnabled = true,
+            domStorageEnabled = true
+        )
     )
 }
 ```
@@ -134,7 +135,10 @@ fun ControlledBrowser() {
             state = state,
             controller = controller,
             modifier = Modifier.weight(1f),
-            onCreated = { it.settings.javaScriptEnabled = true }
+            settings = WebViewSettings(
+                javaScriptEnabled = true,
+                domStorageEnabled = true
+            )
         )
     }
 }
