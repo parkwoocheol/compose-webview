@@ -39,7 +39,11 @@ internal actual fun ComposeWebViewImpl(
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
     onPermissionRequest: (PlatformPermissionRequest) -> Unit,
+    onConsoleMessage: ((WebView, ConsoleMessage) -> Boolean)?,
 ) {
+    // Connect callbacks
+    chromeClient.onConsoleMessageCallback = onConsoleMessage
+
     // Use Iframe from org.jetbrains.compose.web.dom
     // Note: This works best when using Compose HTML (DOM).
     // If using Compose Multiplatform (Canvas), this might not render correctly without an overlay.
@@ -90,7 +94,11 @@ internal actual fun ComposeWebViewImpl(
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
     onPermissionRequest: (PlatformPermissionRequest) -> Unit,
+    onConsoleMessage: ((WebView, ConsoleMessage) -> Boolean)?,
 ) {
+    // Connect callbacks
+    chromeClient.onConsoleMessageCallback = onConsoleMessage
+
     LaunchedEffect(state) {
         snapshotFlow { state.content }.collect { content ->
             if (content is WebContent.Url) {

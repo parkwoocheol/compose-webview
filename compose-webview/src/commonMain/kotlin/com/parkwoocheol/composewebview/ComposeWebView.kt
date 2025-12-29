@@ -37,6 +37,7 @@ import com.parkwoocheol.composewebview.client.ComposeWebViewClient
  * @param onProgressChanged Callback for [ComposeWebChromeClient.onProgressChanged].
  * @param onDownloadStart Callback for [android.webkit.DownloadListener.onDownloadStart].
  * @param onFindResultReceived Callback for [WebView.FindListener.onFindResultReceived].
+ * @param onConsoleMessage Callback for console messages from JavaScript.
  */
 @Composable
 fun ComposeWebView(
@@ -63,6 +64,7 @@ fun ComposeWebView(
     onDownloadStart: ((String, String, String, String, Long) -> Unit)? = null,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)? = null,
     onPermissionRequest: (PlatformPermissionRequest) -> Unit = { },
+    onConsoleMessage: ((WebView, ConsoleMessage) -> Boolean)? = null,
 ) {
     ComposeWebViewImpl(
         url = url,
@@ -88,6 +90,7 @@ fun ComposeWebView(
         onDownloadStart = onDownloadStart,
         onFindResultReceived = onFindResultReceived,
         onPermissionRequest = onPermissionRequest,
+        onConsoleMessage = onConsoleMessage,
     )
 }
 
@@ -116,6 +119,7 @@ internal expect fun ComposeWebViewImpl(
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
     onPermissionRequest: (PlatformPermissionRequest) -> Unit,
+    onConsoleMessage: ((WebView, ConsoleMessage) -> Boolean)?,
 )
 
 /**
@@ -148,6 +152,7 @@ internal expect fun ComposeWebViewImpl(
  * @param onProgressChanged Callback for [ComposeWebChromeClient.onProgressChanged].
  * @param onDownloadStart Callback for [android.webkit.DownloadListener.onDownloadStart].
  * @param onFindResultReceived Callback for [WebView.FindListener.onFindResultReceived].
+ * @param onConsoleMessage Callback for console messages from JavaScript.
  */
 @Composable
 fun ComposeWebView(
@@ -175,6 +180,7 @@ fun ComposeWebView(
     onDownloadStart: ((String, String, String, String, Long) -> Unit)? = null,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)? = null,
     onPermissionRequest: (PlatformPermissionRequest) -> Unit = { },
+    onConsoleMessage: ((WebView, ConsoleMessage) -> Boolean)? = null,
 ) {
     ComposeWebViewImpl(
         state = state,
@@ -201,6 +207,7 @@ fun ComposeWebView(
         onDownloadStart = onDownloadStart,
         onFindResultReceived = onFindResultReceived,
         onPermissionRequest = onPermissionRequest,
+        onConsoleMessage = onConsoleMessage,
     )
 }
 
@@ -230,4 +237,5 @@ internal expect fun ComposeWebViewImpl(
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
     onPermissionRequest: (PlatformPermissionRequest) -> Unit,
+    onConsoleMessage: ((WebView, ConsoleMessage) -> Boolean)?,
 )

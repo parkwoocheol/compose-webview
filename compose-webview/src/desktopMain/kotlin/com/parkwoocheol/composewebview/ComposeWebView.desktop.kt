@@ -47,8 +47,13 @@ internal actual fun ComposeWebViewImpl(
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
     onPermissionRequest: (PlatformPermissionRequest) -> Unit,
+    onConsoleMessage: ((WebView, ConsoleMessage) -> Boolean)?,
 ) {
     val state = rememberWebViewState(url)
+
+    // Connect callbacks
+    chromeClient.onConsoleMessageCallback = onConsoleMessage
+
     ComposeWebView(
         state = state,
         modifier = modifier,
@@ -74,6 +79,7 @@ internal actual fun ComposeWebViewImpl(
         onDownloadStart = onDownloadStart,
         onFindResultReceived = onFindResultReceived,
         onPermissionRequest = onPermissionRequest,
+        onConsoleMessage = onConsoleMessage,
     )
 }
 
@@ -103,7 +109,11 @@ internal actual fun ComposeWebViewImpl(
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
     onPermissionRequest: (PlatformPermissionRequest) -> Unit,
+    onConsoleMessage: ((WebView, ConsoleMessage) -> Boolean)?,
 ) {
+    // Connect callbacks
+    chromeClient.onConsoleMessageCallback = onConsoleMessage
+
     var initialized by remember { mutableStateOf(false) }
     var browser: KCEFBrowser? by remember { mutableStateOf(null) }
 

@@ -5,16 +5,20 @@ import android.webkit.JsPromptResult
 import android.webkit.JsResult
 import android.webkit.WebChromeClient
 import android.webkit.WebView
+import com.parkwoocheol.composewebview.ConsoleMessage
+import com.parkwoocheol.composewebview.ConsoleMessageLevel
 import com.parkwoocheol.composewebview.CustomViewState
 import com.parkwoocheol.composewebview.JsDialogState
 import com.parkwoocheol.composewebview.LoadingState
 import com.parkwoocheol.composewebview.PlatformCustomViewCallback
 import com.parkwoocheol.composewebview.WebViewState
+import android.webkit.ConsoleMessage as AndroidConsoleMessage
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual open class ComposeWebChromeClient : WebChromeClient() {
     var state: WebViewState? = null
     internal var onProgressChangedCallback: (WebView, Int) -> Unit = { _, _ -> }
+    internal var onConsoleMessageCallback: ((WebView, ConsoleMessage) -> Boolean)? = null
     internal var onShowFileChooserCallback: (
         (WebView, android.webkit.ValueCallback<Array<android.net.Uri>>, android.webkit.WebChromeClient.FileChooserParams) -> Boolean
     )? = null
@@ -38,6 +42,45 @@ actual open class ComposeWebChromeClient : WebChromeClient() {
         view?.let {
             onProgressChangedCallback(it, newProgress)
         }
+    }
+
+    override fun onConsoleMessage(consoleMessage: AndroidConsoleMessage?): Boolean {
+        if (consoleMessage != null) {
+            val message =
+                ConsoleMessage(
+                    message = consoleMessage.message() ?: "",
+                    sourceId = consoleMessage.sourceId() ?: "",
+                    lineNumber = consoleMessage.lineNumber(),
+                    level =
+                        when (consoleMessage.messageLevel()) {
+                            AndroidConsoleMessage.MessageLevel.TIP -> ConsoleMessageLevel.TIP
+                            AndroidConsoleMessage.MessageLevel.LOG -> ConsoleMessageLevel.LOG
+                            AndroidConsoleMessage.MessageLevel.WARNING -> ConsoleMessageLevel.WARNING
+                            AndroidConsoleMessage.MessageLevel.ERROR -> ConsoleMessageLevel.ERROR
+                            AndroidConsoleMessage.MessageLevel.DEBUG -> ConsoleMessageLevel.DEBUG
+                            else -> ConsoleMessageLevel.LOG
+                        },
+                )
+            onConsoleMessageCallback?.let { callback ->
+                // We don't have access to the WebView instance here easily,
+                // but we can get it from the state if needed
+                state?.webView?.let { webView ->
+                    return callback(webView, message)
+                }
+            }
+        }
+        return super.onConsoleMessage(consoleMessage)
+    }
+
+    // This fulfills the expect declaration - delegates to the override above
+    actual open fun onConsoleMessage(
+        view: com.parkwoocheol.composewebview.WebView?,
+        message: ConsoleMessage,
+    ): Boolean {
+        // Convert to Android ConsoleMessage and call the Android override
+        // This is primarily for testing or direct calls from common code
+        val androidWebView = (view as? WebView) ?: state?.webView ?: return false
+        return onConsoleMessageCallback?.invoke(androidWebView, message) ?: false
     }
 
     override fun onReceivedTitle(

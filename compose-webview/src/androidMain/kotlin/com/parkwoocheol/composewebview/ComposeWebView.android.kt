@@ -87,11 +87,13 @@ internal actual fun ComposeWebViewImpl(
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
     onPermissionRequest: (PlatformPermissionRequest) -> Unit,
+    onConsoleMessage: ((WebView, ConsoleMessage) -> Boolean)?,
 ) {
     val state = rememberSaveableWebViewState(url = url)
 
-    // Connect permissions callback
+    // Connect callbacks
     chromeClient.onPermissionRequestCallback = onPermissionRequest
+    chromeClient.onConsoleMessageCallback = onConsoleMessage
 
     ComposeWebView(
         state = state,
@@ -116,6 +118,8 @@ internal actual fun ComposeWebViewImpl(
         onProgressChanged = onProgressChanged,
         onDownloadStart = onDownloadStart,
         onFindResultReceived = onFindResultReceived,
+        onPermissionRequest = onPermissionRequest,
+        onConsoleMessage = onConsoleMessage,
     )
 }
 
@@ -145,12 +149,14 @@ internal actual fun ComposeWebViewImpl(
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
     onPermissionRequest: (PlatformPermissionRequest) -> Unit,
+    onConsoleMessage: ((WebView, ConsoleMessage) -> Boolean)?,
 ) {
     val webView = state.webView
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    // Connect permissions callback
+    // Connect callbacks
     chromeClient.onPermissionRequestCallback = onPermissionRequest
+    chromeClient.onConsoleMessageCallback = onConsoleMessage
 
     var fileChooserCallback by remember { mutableStateOf<ValueCallback<Array<Uri>>?>(null) }
     val launcher =

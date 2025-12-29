@@ -38,8 +38,13 @@ internal actual fun ComposeWebViewImpl(
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
     onPermissionRequest: (PlatformPermissionRequest) -> Unit,
+    onConsoleMessage: ((WebView, ConsoleMessage) -> Boolean)?,
 ) {
     val state = rememberSaveableWebViewState(url = url)
+
+    // Connect callbacks
+    chromeClient.onConsoleMessageCallback = onConsoleMessage
+
     ComposeWebView(
         state = state,
         modifier = modifier,
@@ -64,6 +69,7 @@ internal actual fun ComposeWebViewImpl(
         onDownloadStart = onDownloadStart,
         onFindResultReceived = onFindResultReceived,
         onPermissionRequest = onPermissionRequest,
+        onConsoleMessage = onConsoleMessage,
     )
 }
 
@@ -94,7 +100,11 @@ internal actual fun ComposeWebViewImpl(
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
     onPermissionRequest: (PlatformPermissionRequest) -> Unit,
+    onConsoleMessage: ((WebView, ConsoleMessage) -> Boolean)?,
 ) {
+    // Connect callbacks
+    chromeClient.onConsoleMessageCallback = onConsoleMessage
+
     val webView =
         state.webView ?: remember {
             val config =

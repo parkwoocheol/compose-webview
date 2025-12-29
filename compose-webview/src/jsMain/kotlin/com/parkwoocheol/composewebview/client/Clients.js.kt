@@ -1,5 +1,6 @@
 package com.parkwoocheol.composewebview.client
 
+import com.parkwoocheol.composewebview.ConsoleMessage
 import com.parkwoocheol.composewebview.PlatformBitmap
 import com.parkwoocheol.composewebview.PlatformWebResourceError
 import com.parkwoocheol.composewebview.PlatformWebResourceRequest
@@ -35,8 +36,17 @@ actual open class ComposeWebViewClient {
 }
 
 actual open class ComposeWebChromeClient {
+    internal var onConsoleMessageCallback: ((WebView, ConsoleMessage) -> Boolean)? = null
+
     actual open fun onProgressChanged(
         view: WebView?,
         newProgress: Int,
     ) {}
+
+    actual open fun onConsoleMessage(
+        view: WebView?,
+        message: ConsoleMessage,
+    ): Boolean {
+        return view?.let { onConsoleMessageCallback?.invoke(it, message) } ?: false
+    }
 }
