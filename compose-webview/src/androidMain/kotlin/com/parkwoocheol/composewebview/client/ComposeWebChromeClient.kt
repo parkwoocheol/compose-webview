@@ -17,12 +17,24 @@ import android.webkit.ConsoleMessage as AndroidConsoleMessage
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual open class ComposeWebChromeClient : WebChromeClient() {
     var state: WebViewState? = null
-    internal var onProgressChangedCallback: (WebView, Int) -> Unit = { _, _ -> }
-    internal var onConsoleMessageCallback: ((WebView, ConsoleMessage) -> Boolean)? = null
+    internal var onProgressChangedCallback: (WebView?, Int) -> Unit = { _, _ -> }
+    internal var onConsoleMessageCallback: ((WebView?, ConsoleMessage) -> Boolean)? = null
     internal var onShowFileChooserCallback: (
         (WebView, android.webkit.ValueCallback<Array<android.net.Uri>>, android.webkit.WebChromeClient.FileChooserParams) -> Boolean
     )? = null
     internal var onPermissionRequestCallback: ((android.webkit.PermissionRequest) -> Unit)? = null
+
+    internal actual fun setOnProgressChangedHandler(handler: (com.parkwoocheol.composewebview.WebView?, Int) -> Unit) {
+        onProgressChangedCallback = handler
+    }
+
+    internal actual fun setOnConsoleMessageHandler(handler: (com.parkwoocheol.composewebview.WebView?, ConsoleMessage) -> Boolean) {
+        onConsoleMessageCallback = handler
+    }
+
+    internal actual fun setOnPermissionRequestHandler(handler: (com.parkwoocheol.composewebview.PlatformPermissionRequest) -> Unit) {
+        onPermissionRequestCallback = handler
+    }
 
     override fun onPermissionRequest(request: android.webkit.PermissionRequest) {
         onPermissionRequestCallback?.invoke(request) ?: super.onPermissionRequest(request)
@@ -39,9 +51,7 @@ actual open class ComposeWebChromeClient : WebChromeClient() {
             } else {
                 LoadingState.Loading(newProgress / 100f)
             }
-        view?.let {
-            onProgressChangedCallback(it, newProgress)
-        }
+        onProgressChangedCallback(view, newProgress)
     }
 
     override fun onConsoleMessage(consoleMessage: AndroidConsoleMessage?): Boolean {

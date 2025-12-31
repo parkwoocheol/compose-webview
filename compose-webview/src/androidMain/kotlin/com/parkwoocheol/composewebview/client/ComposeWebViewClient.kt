@@ -24,9 +24,32 @@ actual open class ComposeWebViewClient : WebViewClient() {
     actual open var webViewState: WebViewState? = null
     actual open var webViewController: WebViewController? = null
 
-    internal var onPageStartedCallback: (WebView, String?, Bitmap?) -> Unit = { _, _, _ -> }
-    internal var onPageFinishedCallback: (WebView, String?) -> Unit = { _, _ -> }
-    internal var onReceivedErrorCallback: (WebView, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit = { _, _, _ -> }
+    internal var onPageStartedCallback: (WebView?, String?, Bitmap?) -> Unit = { _, _, _ -> }
+    internal var onPageFinishedCallback: (WebView?, String?) -> Unit = { _, _ -> }
+    internal var onReceivedErrorCallback: (WebView?, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit = { _, _, _ -> }
+    internal var shouldOverrideUrlLoadingCallback: ((WebView?, PlatformWebResourceRequest?) -> Boolean)? = null
+
+    internal actual fun setOnPageStartedHandler(
+        handler: (com.parkwoocheol.composewebview.WebView?, String?, com.parkwoocheol.composewebview.PlatformBitmap?) -> Unit,
+    ) {
+        onPageStartedCallback = handler
+    }
+
+    internal actual fun setOnPageFinishedHandler(handler: (com.parkwoocheol.composewebview.WebView?, String?) -> Unit) {
+        onPageFinishedCallback = handler
+    }
+
+    internal actual fun setOnReceivedErrorHandler(
+        handler: (com.parkwoocheol.composewebview.WebView?, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit,
+    ) {
+        onReceivedErrorCallback = handler
+    }
+
+    internal actual fun setShouldOverrideUrlLoadingHandler(
+        handler: (com.parkwoocheol.composewebview.WebView?, PlatformWebResourceRequest?) -> Boolean,
+    ) {
+        shouldOverrideUrlLoadingCallback = handler
+    }
 
     actual override fun onPageStarted(
         view: WebView?,
@@ -40,8 +63,10 @@ actual open class ComposeWebViewClient : WebViewClient() {
         webViewState?.pageTitle = null
         webViewState?.lastLoadedUrl = url
         view?.let {
-            onPageStartedCallback(it, url, favicon)
+            webViewController?.canGoBack = it.canGoBack()
+            webViewController?.canGoForward = it.canGoForward()
         }
+        onPageStartedCallback(view, url, favicon)
     }
 
     actual override fun onPageFinished(
@@ -53,8 +78,8 @@ actual open class ComposeWebViewClient : WebViewClient() {
         view?.let {
             webViewController?.canGoBack = it.canGoBack()
             webViewController?.canGoForward = it.canGoForward()
-            onPageFinishedCallback(it, url)
         }
+        onPageFinishedCallback(view, url)
     }
 
     actual open fun onReceivedError(
@@ -65,9 +90,7 @@ actual open class ComposeWebViewClient : WebViewClient() {
         error?.let {
             webViewState?.errorsForCurrentRequest?.add(WebViewError(request, it))
         }
-        view?.let {
-            onReceivedErrorCallback(it, request, error)
-        }
+        onReceivedErrorCallback(view, request, error)
     }
 
     override fun onReceivedError(
@@ -86,6 +109,13 @@ actual open class ComposeWebViewClient : WebViewClient() {
         view: WebView?,
         request: PlatformWebResourceRequest?,
     ): Boolean {
+        // If a custom handler is set and view is not null, use it
+        view?.let { v ->
+            shouldOverrideUrlLoadingCallback?.let { handler ->
+                return handler(v, request)
+            }
+        }
+        // Otherwise, default behavior: don't override
         return false
     }
 
