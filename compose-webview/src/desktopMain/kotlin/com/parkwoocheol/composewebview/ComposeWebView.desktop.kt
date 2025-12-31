@@ -40,19 +40,10 @@ internal actual fun ComposeWebViewImpl(
     jsConfirmContent: @Composable (JsDialogState.Confirm) -> Unit,
     jsPromptContent: @Composable (JsDialogState.Prompt) -> Unit,
     customViewContent: (@Composable (CustomViewState) -> Unit)?,
-    onPageStarted: (WebView, String?, PlatformBitmap?) -> Unit,
-    onPageFinished: (WebView, String?) -> Unit,
-    onReceivedError: (WebView, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit,
-    onProgressChanged: (WebView, Int) -> Unit,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
-    onPermissionRequest: (PlatformPermissionRequest) -> Unit,
-    onConsoleMessage: ((WebView, ConsoleMessage) -> Boolean)?,
 ) {
     val state = rememberWebViewState(url)
-
-    // Connect callbacks
-    chromeClient.onConsoleMessageCallback = onConsoleMessage
 
     ComposeWebView(
         state = state,
@@ -72,14 +63,8 @@ internal actual fun ComposeWebViewImpl(
         jsPromptContent = jsPromptContent,
         customViewContent = customViewContent,
         jsBridge = null,
-        onPageStarted = onPageStarted,
-        onPageFinished = onPageFinished,
-        onReceivedError = onReceivedError,
-        onProgressChanged = onProgressChanged,
         onDownloadStart = onDownloadStart,
         onFindResultReceived = onFindResultReceived,
-        onPermissionRequest = onPermissionRequest,
-        onConsoleMessage = onConsoleMessage,
     )
 }
 
@@ -102,18 +87,9 @@ internal actual fun ComposeWebViewImpl(
     jsPromptContent: @Composable (JsDialogState.Prompt) -> Unit,
     customViewContent: (@Composable (CustomViewState) -> Unit)?,
     jsBridge: WebViewJsBridge?,
-    onPageStarted: (WebView, String?, PlatformBitmap?) -> Unit,
-    onPageFinished: (WebView, String?) -> Unit,
-    onReceivedError: (WebView, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit,
-    onProgressChanged: (WebView, Int) -> Unit,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
-    onPermissionRequest: (PlatformPermissionRequest) -> Unit,
-    onConsoleMessage: ((WebView, ConsoleMessage) -> Boolean)?,
 ) {
-    // Connect callbacks
-    chromeClient.onConsoleMessageCallback = onConsoleMessage
-
     var initialized by remember { mutableStateOf(false) }
     var browser: KCEFBrowser? by remember { mutableStateOf(null) }
 

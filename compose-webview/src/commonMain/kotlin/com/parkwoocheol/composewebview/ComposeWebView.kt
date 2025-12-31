@@ -31,13 +31,8 @@ import com.parkwoocheol.composewebview.client.ComposeWebViewClient
  * @param customViewContent A composable that is displayed when the WebView requests a custom view (e.g. fullscreen video).
  *                          This is platform-agnostic, but the implementation of the view itself might be platform-specific.
  *                          See [CustomViewState] for details.
- * @param onPageStarted Callback for [ComposeWebViewClient.onPageStarted].
- * @param onPageFinished Callback for [ComposeWebViewClient.onPageFinished].
- * @param onReceivedError Callback for [ComposeWebViewClient.onReceivedError].
- * @param onProgressChanged Callback for [ComposeWebChromeClient.onProgressChanged].
  * @param onDownloadStart Callback for [android.webkit.DownloadListener.onDownloadStart].
  * @param onFindResultReceived Callback for [WebView.FindListener.onFindResultReceived].
- * @param onConsoleMessage Callback for console messages from JavaScript.
  */
 @Composable
 fun ComposeWebView(
@@ -57,14 +52,8 @@ fun ComposeWebView(
     jsConfirmContent: @Composable (JsDialogState.Confirm) -> Unit = {},
     jsPromptContent: @Composable (JsDialogState.Prompt) -> Unit = {},
     customViewContent: (@Composable (CustomViewState) -> Unit)? = null,
-    onPageStarted: (WebView, String?, PlatformBitmap?) -> Unit = { _, _, _ -> },
-    onPageFinished: (WebView, String?) -> Unit = { _, _ -> },
-    onReceivedError: (WebView, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit = { _, _, _ -> },
-    onProgressChanged: (WebView, Int) -> Unit = { _, _ -> },
     onDownloadStart: ((String, String, String, String, Long) -> Unit)? = null,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)? = null,
-    onPermissionRequest: (PlatformPermissionRequest) -> Unit = { },
-    onConsoleMessage: ((WebView, ConsoleMessage) -> Boolean)? = null,
 ) {
     ComposeWebViewImpl(
         url = url,
@@ -83,14 +72,8 @@ fun ComposeWebView(
         jsConfirmContent = jsConfirmContent,
         jsPromptContent = jsPromptContent,
         customViewContent = customViewContent,
-        onPageStarted = onPageStarted,
-        onPageFinished = onPageFinished,
-        onReceivedError = onReceivedError,
-        onProgressChanged = onProgressChanged,
         onDownloadStart = onDownloadStart,
         onFindResultReceived = onFindResultReceived,
-        onPermissionRequest = onPermissionRequest,
-        onConsoleMessage = onConsoleMessage,
     )
 }
 
@@ -112,14 +95,8 @@ internal expect fun ComposeWebViewImpl(
     jsConfirmContent: @Composable (JsDialogState.Confirm) -> Unit,
     jsPromptContent: @Composable (JsDialogState.Prompt) -> Unit,
     customViewContent: (@Composable (CustomViewState) -> Unit)?,
-    onPageStarted: (WebView, String?, PlatformBitmap?) -> Unit,
-    onPageFinished: (WebView, String?) -> Unit,
-    onReceivedError: (WebView, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit,
-    onProgressChanged: (WebView, Int) -> Unit,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
-    onPermissionRequest: (PlatformPermissionRequest) -> Unit,
-    onConsoleMessage: ((WebView, ConsoleMessage) -> Boolean)?,
 )
 
 /**
@@ -146,13 +123,8 @@ internal expect fun ComposeWebViewImpl(
  * @param jsPromptContent A composable that is displayed when the WebView requests a JS Prompt.
  * @param customViewContent A composable that is displayed when the WebView requests a custom view (e.g. fullscreen video).
  * @param jsBridge The [WebViewJsBridge] to be used for JavaScript communication.
- * @param onPageStarted Callback for [ComposeWebViewClient.onPageStarted].
- * @param onPageFinished Callback for [ComposeWebViewClient.onPageFinished].
- * @param onReceivedError Callback for [ComposeWebViewClient.onReceivedError].
- * @param onProgressChanged Callback for [ComposeWebChromeClient.onProgressChanged].
  * @param onDownloadStart Callback for [android.webkit.DownloadListener.onDownloadStart].
  * @param onFindResultReceived Callback for [WebView.FindListener.onFindResultReceived].
- * @param onConsoleMessage Callback for console messages from JavaScript.
  */
 @Composable
 fun ComposeWebView(
@@ -173,14 +145,8 @@ fun ComposeWebView(
     jsPromptContent: @Composable (JsDialogState.Prompt) -> Unit = {},
     customViewContent: (@Composable (CustomViewState) -> Unit)? = null,
     jsBridge: WebViewJsBridge? = null,
-    onPageStarted: (WebView, String?, PlatformBitmap?) -> Unit = { _, _, _ -> },
-    onPageFinished: (WebView, String?) -> Unit = { _, _ -> },
-    onReceivedError: (WebView, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit = { _, _, _ -> },
-    onProgressChanged: (WebView, Int) -> Unit = { _, _ -> },
     onDownloadStart: ((String, String, String, String, Long) -> Unit)? = null,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)? = null,
-    onPermissionRequest: (PlatformPermissionRequest) -> Unit = { },
-    onConsoleMessage: ((WebView, ConsoleMessage) -> Boolean)? = null,
 ) {
     ComposeWebViewImpl(
         state = state,
@@ -200,14 +166,8 @@ fun ComposeWebView(
         jsPromptContent = jsPromptContent,
         customViewContent = customViewContent,
         jsBridge = jsBridge,
-        onPageStarted = onPageStarted,
-        onPageFinished = onPageFinished,
-        onReceivedError = onReceivedError,
-        onProgressChanged = onProgressChanged,
         onDownloadStart = onDownloadStart,
         onFindResultReceived = onFindResultReceived,
-        onPermissionRequest = onPermissionRequest,
-        onConsoleMessage = onConsoleMessage,
     )
 }
 
@@ -230,12 +190,6 @@ internal expect fun ComposeWebViewImpl(
     jsPromptContent: @Composable (JsDialogState.Prompt) -> Unit,
     customViewContent: (@Composable (CustomViewState) -> Unit)?,
     jsBridge: WebViewJsBridge?,
-    onPageStarted: (WebView, String?, PlatformBitmap?) -> Unit,
-    onPageFinished: (WebView, String?) -> Unit,
-    onReceivedError: (WebView, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit,
-    onProgressChanged: (WebView, Int) -> Unit,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
-    onPermissionRequest: (PlatformPermissionRequest) -> Unit,
-    onConsoleMessage: ((WebView, ConsoleMessage) -> Boolean)?,
 )

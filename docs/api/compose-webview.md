@@ -88,3 +88,94 @@ fun ComposeWebView(
 | `onConsoleMessage` | `((WebView, ConsoleMessage) -> Boolean)?` | Callback for JavaScript console messages. Return true to suppress default logging. | Android, iOS |
 
 \* **Controller**: All platforms support basic navigation, but some features (like zoom) are platform-specific. See `WebViewController` documentation for details.
+
+---
+
+## Client Configuration
+
+Starting from version 1.4.0, you can configure WebView clients using convenient composable functions instead of extending classes or passing individual callback parameters.
+
+### Using rememberWebViewClient
+
+Configure navigation and page lifecycle events:
+
+```kotlin
+val client = rememberWebViewClient {
+    onPageStarted { view, url, favicon ->
+        println("Started loading: $url")
+    }
+
+    onPageFinished { view, url ->
+        println("Finished loading: $url")
+    }
+
+    onReceivedError { view, request, error ->
+        println("Error: ${error?.description}")
+    }
+
+    shouldOverrideUrlLoading { view, request ->
+        // Return true to prevent loading
+        false
+    }
+}
+
+ComposeWebView(
+    state = rememberSaveableWebViewState(url = "https://example.com"),
+    client = client,
+    modifier = Modifier.fillMaxSize()
+)
+```
+
+### Using rememberWebChromeClient
+
+Configure progress tracking and console messages:
+
+```kotlin
+val chromeClient = rememberWebChromeClient {
+    onProgressChanged { view, progress ->
+        println("Loading: $progress%")
+    }
+
+    onConsoleMessage { view, message ->
+        when (message.level) {
+            ConsoleMessageLevel.ERROR -> {
+                Log.e("WebView", "[JS Error] ${message.message}")
+            }
+            else -> {
+                Log.d("WebView", "[JS] ${message.message}")
+            }
+        }
+        false // Return true to suppress default console logging
+    }
+}
+
+ComposeWebView(
+    state = rememberSaveableWebViewState(url = "https://example.com"),
+    chromeClient = chromeClient,
+    modifier = Modifier.fillMaxSize()
+)
+```
+
+### Method Chaining
+
+You can also configure clients using method chaining:
+
+```kotlin
+val client = rememberWebViewClient()
+    .onPageStarted { view, url, favicon ->
+        println("Started: $url")
+    }
+    .onPageFinished { view, url ->
+        println("Finished: $url")
+    }
+```
+
+For more detailed examples and use cases, see the [Client Configuration Guide](../guides/client-configuration.md).
+
+---
+
+## See Also
+
+- [Client Configuration Guide](../guides/client-configuration.md) - Detailed guide on configuring WebView clients
+- [State Management](../guides/state-management.md) - Managing WebView state
+- [Error Handling](../guides/errors.md) - Handling errors and edge cases

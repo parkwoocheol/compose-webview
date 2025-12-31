@@ -55,10 +55,6 @@ import kotlinx.coroutines.withContext
  * @param jsConfirmContent A composable that is displayed when the WebView requests a JS Confirm.
  * @param jsPromptContent A composable that is displayed when the WebView requests a JS Prompt.
  * @param customViewContent A composable that is displayed when the WebView requests a custom view (e.g. fullscreen video).
- * @param onPageStarted Callback for [WebViewClient.onPageStarted].
- * @param onPageFinished Callback for [WebViewClient.onPageFinished].
- * @param onReceivedError Callback for [WebViewClient.onReceivedError].
- * @param onProgressChanged Callback for [WebChromeClient.onProgressChanged].
  * @param onDownloadStart Callback for [DownloadListener.onDownloadStart].
  * @param onFindResultReceived Callback for [WebView.FindListener.onFindResultReceived].
  */
@@ -80,20 +76,10 @@ internal actual fun ComposeWebViewImpl(
     jsConfirmContent: @Composable (JsDialogState.Confirm) -> Unit,
     jsPromptContent: @Composable (JsDialogState.Prompt) -> Unit,
     customViewContent: (@Composable (CustomViewState) -> Unit)?,
-    onPageStarted: (WebView, String?, PlatformBitmap?) -> Unit,
-    onPageFinished: (WebView, String?) -> Unit,
-    onReceivedError: (WebView, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit,
-    onProgressChanged: (WebView, Int) -> Unit,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
-    onPermissionRequest: (PlatformPermissionRequest) -> Unit,
-    onConsoleMessage: ((WebView, ConsoleMessage) -> Boolean)?,
 ) {
     val state = rememberSaveableWebViewState(url = url)
-
-    // Connect callbacks
-    chromeClient.onPermissionRequestCallback = onPermissionRequest
-    chromeClient.onConsoleMessageCallback = onConsoleMessage
 
     ComposeWebView(
         state = state,
@@ -112,14 +98,8 @@ internal actual fun ComposeWebViewImpl(
         jsConfirmContent = jsConfirmContent,
         jsPromptContent = jsPromptContent,
         customViewContent = customViewContent,
-        onPageStarted = onPageStarted,
-        onPageFinished = onPageFinished,
-        onReceivedError = onReceivedError,
-        onProgressChanged = onProgressChanged,
         onDownloadStart = onDownloadStart,
         onFindResultReceived = onFindResultReceived,
-        onPermissionRequest = onPermissionRequest,
-        onConsoleMessage = onConsoleMessage,
     )
 }
 
@@ -142,22 +122,13 @@ internal actual fun ComposeWebViewImpl(
     jsPromptContent: @Composable (JsDialogState.Prompt) -> Unit,
     customViewContent: (@Composable (CustomViewState) -> Unit)?,
     jsBridge: WebViewJsBridge?,
-    onPageStarted: (WebView, String?, PlatformBitmap?) -> Unit,
-    onPageFinished: (WebView, String?) -> Unit,
-    onReceivedError: (WebView, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit,
-    onProgressChanged: (WebView, Int) -> Unit,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
-    onPermissionRequest: (PlatformPermissionRequest) -> Unit,
-    onConsoleMessage: ((WebView, ConsoleMessage) -> Boolean)?,
 ) {
     val webView = state.webView
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    // Connect callbacks
-    chromeClient.onPermissionRequestCallback = onPermissionRequest
-    chromeClient.onConsoleMessageCallback = onConsoleMessage
-
+    // File chooser setup - default implementation
     var fileChooserCallback by remember { mutableStateOf<ValueCallback<Array<Uri>>?>(null) }
     val launcher =
         rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -240,15 +211,11 @@ internal actual fun ComposeWebViewImpl(
         }
     }
 
-    // Inject state and callbacks into clients
+    // Inject state into clients
     client.webViewState = state
     client.webViewController = controller
-    client.onPageStartedCallback = onPageStarted
-    client.onPageFinishedCallback = onPageFinished
-    client.onReceivedErrorCallback = onReceivedError
 
     chromeClient.state = state
-    chromeClient.onProgressChangedCallback = onProgressChanged
 
     WebViewContainer(modifier = modifier) { layoutParams ->
         AndroidView(
@@ -459,4 +426,88 @@ private fun WebView.applySettings(webViewSettings: WebViewSettings) {
             userAgentString = ua
         }
     }
+}
+
+/**
+ * Android-specific overload that allows customizing the file chooser behavior.
+ *
+ * This overload provides access to native Android types for file chooser customization,
+ * allowing you to implement custom file selection logic.
+ *
+ * @param onShowFileChooser Callback for file chooser requests using native Android types.
+ *                          Return true if you handle the request, false to use default behavior.
+ *                          Parameters are:
+ *                          - webView: The WebView instance
+ *                          - filePathCallback: Callback to send selected files back to WebView
+ *                          - fileChooserParams: Parameters describing the file chooser request
+ *
+ * Example:
+ * ```kotlin
+ * ComposeWebView(
+ *     state = state,
+ *     onShowFileChooser = { webView, callback, params ->
+ *         // Custom file selection logic
+ *         // launcher.launch(params.createIntent())
+ *         // callback.onReceiveValue(selectedUris)
+ *         true // Handled
+ *     }
+ * )
+ * ```
+ */
+@Composable
+fun ComposeWebView(
+    state: WebViewState,
+    modifier: Modifier = Modifier,
+    settings: WebViewSettings = WebViewSettings.Default,
+    controller: WebViewController = rememberWebViewController(),
+    javaScriptInterfaces: Map<String, Any> = emptyMap(),
+    onCreated: (WebView) -> Unit = {},
+    onDispose: (WebView) -> Unit = {},
+    client: ComposeWebViewClient = remember { ComposeWebViewClient() },
+    chromeClient: ComposeWebChromeClient = remember { ComposeWebChromeClient() },
+    factory: ((PlatformContext) -> WebView)? = null,
+    loadingContent: @Composable () -> Unit = {},
+    errorContent: @Composable (List<WebViewError>) -> Unit = {},
+    jsAlertContent: @Composable (JsDialogState.Alert) -> Unit = {},
+    jsConfirmContent: @Composable (JsDialogState.Confirm) -> Unit = {},
+    jsPromptContent: @Composable (JsDialogState.Prompt) -> Unit = {},
+    customViewContent: (@Composable (CustomViewState) -> Unit)? = null,
+    jsBridge: WebViewJsBridge? = null,
+    onDownloadStart: ((String, String, String, String, Long) -> Unit)? = null,
+    onFindResultReceived: ((Int, Int, Boolean) -> Unit)? = null,
+    onShowFileChooser: (
+        (
+            android.webkit.WebView,
+            android.webkit.ValueCallback<Array<android.net.Uri>>,
+            android.webkit.WebChromeClient.FileChooserParams,
+        ) -> Boolean
+    )? = null,
+) {
+    // Set the custom file chooser callback if provided
+    if (onShowFileChooser != null) {
+        chromeClient.onShowFileChooserCallback = onShowFileChooser
+    }
+
+    // Call the base implementation
+    ComposeWebView(
+        state = state,
+        modifier = modifier,
+        settings = settings,
+        controller = controller,
+        javaScriptInterfaces = javaScriptInterfaces,
+        onCreated = onCreated,
+        onDispose = onDispose,
+        client = client,
+        chromeClient = chromeClient,
+        factory = factory,
+        loadingContent = loadingContent,
+        errorContent = errorContent,
+        jsAlertContent = jsAlertContent,
+        jsConfirmContent = jsConfirmContent,
+        jsPromptContent = jsPromptContent,
+        customViewContent = customViewContent,
+        jsBridge = jsBridge,
+        onDownloadStart = onDownloadStart,
+        onFindResultReceived = onFindResultReceived,
+    )
 }

@@ -32,19 +32,10 @@ internal actual fun ComposeWebViewImpl(
     jsConfirmContent: @Composable (JsDialogState.Confirm) -> Unit,
     jsPromptContent: @Composable (JsDialogState.Prompt) -> Unit,
     customViewContent: (@Composable (CustomViewState) -> Unit)?,
-    onPageStarted: (WebView, String?, PlatformBitmap?) -> Unit,
-    onPageFinished: (WebView, String?) -> Unit,
-    onReceivedError: (WebView, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit,
-    onProgressChanged: (WebView, Int) -> Unit,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
-    onPermissionRequest: (PlatformPermissionRequest) -> Unit,
-    onConsoleMessage: ((WebView, ConsoleMessage) -> Boolean)?,
 ) {
     val state = rememberSaveableWebViewState(url = url)
-
-    // Connect callbacks
-    chromeClient.onConsoleMessageCallback = onConsoleMessage
 
     ComposeWebView(
         state = state,
@@ -63,14 +54,8 @@ internal actual fun ComposeWebViewImpl(
         jsConfirmContent = jsConfirmContent,
         jsPromptContent = jsPromptContent,
         customViewContent = customViewContent,
-        onPageStarted = onPageStarted,
-        onPageFinished = onPageFinished,
-        onReceivedError = onReceivedError,
-        onProgressChanged = onProgressChanged,
         onDownloadStart = onDownloadStart,
         onFindResultReceived = onFindResultReceived,
-        onPermissionRequest = onPermissionRequest,
-        onConsoleMessage = onConsoleMessage,
     )
 }
 
@@ -94,18 +79,9 @@ internal actual fun ComposeWebViewImpl(
     jsPromptContent: @Composable (JsDialogState.Prompt) -> Unit,
     customViewContent: (@Composable (CustomViewState) -> Unit)?,
     jsBridge: WebViewJsBridge?,
-    onPageStarted: (WebView, String?, PlatformBitmap?) -> Unit,
-    onPageFinished: (WebView, String?) -> Unit,
-    onReceivedError: (WebView, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit,
-    onProgressChanged: (WebView, Int) -> Unit,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
-    onPermissionRequest: (PlatformPermissionRequest) -> Unit,
-    onConsoleMessage: ((WebView, ConsoleMessage) -> Boolean)?,
 ) {
-    // Connect callbacks
-    chromeClient.onConsoleMessageCallback = onConsoleMessage
-
     val webView =
         state.webView ?: remember {
             val config =
@@ -120,7 +96,7 @@ internal actual fun ComposeWebViewImpl(
             }
         }.also { state.webView = it }
 
-    // Observe estimatedProgress for onProgressChanged callback and scroll position
+    // Observe estimatedProgress and scroll position
     // Using LaunchedEffect with periodic polling since Kotlin/Native KVO is complex
     androidx.compose.runtime.LaunchedEffect(webView) {
         var lastProgress = -1
@@ -140,7 +116,6 @@ internal actual fun ComposeWebViewImpl(
                     } else {
                         LoadingState.Loading(progress.toFloat())
                     }
-                onProgressChanged(webView, progressInt)
             }
 
             // Track scroll position

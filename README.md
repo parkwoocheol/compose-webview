@@ -25,6 +25,7 @@ A powerful, flexible, and feature-rich WebView wrapper for **Jetpack Compose** a
   - [Lifecycle Management](#lifecycle-management)
   - [Error Handling](#error-handling)
   - [Custom WebView Configuration](#custom-webview-configuration)
+  - [Configuring WebView Clients](#configuring-webview-clients)
 - [API Reference](#api-reference)
 - [Sample App](#sample-app)
 - [Contributing](#contributing)
@@ -45,7 +46,7 @@ Visit the documentation site for comprehensive guides, API references, and advan
   - **Type-Safe**: Built-in **Kotlinx Serialization** support automatically converts JSON to Kotlin data classes.
   - **Event Bus**: Bi-directional event system (`emit`/`on`) for real-time communication.
 - **State Management**: Reactive state handling for URL, loading progress, and navigation.
-- **Flexible API**: Full control over `WebViewClient`, `WebChromeClient`, and WebView settings.
+- **Flexible API**: Full control over `WebViewClient`, `WebChromeClient`, and WebView settings with convenient composable functions (`rememberWebViewClient`, `rememberWebChromeClient`).
 - **Lifecycle Management**: Automatically handles `onResume`, `onPause`, and cleanup.
 - **Custom View Support**: Built-in support for fullscreen videos and custom HTML views.
 - **Loading & Error States**: Built-in state management for loading indicators and error handling.
@@ -601,6 +602,120 @@ fun DebuggableWebView() {
 }
 ```
 
+### Configuring WebView Clients
+
+Configure WebView client events using `rememberWebViewClient` and `rememberWebChromeClient`:
+
+#### Basic Usage
+
+```kotlin
+@Composable
+fun WebViewWithClientConfiguration() {
+    val state = rememberSaveableWebViewState(url = "https://example.com")
+
+    // Configure WebViewClient
+    val client = rememberWebViewClient {
+        onPageStarted { view, url, favicon ->
+            println("Page started loading: $url")
+        }
+        onPageFinished { view, url ->
+            println("Page finished loading: $url")
+        }
+        onReceivedError { view, request, error ->
+            println("Error loading page: ${error?.description}")
+        }
+        shouldOverrideUrlLoading { view, request ->
+            // Return true to block navigation
+            request?.url?.startsWith("myapp://") == true
+        }
+    }
+
+    // Configure WebChromeClient
+    val chromeClient = rememberWebChromeClient {
+        onProgressChanged { view, progress ->
+            println("Loading progress: $progress%")
+        }
+        onConsoleMessage { view, message ->
+            println("[Console ${message.level}] ${message.message}")
+            false // Return true to suppress default handling
+        }
+        onPermissionRequest { request ->
+            // Handle permission requests (platform-specific)
+        }
+    }
+
+    ComposeWebView(
+        state = state,
+        client = client,
+        chromeClient = chromeClient,
+        modifier = Modifier.fillMaxSize()
+    )
+}
+```
+
+#### Chaining Multiple Handlers
+
+You can also chain handlers:
+
+```kotlin
+@Composable
+fun ChainedHandlersExample() {
+    val client = rememberWebViewClient()
+        .onPageStarted { view, url, favicon -> /* ... */ }
+        .onPageFinished { view, url -> /* ... */ }
+        .onReceivedError { view, request, error -> /* ... */ }
+
+    val chromeClient = rememberWebChromeClient()
+        .onProgressChanged { view, progress -> /* ... */ }
+        .onConsoleMessage { view, message -> false }
+
+    ComposeWebView(
+        state = rememberSaveableWebViewState(url = "https://example.com"),
+        client = client,
+        chromeClient = chromeClient,
+        modifier = Modifier.fillMaxSize()
+    )
+}
+```
+
+#### Advanced Customization
+
+For more advanced scenarios, you can still extend the client classes directly:
+
+```kotlin
+@Composable
+fun AdvancedClientExample() {
+    val client = remember {
+        object : ComposeWebViewClient() {
+            override fun onPageFinished(view: WebView?, url: String?) {
+                super.onPageFinished(view, url)
+                // Full control with direct override
+                view?.evaluateJavascript("console.log('Custom injection')")
+            }
+        }
+    }
+
+    ComposeWebView(
+        state = rememberSaveableWebViewState(url = "https://example.com"),
+        client = client,
+        modifier = Modifier.fillMaxSize()
+    )
+}
+```
+
+#### Available Client Handlers
+
+**WebViewClient:**
+- `onPageStarted(handler: (WebView?, String?, PlatformBitmap?) -> Unit)`
+- `onPageFinished(handler: (WebView?, String?) -> Unit)`
+- `onReceivedError(handler: (WebView?, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit)`
+- `shouldOverrideUrlLoading(handler: (WebView?, PlatformWebResourceRequest?) -> Boolean)`
+
+**WebChromeClient:**
+- `onProgressChanged(handler: (WebView?, Int) -> Unit)`
+- `onConsoleMessage(handler: (WebView?, ConsoleMessage) -> Boolean)`
+- `onPermissionRequest(handler: (PlatformPermissionRequest) -> Unit)` (Platform-specific)
+
 ## API Reference
 
 ### ComposeWebView
@@ -743,6 +858,71 @@ class WebViewJsBridge(
 }
 ```
 
+### ComposeWebViewClient
+
+Handles navigation and page lifecycle events. Can be configured using extension functions.
+
+```kotlin
+expect open class ComposeWebViewClient() {
+    open var webViewState: WebViewState?
+    open var webViewController: WebViewController?
+
+    open fun onPageStarted(view: WebView?, url: String?, favicon: PlatformBitmap?)
+    open fun onPageFinished(view: WebView?, url: String?)
+    open fun onReceivedError(view: WebView?, request: PlatformWebResourceRequest?, error: PlatformWebResourceError?)
+    open fun shouldOverrideUrlLoading(view: WebView?, request: PlatformWebResourceRequest?): Boolean
+}
+```
+
+**Extension Functions for Configuration:**
+
+```kotlin
+// Configure callbacks using chainable extension functions
+fun ComposeWebViewClient.onPageStarted(
+    handler: (WebView?, String?, PlatformBitmap?) -> Unit
+): ComposeWebViewClient
+
+fun ComposeWebViewClient.onPageFinished(
+    handler: (WebView?, String?) -> Unit
+): ComposeWebViewClient
+
+fun ComposeWebViewClient.onReceivedError(
+    handler: (WebView?, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit
+): ComposeWebViewClient
+
+fun ComposeWebViewClient.shouldOverrideUrlLoading(
+    handler: (WebView?, PlatformWebResourceRequest?) -> Boolean
+): ComposeWebViewClient
+```
+
+### ComposeWebChromeClient
+
+Handles UI events like progress updates and console messages. Can be configured using extension functions.
+
+```kotlin
+expect open class ComposeWebChromeClient() {
+    open fun onProgressChanged(view: WebView?, newProgress: Int)
+    open fun onConsoleMessage(view: WebView?, message: ConsoleMessage): Boolean
+}
+```
+
+**Extension Functions for Configuration:**
+
+```kotlin
+// Configure callbacks using chainable extension functions
+fun ComposeWebChromeClient.onProgressChanged(
+    handler: (WebView?, Int) -> Unit
+): ComposeWebChromeClient
+
+fun ComposeWebChromeClient.onConsoleMessage(
+    handler: (WebView?, ConsoleMessage) -> Boolean
+): ComposeWebChromeClient
+
+fun ComposeWebChromeClient.onPermissionRequest(
+    handler: (PlatformPermissionRequest) -> Unit
+): ComposeWebChromeClient
+```
+
 ### Remember Functions
 
 ```kotlin
@@ -778,6 +958,16 @@ fun rememberSaveableWebViewStateWithData(
 
 @Composable
 fun rememberWebViewController(): WebViewController
+
+@Composable
+fun rememberWebViewClient(
+    block: (ComposeWebViewClient.() -> Unit)? = null
+): ComposeWebViewClient
+
+@Composable
+fun rememberWebChromeClient(
+    block: (ComposeWebChromeClient.() -> Unit)? = null
+): ComposeWebChromeClient
 
 @Composable
 fun rememberWebViewJsBridge(
