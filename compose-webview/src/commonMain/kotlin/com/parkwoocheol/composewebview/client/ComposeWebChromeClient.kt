@@ -9,7 +9,7 @@ import com.parkwoocheol.composewebview.WebView
  *
  * This client manages progress updates, console messages, JavaScript dialogs, and more.
  * You can extend this class to provide custom behavior, or use the extension functions
- * for a more convenient DSL-style configuration.
+ * for convenient configuration.
  *
  * @see rememberWebChromeClient
  */
@@ -25,7 +25,7 @@ expect open class ComposeWebChromeClient() {
         message: ConsoleMessage,
     ): Boolean
 
-    // Internal setters for fluent API
+    // Internal setters for extension functions
     internal fun setOnProgressChangedHandler(handler: (WebView?, Int) -> Unit)
 
     internal fun setOnConsoleMessageHandler(handler: (WebView?, ConsoleMessage) -> Boolean)

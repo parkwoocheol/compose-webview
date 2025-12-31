@@ -9,7 +9,7 @@ import com.parkwoocheol.composewebview.WebView
 /**
  * Sets a handler to be called when the loading progress changes.
  *
- * This is a convenience extension that allows fluent configuration of the chrome client.
+ * This is a convenience extension that allows configuration of the chrome client.
  *
  * @param handler Callback invoked with (view, progress) parameters where progress is 0-100.
  * @return This chrome client instance for chaining.
@@ -22,7 +22,7 @@ fun ComposeWebChromeClient.onProgressChanged(handler: (WebView?, Int) -> Unit): 
 /**
  * Sets a handler to be called when the WebView receives a console message from JavaScript.
  *
- * This is a convenience extension that allows fluent configuration of the chrome client.
+ * This is a convenience extension that allows configuration of the chrome client.
  *
  * @param handler Callback invoked with (view, message) parameters. Return true to suppress default handling.
  * @return This chrome client instance for chaining.
@@ -37,7 +37,7 @@ fun ComposeWebChromeClient.onConsoleMessage(handler: (WebView?, ConsoleMessage) 
  *
  * Note: This is platform-specific and may not be available on all platforms.
  *
- * This is a convenience extension that allows fluent configuration of the chrome client.
+ * This is a convenience extension that allows configuration of the chrome client.
  *
  * @param handler Callback invoked with the permission request.
  * @return This chrome client instance for chaining.

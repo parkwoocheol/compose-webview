@@ -62,6 +62,7 @@ nav:
   - Getting Started: getting-started.md
   - Guides:
     - State Management: guides/state-management.md
+    - Client Configuration: guides/client-configuration.md
     - JS Bridge: guides/js-bridge.md
     - Lifecycle: guides/lifecycle.md
     - Error Handling: guides/errors.md

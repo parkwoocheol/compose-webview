@@ -10,7 +10,7 @@ import com.parkwoocheol.composewebview.WebView
 /**
  * Sets a handler to be called when a page starts loading.
  *
- * This is a convenience extension that allows fluent configuration of the client.
+ * This is a convenience extension that allows configuration of the client.
  *
  * @param handler Callback invoked with (view, url, favicon) parameters.
  * @return This client instance for chaining.
@@ -23,7 +23,7 @@ fun ComposeWebViewClient.onPageStarted(handler: (WebView?, String?, PlatformBitm
 /**
  * Sets a handler to be called when a page finishes loading.
  *
- * This is a convenience extension that allows fluent configuration of the client.
+ * This is a convenience extension that allows configuration of the client.
  *
  * @param handler Callback invoked with (view, url) parameters.
  * @return This client instance for chaining.
@@ -36,7 +36,7 @@ fun ComposeWebViewClient.onPageFinished(handler: (WebView?, String?) -> Unit): C
 /**
  * Sets a handler to be called when an error occurs while loading a resource.
  *
- * This is a convenience extension that allows fluent configuration of the client.
+ * This is a convenience extension that allows configuration of the client.
  *
  * @param handler Callback invoked with (view, request, error) parameters.
  * @return This client instance for chaining.
@@ -53,7 +53,7 @@ fun ComposeWebViewClient.onReceivedError(
  *
  * Return true from the handler to cancel the current load, false to continue.
  *
- * This is a convenience extension that allows fluent configuration of the client.
+ * This is a convenience extension that allows configuration of the client.
  *
  * @param handler Callback that returns true to override URL loading, false otherwise.
  * @return This client instance for chaining.

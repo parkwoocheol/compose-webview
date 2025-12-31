@@ -12,7 +12,7 @@ import com.parkwoocheol.composewebview.WebViewState
  *
  * This client manages the loading state, error handling, and navigation history updates.
  * You can extend this class to provide custom behavior, or use the extension functions
- * for a more convenient DSL-style configuration.
+ * for convenient configuration.
  *
  * @see rememberWebViewClient
  */
@@ -43,7 +43,7 @@ expect open class ComposeWebViewClient() {
         request: PlatformWebResourceRequest?,
     ): Boolean
 
-    // Internal setters for fluent API
+    // Internal setters for extension functions
     internal fun setOnPageStartedHandler(handler: (WebView?, String?, PlatformBitmap?) -> Unit)
 
     internal fun setOnPageFinishedHandler(handler: (WebView?, String?) -> Unit)
