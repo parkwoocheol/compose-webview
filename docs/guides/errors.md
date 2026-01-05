@@ -40,14 +40,19 @@ data class WebViewError(
 You can listen for errors via the `onReceivedError` callback. This corresponds to the standard `WebViewClient.onReceivedError`.
 
 ```kotlin
+val client = rememberWebViewClient {
+    onReceivedError { view, request, error ->
+        // platform-specific types:
+        // request: PlatformWebResourceRequest?
+        // error: PlatformWebResourceError?
+
+        println("Failed to load: ${error?.description}")
+    }
+}
+
 ComposeWebView(
     url = "https://example.com",
-    onReceivedError = { webView, request, error ->
-        // request: WebResourceRequest? (platform-specific)
-        // error: WebResourceError? (platform-specific)
-
-        Log.e("WebView", "Failed to load ${request?.url}: ${error?.description}")
-    }
+    client = client
 )
 ```
 

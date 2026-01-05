@@ -356,43 +356,33 @@ fun ErrorHandlingWebView() {
 
 ---
 
-## Migration from Old API
+## Migration from Removed API
 
-If you're using the old callback-based API, here's how to migrate:
+The old callback-based API (passing callbacks directly to `ComposeWebView`) has been removed. You must migrate to the client configuration API.
 
-### Before (Callback Parameters)
+### Before (No Longer Supported)
 
 ```kotlin
+// ❌ This will no longer compile
 ComposeWebView(
     state = state,
-    onPageStarted = { view, url, favicon ->
-        println("Started: $url")
-    },
-    onPageFinished = { view, url ->
-        println("Finished: $url")
-    },
-    onProgressChanged = { view, progress ->
-        println("Progress: $progress")
-    }
+    onPageStarted = { ... },
+    onPageFinished = { ... },
+    onProgressChanged = { ... }
 )
 ```
 
-### After (Client Configuration)
+### After (Recommended)
 
 ```kotlin
+// ✅ Use rememberWebViewClient and rememberWebChromeClient
 val client = rememberWebViewClient {
-    onPageStarted { view, url, favicon ->
-        println("Started: $url")
-    }
-    onPageFinished { view, url ->
-        println("Finished: $url")
-    }
+    onPageStarted { ... }
+    onPageFinished { ... }
 }
 
 val chromeClient = rememberWebChromeClient {
-    onProgressChanged { view, progress ->
-        println("Progress: $progress")
-    }
+    onProgressChanged { ... }
 }
 
 ComposeWebView(
@@ -402,7 +392,7 @@ ComposeWebView(
 )
 ```
 
-**Note**: Both APIs are supported. The callback parameters are still available for backward compatibility.
+**Note**: The direct callback parameters have been removed to cleaner API surface and better separation of concerns.
 
 ---
 

@@ -88,26 +88,36 @@ Capture and debug JavaScript console messages from your WebView.
 ### Usage
 
 ```kotlin
-ComposeWebView(
-    state = webViewState,
-    onConsoleMessage = { webView, message ->
-        when (message.level) {
-            ConsoleMessageLevel.ERROR -> {
-                Log.e("WebView", "[${message.sourceId}:${message.lineNumber}] ${message.message}")
+@Composable
+fun DebuggableWebView() {
+    val state = rememberSaveableWebViewState(url = "https://example.com")
+    
+    // Create handling chrome client
+    val chromeClient = rememberWebChromeClient {
+        onConsoleMessage { webView, message ->
+            when (message.level) {
+                ConsoleMessageLevel.ERROR -> {
+                    Log.e("WebView", "[${message.sourceId}:${message.lineNumber}] ${message.message}")
+                }
+                ConsoleMessageLevel.WARNING -> {
+                    Log.w("WebView", message.message)
+                }
+                ConsoleMessageLevel.LOG -> {
+                    Log.d("WebView", message.message)
+                }
+                else -> {
+                    Log.v("WebView", message.message)
+                }
             }
-            ConsoleMessageLevel.WARNING -> {
-                Log.w("WebView", message.message)
-            }
-            ConsoleMessageLevel.LOG -> {
-                Log.d("WebView", message.message)
-            }
-            else -> {
-                Log.v("WebView", message.message)
-            }
+            false // Return true to suppress default logging
         }
-        false // Return true to suppress default logging
     }
-)
+
+    ComposeWebView(
+        state = state,
+        chromeClient = chromeClient
+    )
+}
 ```
 
 ### ConsoleMessage Data Class

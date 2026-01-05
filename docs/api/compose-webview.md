@@ -29,14 +29,8 @@ fun ComposeWebView(
     jsConfirmContent: @Composable (JsDialogState.Confirm) -> Unit = {},
     jsPromptContent: @Composable (JsDialogState.Prompt) -> Unit = {},
     customViewContent: (@Composable (CustomViewState) -> Unit)? = null,
-    onPageStarted: (WebView, String?, PlatformBitmap?) -> Unit = { _, _, _ -> },
-    onPageFinished: (WebView, String?) -> Unit = { _, _ -> },
-    onReceivedError: (WebView, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit = { _, _, _ -> },
-    onProgressChanged: (WebView, Int) -> Unit = { _, _ -> },
     onDownloadStart: ((String, String, String, String, Long) -> Unit)? = null,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)? = null,
-    onPermissionRequest: (PlatformPermissionRequest) -> Unit = {},
-    onConsoleMessage: ((WebView, ConsoleMessage) -> Boolean)? = null
 )
 ```
 
@@ -78,14 +72,8 @@ fun ComposeWebView(
 | `jsConfirmContent` | `@Composable (JsDialogState.Confirm) -> Unit` | Custom UI for JavaScript `confirm()` dialogs. | Android, iOS |
 | `jsPromptContent` | `@Composable (JsDialogState.Prompt) -> Unit` | Custom UI for JavaScript `prompt()` dialogs. | Android, iOS |
 | `customViewContent` | `(@Composable (CustomViewState) -> Unit)?` | Custom view content (e.g., fullscreen video). | Android |
-| `onPageStarted` | `(WebView, String?, PlatformBitmap?) -> Unit` | Standard `WebViewClient` callback for page load start. | Android, iOS, Desktop (partial) |
-| `onPageFinished` | `(WebView, String?) -> Unit` | Standard `WebViewClient` callback for page load completion. | Android, iOS, Desktop (partial) |
-| `onReceivedError` | `(WebView, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit` | Callback for page load errors. | Android, iOS, Desktop (partial) |
-| `onProgressChanged` | `(WebView, Int) -> Unit` | Callback for loading progress updates (0-100). | Android (real-time), iOS (100ms polling) |
 | `onDownloadStart` | `((String, String, String, String, Long) -> Unit)?` | Callback for download requests (url, userAgent, contentDisposition, mimeType, contentLength). | Android, iOS (partial) |
 | `onFindResultReceived` | `((Int, Int, Boolean) -> Unit)?` | Callback for text search results (activeMatchOrdinal, numberOfMatches, isDoneCounting). | Android |
-| `onPermissionRequest` | `(PlatformPermissionRequest) -> Unit` | Callback for permission requests (e.g., camera, microphone). | Android, iOS (partial) |
-| `onConsoleMessage` | `((WebView, ConsoleMessage) -> Boolean)?` | Callback for JavaScript console messages. Return true to suppress default logging. | Android, iOS |
 
 \* **Controller**: All platforms support basic navigation, but some features (like zoom) are platform-specific. See `WebViewController` documentation for details.
 
