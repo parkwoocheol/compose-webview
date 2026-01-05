@@ -15,20 +15,20 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.useContents
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
-import platform.WebKit.WKWebView
-import platform.WebKit.WKWebViewConfiguration
 import platform.Foundation.NSMutableURLRequest
 import platform.Foundation.NSNotification
 import platform.Foundation.NSNotificationCenter
 import platform.Foundation.NSURL
 import platform.Foundation.setValue
-import platform.darwin.NSObjectProtocol
 import platform.UIKit.UIColor
 import platform.UIKit.UIScreen
 import platform.UIKit.UIView
 import platform.UIKit.UIWindow
 import platform.UIKit.UIWindowDidBecomeHiddenNotification
 import platform.UIKit.UIWindowDidBecomeVisibleNotification
+import platform.WebKit.WKWebView
+import platform.WebKit.WKWebViewConfiguration
+import platform.darwin.NSObjectProtocol
 
 @OptIn(ExperimentalForeignApi::class)
 @Composable
@@ -379,15 +379,17 @@ private class IosFullscreenVideoObserver(
 
     private fun handleEnter() {
         if (state.customViewState != null) return
-        val placeholder = UIView(frame = UIScreen.mainScreen.bounds).apply {
-            backgroundColor = UIColor.blackColor
-        }
+        val placeholder =
+            UIView(frame = UIScreen.mainScreen.bounds).apply {
+                backgroundColor = UIColor.blackColor
+            }
         state.customViewState =
             CustomViewState(
                 view = placeholder,
-                callback = PlatformCustomViewCallback {
-                    handleExit()
-                },
+                callback =
+                    PlatformCustomViewCallback {
+                        handleExit()
+                    },
             )
     }
 

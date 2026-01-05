@@ -5,6 +5,7 @@ import com.parkwoocheol.sample.composewebview.ui.MainScreen
 import platform.UIKit.UIViewController
 
 @Suppress("unused", "FunctionName")
-fun MainViewController(): UIViewController = ComposeUIViewController {
-    MainScreen()
-}
+fun MainViewController(): UIViewController =
+    ComposeUIViewController {
+        MainScreen()
+    }
