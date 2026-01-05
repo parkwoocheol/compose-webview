@@ -1,0 +1,25 @@
+name: iosApp
+options:
+  bundleIdPrefix: com.parkwoocheol.sample
+  deploymentTarget:
+    iOS: "14.0"
+targets:
+  iosApp:
+    type: application
+    platform: iOS
+    deploymentTarget: "14.0"
+    sources:
+      - iosApp
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.parkwoocheol.sample.composewebview
+      INFOPLIST_FILE: iosApp/Info.plist
+      FRAMEWORK_SEARCH_PATHS:
+        - $(inherited)
+        - $(PROJECT_DIR)/../shared/build/bin/iosSimulatorArm64/debugFramework
+      OTHER_LDFLAGS:
+        - $(inherited)
+        - -framework
+        - ComposeWebViewSample
+    dependencies:
+      - framework: ../shared/build/bin/iosSimulatorArm64/debugFramework/ComposeWebViewSample.framework
+        embed: true

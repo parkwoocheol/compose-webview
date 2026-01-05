@@ -13,5 +13,7 @@ pluginManagement {
 }
 
 rootProject.name = "compose-webview"
-include(":app")
 include(":compose-webview")
+include(":sample:shared")
+include(":sample:androidApp")
+include(":sample:desktopApp")
