@@ -14,12 +14,9 @@ Before you begin, ensure your project meets the following requirements:
 
 ## Installation
 
-You can consume `compose-webview` from **JitPack** or **GitHub Packages**.
+Artifacts are distributed via **JitPack**.
 
-???+ tip "Which registry should I use?"
-    Use **GitHub Packages** if you need reproducible builds for iOS/macOS or JitPack is blocked in your environment. JitPack is perfect for quick experiments or Android-only projects.
-
-### Option 1: JitPack
+### Add the Repository
 
 1. **Add the JitPack repository**
 
@@ -47,7 +44,7 @@ You can consume `compose-webview` from **JitPack** or **GitHub Packages**.
         }
         ```
 
-2. **Add the dependency** (shared/common module)
+### Add the Dependency (shared/common module)
 
     === "Kotlin (`build.gradle.kts`)"
 
@@ -75,55 +72,7 @@ You can consume `compose-webview` from **JitPack** or **GitHub Packages**.
         }
         ```
 
-### Option 2: GitHub Packages
-
-1. **Create a Personal Access Token** with the `read:packages` scope.
-2. **Store credentials** (recommended: `~/.gradle/gradle.properties`):
-
-    ```properties
-    gpr.user=YOUR_GITHUB_USERNAME
-    gpr.key=YOUR_GITHUB_PAT
-    ```
-
-3. **Register the repository**
-
-    === "Kotlin (`settings.gradle.kts`)"
-
-        ```kotlin
-        dependencyResolutionManagement {
-            repositories {
-                google()
-                mavenCentral()
-                maven {
-                    url = uri("https://maven.pkg.github.com/parkwoocheol/compose-webview")
-                    credentials {
-                        username = findProperty("gpr.user") as String? ?: System.getenv("GITHUB_ACTOR")
-                        password = findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN")
-                    }
-                }
-            }
-        }
-        ```
-
-    === "Groovy (`settings.gradle`)"
-
-        ```groovy
-        dependencyResolutionManagement {
-            repositories {
-                google()
-                mavenCentral()
-                maven {
-                    url = "https://maven.pkg.github.com/parkwoocheol/compose-webview"
-                    credentials {
-                        username = findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
-                        password = findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
-                    }
-                }
-            }
-        }
-        ```
-
-The dependency snippet is identical to the JitPack example in Option 1.
+The dependency snippet is identical in both Kotlin and Groovy DSL examples above.
 
 !!! tip "Latest Version"
     Check [GitHub Releases](https://github.com/parkwoocheol/compose-webview/releases) or the [JitPack badge](https://jitpack.io/#parkwoocheol/compose-webview) for the current version number.

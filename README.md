@@ -171,9 +171,9 @@ We focused heavily on making the interaction between Kotlin and JavaScript as se
 
 ## 📦 Installation
 
-Artifacts are available from both **JitPack** and **GitHub Packages**. Use whichever registry fits your workflow (GitHub Packages is recommended for iOS builds that need a reliable Maven host).
+Artifacts are published through **JitPack**.
 
-### Option 1: JitPack
+### Setup
 
 1. **Add the JitPack repository** to your build file.
 
@@ -207,37 +207,7 @@ Artifacts are available from both **JitPack** and **GitHub Packages**. Use which
    }
    ```
 
-### Option 2: GitHub Packages (recommended for iOS)
-
-1. **Create a personal access token (PAT)** with at least the `read:packages` scope.
-2. **Provide credentials** via `~/.gradle/gradle.properties` (or environment variables):
-
-   ```properties
-   gpr.user=YOUR_GITHUB_USERNAME
-   gpr.key=YOUR_GITHUB_PAT
-   ```
-
-3. **Add the GitHub Packages repository** with credentials.
-
-   **Kotlin DSL (`settings.gradle.kts`):**
-
-   ```kotlin
-   dependencyResolutionManagement {
-       repositories {
-           google()
-           mavenCentral()
-           maven {
-               url = uri("https://maven.pkg.github.com/parkwoocheol/compose-webview")
-               credentials {
-                   username = findProperty("gpr.user") as String? ?: System.getenv("GITHUB_ACTOR")
-                   password = findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN")
-               }
-           }
-       }
-   }
-   ```
-
-The dependency declaration is identical to the JitPack example above.
+The dependency declaration is identical for both Kotlin and Groovy DSL examples above.
 
 ## Quick Start
 
