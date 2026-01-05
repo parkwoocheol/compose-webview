@@ -14,66 +14,119 @@ Before you begin, ensure your project meets the following requirements:
 
 ## Installation
 
-`compose-webview` is hosted on **JitPack**. You need to add the JitPack repository to your project.
+You can consume `compose-webview` from **JitPack** or **GitHub Packages**.
 
-### 1. Add Repository
+???+ tip "Which registry should I use?"
+    Use **GitHub Packages** if you need reproducible builds for iOS/macOS or JitPack is blocked in your environment. JitPack is perfect for quick experiments or Android-only projects.
 
-=== "Kotlin (`settings.gradle.kts`)"
+### Option 1: JitPack
 
-    ```kotlin
-    dependencyResolutionManagement {
-        repositories {
-            google()
-            mavenCentral()
-            maven { url = uri("https://jitpack.io") }
-        }
-    }
-    ```
+1. **Add the JitPack repository**
 
-=== "Groovy (`settings.gradle`)"
+    === "Kotlin (`settings.gradle.kts`)"
 
-    ```groovy
-    dependencyResolutionManagement {
-        repositories {
-            google()
-            mavenCentral()
-            maven { url = "https://jitpack.io" }
-        }
-    }
-    ```
-
-### 2. Add Dependency
-
-Add the dependency to your shared module's build file (usually `commonMain`).
-
-=== "Kotlin (`build.gradle.kts`)"
-
-    ```kotlin
-    kotlin {
-        sourceSets {
-            commonMain.dependencies {
-                implementation("com.github.parkwoocheol:compose-webview:<version>")
+        ```kotlin
+        dependencyResolutionManagement {
+            repositories {
+                google()
+                mavenCentral()
+                maven { url = uri("https://jitpack.io") }
             }
         }
-    }
-    ```
+        ```
 
-=== "Groovy (`build.gradle`)"
+    === "Groovy (`settings.gradle`)"
 
-    ```groovy
-    kotlin {
-        sourceSets {
-            commonMain {
-                dependencies {
-                    implementation 'com.github.parkwoocheol:compose-webview:<version>'
+        ```groovy
+        dependencyResolutionManagement {
+            repositories {
+                google()
+                mavenCentral()
+                maven { url = "https://jitpack.io" }
+            }
+        }
+        ```
+
+2. **Add the dependency** (shared/common module)
+
+    === "Kotlin (`build.gradle.kts`)"
+
+        ```kotlin
+        kotlin {
+            sourceSets {
+                commonMain.dependencies {
+                    implementation("com.github.parkwoocheol:compose-webview:<version>")
                 }
             }
         }
-    }
+        ```
+
+    === "Groovy (`build.gradle`)"
+
+        ```groovy
+        kotlin {
+            sourceSets {
+                commonMain {
+                    dependencies {
+                        implementation 'com.github.parkwoocheol:compose-webview:<version>'
+                    }
+                }
+            }
+        }
+        ```
+
+### Option 2: GitHub Packages
+
+1. **Create a Personal Access Token** with the `read:packages` scope.
+2. **Store credentials** (recommended: `~/.gradle/gradle.properties`):
+
+    ```properties
+    gpr.user=YOUR_GITHUB_USERNAME
+    gpr.key=YOUR_GITHUB_PAT
     ```
 
+3. **Register the repository**
+
+    === "Kotlin (`settings.gradle.kts`)"
+
+        ```kotlin
+        dependencyResolutionManagement {
+            repositories {
+                google()
+                mavenCentral()
+                maven {
+                    url = uri("https://maven.pkg.github.com/parkwoocheol/compose-webview")
+                    credentials {
+                        username = findProperty("gpr.user") as String? ?: System.getenv("GITHUB_ACTOR")
+                        password = findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN")
+                    }
+                }
+            }
+        }
+        ```
+
+    === "Groovy (`settings.gradle`)"
+
+        ```groovy
+        dependencyResolutionManagement {
+            repositories {
+                google()
+                mavenCentral()
+                maven {
+                    url = "https://maven.pkg.github.com/parkwoocheol/compose-webview"
+                    credentials {
+                        username = findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
+                        password = findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
+                    }
+                }
+            }
+        }
+        ```
+
+The dependency snippet is identical to the JitPack example in Option 1.
+
 !!! tip "Latest Version"
-    Check the [Release Badge](https://jitpack.io/#parkwoocheol/compose-webview) for the latest version number.
+    Check [GitHub Releases](https://github.com/parkwoocheol/compose-webview/releases) or the [JitPack badge](https://jitpack.io/#parkwoocheol/compose-webview) for the current version number.
 
 ---
 
