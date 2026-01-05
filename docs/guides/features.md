@@ -256,6 +256,9 @@ fun downloadFile(context: Context, url: String, contentDisposition: String?, mim
 
 To support fullscreen video (e.g., YouTube's fullscreen button), you need to handle "Custom Views".
 
+!!! info "iOS behavior"
+    On iOS the actual fullscreen video is presented by `WKWebView` using the system player. When it appears, `customViewState` becomes non-null so you can hide toolbars or overlays, but the placeholder view does not render the video itself.
+
 ### 1. Provide Custom View Content
 
 Use the `customViewContent` parameter. This lambda is only called when a video requests fullscreen.

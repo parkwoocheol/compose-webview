@@ -106,7 +106,7 @@ Visit the documentation site for comprehensive guides, API references, and advan
 | `ScrollPosition` | ✅ | ✅ | ❌ | ⚠️ | Real-time (Android), Polling (iOS), CORS (Web) |
 | `WebViewError` | ✅ | ✅ | ⚠️ | ⚠️ | Typed error categories |
 | `jsDialogState` | ✅ | ✅ | ❌ | ❌ | Alert/Confirm/Prompt |
-| `customViewState` | ✅ | ❌ | ❌ | ❌ | Fullscreen video (Android only) |
+| `customViewState` | ✅ | ⚠️ | ❌ | ❌ | Android: custom view view hierarchy, iOS: native fullscreen signal |
 
 #### Configuration (WebViewSettings)
 
@@ -130,7 +130,7 @@ Visit the documentation site for comprehensive guides, API references, and advan
 | `onConsoleMessage` | ✅ | ✅ | ❌ | ❌ | JavaScript console debugging |
 | `shouldOverrideUrlLoading` | ✅ | ✅ | ✅ | ❌ | Custom URL handling |
 | JS Dialogs (Alert/Confirm/Prompt) | ✅ | ✅ | ❌ | ❌ | Custom dialog UI |
-| Custom View (Fullscreen) | ✅ | ❌ | ❌ | ❌ | Video fullscreen (Android) |
+| Custom View (Fullscreen) | ✅ | ⚠️ | ❌ | ❌ | Android: custom view injection, iOS: native fullscreen events |
 | File Upload | ✅ | ✅ | ❌ | ❌ | Native file picker |
 | Download Handling | ✅ | ⚠️ | ❌ | ❌ | `onDownloadStart` callback |
 
@@ -171,6 +171,10 @@ We focused heavily on making the interaction between Kotlin and JavaScript as se
 
 ## 📦 Installation
 
+Artifacts are available from both **JitPack** and **GitHub Packages**. Use whichever registry fits your workflow (GitHub Packages is recommended for iOS builds that need a reliable Maven host).
+
+### Option 1: JitPack
+
 1. **Add the JitPack repository** to your build file.
 
    **Kotlin DSL (`settings.gradle.kts`):**
@@ -191,7 +195,7 @@ We focused heavily on making the interaction between Kotlin and JavaScript as se
 
    ```kotlin
    dependencies {
-           implementation("com.github.parkwoocheol:compose-webview:<version>")
+       implementation("com.github.parkwoocheol:compose-webview:<version>")
    }
    ```
 
@@ -199,9 +203,41 @@ We focused heavily on making the interaction between Kotlin and JavaScript as se
 
    ```groovy
    dependencies {
-           implementation 'com.github.parkwoocheol:compose-webview:<version>'
+       implementation 'com.github.parkwoocheol:compose-webview:<version>'
    }
    ```
+
+### Option 2: GitHub Packages (recommended for iOS)
+
+1. **Create a personal access token (PAT)** with at least the `read:packages` scope.
+2. **Provide credentials** via `~/.gradle/gradle.properties` (or environment variables):
+
+   ```properties
+   gpr.user=YOUR_GITHUB_USERNAME
+   gpr.key=YOUR_GITHUB_PAT
+   ```
+
+3. **Add the GitHub Packages repository** with credentials.
+
+   **Kotlin DSL (`settings.gradle.kts`):**
+
+   ```kotlin
+   dependencyResolutionManagement {
+       repositories {
+           google()
+           mavenCentral()
+           maven {
+               url = uri("https://maven.pkg.github.com/parkwoocheol/compose-webview")
+               credentials {
+                   username = findProperty("gpr.user") as String? ?: System.getenv("GITHUB_ACTOR")
+                   password = findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN")
+               }
+           }
+       }
+   }
+   ```
+
+The dependency declaration is identical to the JitPack example above.
 
 ## Quick Start
 
@@ -1013,13 +1049,19 @@ val bridge = rememberWebViewJsBridge(
 )
 ```
 
-## Sample App
+## Sample Apps
 
-Check out the sample app in the `app` module for complete working examples:
+The `sample/` directory contains runnable targets for every platform:
+
+- `sample/shared`: the Compose Multiplatform UI/features showcased below.
+- `sample/androidApp`: Android wrapper (Gradle module).
+- `sample/iosApp`: Xcode project that embeds the shared UI.
+- `sample/desktopApp`: Compose Desktop entry point.
+- `sample/wasmApp`: Compose WASM/browser runner.
 
 ### Features Demonstrated
 
-The sample app showcases the library's capabilities with a modern, beautiful UI:
+All sample targets use the same feature screens:
 
 1. **Basic Browser** (`BasicBrowserScreen`)
     - Standard WebView with navigation controls (Back, Forward, Reload).
@@ -1037,18 +1079,18 @@ The sample app showcases the library's capabilities with a modern, beautiful UI:
 4. **Fullscreen Video** (`FullscreenVideoScreen`)
     - Native fullscreen video support (e.g., YouTube).
     - Handles orientation changes and UI overlay automatically.
+    - iOS uses the system fullscreen player; the Compose state lets you hide your chrome when it appears.
 
 5. **Custom Client** (`CustomClientScreen`)
     - Configure WebView settings (JS, DOM Storage, Zoom) dynamically.
     - Inject custom `WebViewClient` to intercept URLs (e.g., blocking specific domains).
 
-### Running the Sample App
+### Running the Samples
 
-```bash
-./gradlew :app:installDebug
-```
-
-Or open the project in Android Studio and run the `app` module.
+- **Android**: `./gradlew :sample:androidApp:installDebug`
+- **Desktop**: `./gradlew :sample:desktopApp:run`
+- **Web/Wasm**: `./gradlew :sample:wasmApp:wasmJsBrowserDevelopmentRun` (open the printed URL in a browser).
+- **iOS**: Open `sample/iosApp/iosApp.xcodeproj` in Xcode and run the `iosApp` scheme.
 
 ## Contributing
 

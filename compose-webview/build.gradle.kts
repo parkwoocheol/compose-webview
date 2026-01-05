@@ -7,6 +7,9 @@ plugins {
     id("maven-publish")
 }
 
+group = "com.github.parkwoocheol"
+version = providers.gradleProperty("COMPOSE_WEBVIEW_VERSION").orElse("0.0.0-SNAPSHOT").get()
+
 kotlin {
     androidTarget {
         publishLibraryVariants("release")
@@ -26,6 +29,11 @@ kotlin {
     jvm("desktop")
 
     js(IR) {
+        browser()
+    }
+
+    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
+    wasmJs {
         browser()
     }
 
@@ -77,6 +85,13 @@ kotlin {
         getByName("jsMain") {
             dependencies {
                 implementation(compose.html.core)
+            }
+        }
+
+        getByName("wasmJsMain") {
+            dependencies {
+                // WASM uses Canvas-based Compose UI
+                // HTML interop is limited - WebView uses manual DOM manipulation
             }
         }
     }
@@ -133,6 +148,26 @@ publishing {
                     connection.set("scm:git:git://github.com/parkwoocheol/compose-webview.git")
                     developerConnection.set("scm:git:ssh://git@github.com/parkwoocheol/compose-webview.git")
                     url.set("https://github.com/parkwoocheol/compose-webview")
+                }
+            }
+        }
+    }
+
+    repositories {
+        val githubActor =
+            providers.environmentVariable("GITHUB_ACTOR")
+                .orElse(providers.provider { findProperty("gpr.user") as String? })
+        val githubToken =
+            providers.environmentVariable("GITHUB_TOKEN")
+                .orElse(providers.provider { findProperty("gpr.key") as String? })
+
+        if (githubActor.isPresent && githubToken.isPresent) {
+            maven {
+                name = "GitHubPackages"
+                url = uri("https://maven.pkg.github.com/parkwoocheol/compose-webview")
+                credentials {
+                    username = githubActor.get()
+                    password = githubToken.get()
                 }
             }
         }

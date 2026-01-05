@@ -165,7 +165,7 @@ class WebViewState(webContent: WebContent) {
      * | Platform | Support | Notes |
      * |----------|---------|-------|
      * | Android  | ✅ Full | WebChromeClient.onShowCustomView |
-     * | iOS      | ❌ Not supported | WKWebView handles fullscreen natively |
+     * | iOS      | ⚠️ Limited | Emits state when WKWebView enters native fullscreen |
      * | Desktop  | ❌ Not supported | KCEF handles fullscreen separately |
      * | Web      | ❌ Not supported | Browser handles fullscreen natively |
      */
@@ -333,6 +333,7 @@ val WebViewStateSaver: Saver<WebViewState, Any> =
         val pageTitleKey = "pagetitle"
         val lastLoadedUrlKey = "lastloaded"
         val stateBundleKey = "bundle"
+        val contentKey = "content"
 
         mapSaver(
             save = { state ->
@@ -343,10 +344,12 @@ val WebViewStateSaver: Saver<WebViewState, Any> =
                     pageTitleKey to state.pageTitle,
                     lastLoadedUrlKey to state.lastLoadedUrl,
                     stateBundleKey to bundle,
+                    contentKey to state.content.toSaveableContent(),
                 )
             },
             restore = { map ->
-                val webViewState = WebViewState(WebContent.NavigatorOnly)
+                val restoredContent = map[contentKey].toRestoredWebContent() ?: WebContent.NavigatorOnly
+                val webViewState = WebViewState(restoredContent)
                 webViewState.pageTitle = map[pageTitleKey] as String?
                 webViewState.lastLoadedUrl = map[lastLoadedUrlKey] as String?
                 webViewState.bundle = map[stateBundleKey] as PlatformBundle?
@@ -354,3 +357,68 @@ val WebViewStateSaver: Saver<WebViewState, Any> =
             },
         )
     }
+
+private fun WebContent.toSaveableContent(): Map<String, Any?> =
+    when (this) {
+        is WebContent.Url ->
+            mapOf(
+                "type" to "url",
+                "url" to url,
+                "headers" to additionalHttpHeaders,
+            )
+        is WebContent.Data ->
+            mapOf(
+                "type" to "data",
+                "data" to data,
+                "baseUrl" to baseUrl,
+                "encoding" to encoding,
+                "mimeType" to mimeType,
+                "historyUrl" to historyUrl,
+            )
+        is WebContent.Post ->
+            mapOf(
+                "type" to "post",
+                "url" to url,
+                "postData" to postData,
+            )
+        WebContent.NavigatorOnly ->
+            mapOf("type" to "navigator")
+    }
+
+@Suppress("UNCHECKED_CAST")
+private fun Any?.toRestoredWebContent(): WebContent? {
+    val contentMap = this as? Map<String, Any?> ?: return null
+    return when (contentMap["type"] as? String) {
+        "url" ->
+            WebContent.Url(
+                url = contentMap["url"] as? String ?: "",
+                additionalHttpHeaders = contentMap["headers"].toStringMap(),
+            )
+        "data" ->
+            WebContent.Data(
+                data = contentMap["data"] as? String ?: "",
+                baseUrl = contentMap["baseUrl"] as? String?,
+                encoding = contentMap["encoding"] as? String ?: "utf-8",
+                mimeType = contentMap["mimeType"] as? String?,
+                historyUrl = contentMap["historyUrl"] as? String?,
+            )
+        "post" ->
+            WebContent.Post(
+                url = contentMap["url"] as? String ?: "",
+                postData = (contentMap["postData"] as? ByteArray) ?: ByteArray(0),
+            )
+        "navigator" -> WebContent.NavigatorOnly
+        else -> null
+    }
+}
+
+private fun Any?.toStringMap(): Map<String, String> {
+    val map = this as? Map<*, *> ?: return emptyMap()
+    val result = mutableMapOf<String, String>()
+    map.forEach { (key, value) ->
+        val stringKey = key as? String ?: return@forEach
+        val stringValue = value as? String ?: return@forEach
+        result[stringKey] = stringValue
+    }
+    return result
+}

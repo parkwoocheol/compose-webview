@@ -21,7 +21,7 @@ Holds the reactive state of the WebView.
 | `scrollPosition` | `ScrollPosition` | Current scroll position (x, y) in pixels. | Android (real-time), iOS (100ms polling), Web (CORS-limited) |
 | `errorsForCurrentRequest` | `List<WebViewError>` | Errors that occurred during the current page load. | Android, iOS, Desktop (partial), Web (limited) |
 | `jsDialogState` | `JsDialogState?` | Active JavaScript dialog (Alert, Confirm, Prompt). | Android, iOS |
-| `customViewState` | `CustomViewState?` | Custom view state (e.g., fullscreen video). | Android |
+| `customViewState` | `CustomViewState?` | Custom view state (e.g., fullscreen video). | Android, iOS (native fullscreen trigger) |
 
 \* **LoadingState progress**: Android (real-time), iOS (100ms polling), Desktop/Web (limited)
 

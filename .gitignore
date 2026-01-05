@@ -69,6 +69,42 @@ captures/
 *.jks
 *.keystore
 
+# Apple / iOS / Xcode
+DerivedData/
+*.xccheckout
+*.xcscmblueprint
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata/
+*.xcuserstate
+*.moved-aside
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcworkspace/contents.xcworkspacedata
+*.xcbuilddata
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+*.bcsymbolmap
+*.docset
+*.playground/
+timeline.xctimeline
+playground.xcworkspace/
+.xcode.env.local
+.xcresult
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
 # OS
 .DS_Store
 Thumbs.db

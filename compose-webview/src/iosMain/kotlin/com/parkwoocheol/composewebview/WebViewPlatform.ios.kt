@@ -56,9 +56,9 @@ actual fun createPlatformBundle(): PlatformBundle = PlatformBundle(emptyMap())
 
 actual typealias PlatformCustomView = UIView
 
-actual class PlatformCustomViewCallback {
+actual class PlatformCustomViewCallback(private val onHidden: (() -> Unit)? = null) {
     actual fun onCustomViewHidden() {
-        // No-op
+        onHidden?.invoke()
     }
 }
 

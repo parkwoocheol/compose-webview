@@ -1,17 +1,34 @@
 package com.parkwoocheol.composewebview
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.interop.UIKitView
+import androidx.compose.ui.viewinterop.UIKitView
 import com.parkwoocheol.composewebview.client.ComposeWebChromeClient
 import com.parkwoocheol.composewebview.client.ComposeWebViewClient
 import com.parkwoocheol.composewebview.client.ComposeWebViewDelegate
 import com.parkwoocheol.composewebview.client.ComposeWebViewUIDelegate
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.useContents
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import platform.Foundation.NSMutableURLRequest
+import platform.Foundation.NSNotification
+import platform.Foundation.NSNotificationCenter
+import platform.Foundation.NSURL
+import platform.Foundation.setValue
+import platform.UIKit.UIColor
+import platform.UIKit.UIScreen
+import platform.UIKit.UIView
+import platform.UIKit.UIWindow
+import platform.UIKit.UIWindowDidBecomeHiddenNotification
+import platform.UIKit.UIWindowDidBecomeVisibleNotification
 import platform.WebKit.WKWebView
 import platform.WebKit.WKWebViewConfiguration
+import platform.darwin.NSObjectProtocol
 
 @OptIn(ExperimentalForeignApi::class)
 @Composable
@@ -86,26 +103,40 @@ internal actual fun ComposeWebViewImpl(
         state.webView ?: remember {
             val config =
                 WKWebViewConfiguration().apply {
-                    // Apply settings to configuration
                     applySettings(settings)
                 }
-            WKWebView(frame = platform.CoreGraphics.CGRectMake(0.0, 0.0, 0.0, 0.0), configuration = config).apply {
+            WKWebView(frame = kotlinx.cinterop.cValue { }, configuration = config).apply {
                 allowsBackForwardNavigationGestures = true
-                // Apply additional settings to webView instance
+                autoresizingMask = platform.UIKit.UIViewAutoresizingFlexibleWidth or platform.UIKit.UIViewAutoresizingFlexibleHeight
                 applyWebViewSettings(settings)
             }
         }.also { state.webView = it }
 
-    // Observe estimatedProgress and scroll position
-    // Using LaunchedEffect with periodic polling since Kotlin/Native KVO is complex
-    androidx.compose.runtime.LaunchedEffect(webView) {
+    val delegate = remember(client) { ComposeWebViewDelegate(client) }
+    val uiDelegate = remember(state) { ComposeWebViewUIDelegate(state) }
+    val fullscreenObserver = remember(state) { IosFullscreenVideoObserver(state) }
+    val registeredInterfaceNames = remember(webView) { mutableSetOf<String>() }
+
+    DisposableEffect(fullscreenObserver, customViewContent != null) {
+        if (customViewContent != null) {
+            fullscreenObserver.start()
+        } else {
+            fullscreenObserver.stop()
+            state.customViewState = null
+        }
+        onDispose {
+            fullscreenObserver.stop()
+            state.customViewState = null
+        }
+    }
+
+    LaunchedEffect(webView, chromeClient) {
         var lastProgress = -1
         var lastScrollX = -1
         var lastScrollY = -1
-        while (true) {
-            kotlinx.coroutines.delay(100) // Poll every 100ms
+        while (isActive) {
+            delay(100)
 
-            // Track progress
             val progress = webView.estimatedProgress
             val progressInt = (progress * 100).toInt()
             if (progressInt != lastProgress) {
@@ -116,9 +147,9 @@ internal actual fun ComposeWebViewImpl(
                     } else {
                         LoadingState.Loading(progress.toFloat())
                     }
+                chromeClient.onProgressChanged(webView, progressInt)
             }
 
-            // Track scroll position
             val offset = webView.scrollView.contentOffset
             var scrollX = 0
             var scrollY = 0
@@ -134,51 +165,105 @@ internal actual fun ComposeWebViewImpl(
         }
     }
 
-    // Connect controller
-    // In Android implementation, this is done via LaunchedEffect
-    // We need to replicate that logic here or in commonMain if possible.
-    // But WebViewController logic is in commonMain now, but the connection logic was in ComposeWebView.kt (Android).
-    // Let's check ComposeWebView.android.kt to see how it connects.
-
-    // It calls:
-    // LaunchedEffect(webView, navigator) {
-    //     with(navigator) { webView.handleNavigationEvents() }
-    // }
-
-    // We should do the same here.
-
-    androidx.compose.runtime.LaunchedEffect(webView, controller) {
+    LaunchedEffect(webView, controller) {
         controller.handleNavigationEvents(webView)
     }
 
-    // Load URL if needed
-    androidx.compose.runtime.LaunchedEffect(state.lastLoadedUrl) {
-        state.lastLoadedUrl?.let { url ->
-            if (webView.URL?.absoluteString != url) {
-                val request = platform.Foundation.NSURLRequest.requestWithURL(platform.Foundation.NSURL.URLWithString(url)!!)
-                webView.loadRequest(request)
+    val currentContent = state.content
+    LaunchedEffect(webView, currentContent) {
+        webView.runOnMainThread {
+            when (currentContent) {
+                is WebContent.Url -> {
+                    if (currentContent.url.isNotEmpty() && webView.URL?.absoluteString != currentContent.url) {
+                        webView.loadUrlWithHeaders(currentContent.url, currentContent.additionalHttpHeaders)
+                    }
+                }
+
+                is WebContent.Data -> {
+                    webView.loadHTMLString(
+                        currentContent.data,
+                        baseURL = currentContent.baseUrl?.let { NSURL.URLWithString(it) },
+                    )
+                }
+
+                is WebContent.Post -> {
+                    webView.platformPostUrl(currentContent.url, currentContent.postData)
+                }
+
+                WebContent.NavigatorOnly -> Unit
             }
         }
     }
 
-    val delegate = remember(client) { ComposeWebViewDelegate(client) }
-    val uiDelegate = remember(state) { ComposeWebViewUIDelegate(state) }
+    LaunchedEffect(webView, state.lastLoadedUrl, state.loadingState, state.content) {
+        if (state.content is WebContent.NavigatorOnly && state.loadingState is LoadingState.Initializing) {
+            val urlToRestore = state.lastLoadedUrl
+            if (!urlToRestore.isNullOrEmpty()) {
+                webView.runOnMainThread {
+                    webView.loadUrlWithHeaders(urlToRestore, emptyMap())
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(webView, javaScriptInterfaces) {
+        webView.runOnMainThread {
+            val controller = webView.configuration.userContentController
+            registeredInterfaceNames.forEach { controller.removeScriptMessageHandlerForName(it) }
+            registeredInterfaceNames.clear()
+            javaScriptInterfaces.forEach { (name, obj) ->
+                webView.platformAddJavascriptInterface(obj, name)
+                registeredInterfaceNames.add(name)
+            }
+        }
+    }
+
+    DisposableEffect(webView) {
+        onDispose {
+            webView.runOnMainThread {
+                val controller = webView.configuration.userContentController
+                registeredInterfaceNames.forEach { controller.removeScriptMessageHandlerForName(it) }
+                registeredInterfaceNames.clear()
+            }
+        }
+    }
+
+    LaunchedEffect(webView, jsBridge) {
+        jsBridge?.attach(webView)
+    }
+
+    jsBridge?.let { bridge ->
+        LaunchedEffect(webView, bridge, state.loadingState) {
+            if (state.loadingState is LoadingState.Finished) {
+                webView.runOnMainThread {
+                    webView.evaluateJavaScript(bridge.jsScript, completionHandler = null)
+                }
+            }
+        }
+    }
+
+    client.webViewState = state
+    client.webViewController = controller
 
     // Use a Box to overlay loading/error/dialogs on top of the WebView
-    androidx.compose.foundation.layout.Box(modifier = modifier) {
+    androidx.compose.foundation.layout.BoxWithConstraints(modifier = modifier) {
         UIKitView(
             factory = {
-                val cvClient = client as ComposeWebViewClient
-                cvClient.webViewState = state
-                cvClient.webViewController = controller
                 webView.navigationDelegate = delegate
                 webView.UIDelegate = uiDelegate
                 onCreated(webView)
                 webView
             },
-            modifier = androidx.compose.ui.Modifier.matchParentSize(),
+            modifier = androidx.compose.ui.Modifier.fillMaxSize(),
+            update = { _ ->
+                webView.navigationDelegate = delegate
+                webView.UIDelegate = uiDelegate
+            },
             onRelease = {
                 onDispose(webView)
+                if (state.webView === webView) {
+                    state.webView = null
+                }
             },
         )
 
@@ -236,4 +321,87 @@ private fun WKWebView.applyWebViewSettings(webViewSettings: WebViewSettings) {
 
     // Most settings are applied via configuration
     // iOS WKWebView has limited settings compared to Android WebView
+}
+
+@OptIn(ExperimentalForeignApi::class)
+private fun WKWebView.loadUrlWithHeaders(
+    url: String,
+    headers: Map<String, String>,
+) {
+    val nsUrl = NSURL.URLWithString(url) ?: return
+    val request = NSMutableURLRequest.requestWithURL(nsUrl) as NSMutableURLRequest
+    headers.forEach { (key, value) ->
+        request.setValue(value, forHTTPHeaderField = key)
+    }
+    loadRequest(request)
+}
+
+@OptIn(ExperimentalForeignApi::class)
+private class IosFullscreenVideoObserver(
+    private val state: WebViewState,
+) {
+    private val notificationCenter = NSNotificationCenter.defaultCenter
+    private var visibleObserver: NSObjectProtocol? = null
+    private var hiddenObserver: NSObjectProtocol? = null
+
+    fun start() {
+        if (visibleObserver != null || hiddenObserver != null) return
+        visibleObserver =
+            notificationCenter.addObserverForName(
+                name = UIWindowDidBecomeVisibleNotification,
+                `object` = null,
+                queue = null,
+            ) { notification: NSNotification? ->
+                val window = notification?.`object` as? UIWindow ?: return@addObserverForName
+                if (window.isFullscreenVideoWindow()) {
+                    handleEnter()
+                }
+            }
+        hiddenObserver =
+            notificationCenter.addObserverForName(
+                name = UIWindowDidBecomeHiddenNotification,
+                `object` = null,
+                queue = null,
+            ) { notification: NSNotification? ->
+                val window = notification?.`object` as? UIWindow ?: return@addObserverForName
+                if (window.isFullscreenVideoWindow()) {
+                    handleExit()
+                }
+            }
+    }
+
+    fun stop() {
+        visibleObserver?.let { notificationCenter.removeObserver(it) }
+        hiddenObserver?.let { notificationCenter.removeObserver(it) }
+        visibleObserver = null
+        hiddenObserver = null
+    }
+
+    private fun handleEnter() {
+        if (state.customViewState != null) return
+        val placeholder =
+            UIView(frame = UIScreen.mainScreen.bounds).apply {
+                backgroundColor = UIColor.blackColor
+            }
+        state.customViewState =
+            CustomViewState(
+                view = placeholder,
+                callback =
+                    PlatformCustomViewCallback {
+                        handleExit()
+                    },
+            )
+    }
+
+    private fun handleExit() {
+        if (state.customViewState != null) {
+            state.customViewState = null
+        }
+    }
+}
+
+private fun UIWindow.isFullscreenVideoWindow(): Boolean {
+    val description = this.description
+    if (description == null) return false
+    return description.contains("FullScreen", ignoreCase = true)
 }
