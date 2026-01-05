@@ -106,7 +106,7 @@ Visit the documentation site for comprehensive guides, API references, and advan
 | `ScrollPosition` | ✅ | ✅ | ❌ | ⚠️ | Real-time (Android), Polling (iOS), CORS (Web) |
 | `WebViewError` | ✅ | ✅ | ⚠️ | ⚠️ | Typed error categories |
 | `jsDialogState` | ✅ | ✅ | ❌ | ❌ | Alert/Confirm/Prompt |
-| `customViewState` | ✅ | ❌ | ❌ | ❌ | Fullscreen video (Android only) |
+| `customViewState` | ✅ | ⚠️ | ❌ | ❌ | Android: custom view view hierarchy, iOS: native fullscreen signal |
 
 #### Configuration (WebViewSettings)
 
@@ -130,7 +130,7 @@ Visit the documentation site for comprehensive guides, API references, and advan
 | `onConsoleMessage` | ✅ | ✅ | ❌ | ❌ | JavaScript console debugging |
 | `shouldOverrideUrlLoading` | ✅ | ✅ | ✅ | ❌ | Custom URL handling |
 | JS Dialogs (Alert/Confirm/Prompt) | ✅ | ✅ | ❌ | ❌ | Custom dialog UI |
-| Custom View (Fullscreen) | ✅ | ❌ | ❌ | ❌ | Video fullscreen (Android) |
+| Custom View (Fullscreen) | ✅ | ⚠️ | ❌ | ❌ | Android: custom view injection, iOS: native fullscreen events |
 | File Upload | ✅ | ✅ | ❌ | ❌ | Native file picker |
 | Download Handling | ✅ | ⚠️ | ❌ | ❌ | `onDownloadStart` callback |
 
@@ -1037,6 +1037,7 @@ The sample app showcases the library's capabilities with a modern, beautiful UI:
 4. **Fullscreen Video** (`FullscreenVideoScreen`)
     - Native fullscreen video support (e.g., YouTube).
     - Handles orientation changes and UI overlay automatically.
+    - iOS uses the system fullscreen player; the Compose state lets you hide your chrome when it appears.
 
 5. **Custom Client** (`CustomClientScreen`)
     - Configure WebView settings (JS, DOM Storage, Zoom) dynamically.
