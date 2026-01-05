@@ -455,14 +455,19 @@ fun WebViewWithErrorHandling() {
     val state = rememberSaveableWebViewState(url = "https://example.com")
     val controller = rememberWebViewController()
 
+    // Configure client to handle errors
+    val client = rememberWebViewClient {
+        onReceivedError { view, request, error ->
+            // Handle error
+            Log.e("WebView", "Error loading ${request?.url}: ${error?.description}")
+        }
+    }
+
     ComposeWebView(
         state = state,
         controller = controller,
+        client = client,
         modifier = Modifier.fillMaxSize(),
-        onReceivedError = { webView, request, error ->
-            // Handle error
-            Log.e("WebView", "Error loading ${request?.url}: ${error?.description}")
-        },
         errorContent = { errors ->
             // Custom error UI
             Box(
@@ -512,7 +517,9 @@ fun CustomWebView() {
         useWideViewPort = true,
         mediaPlaybackRequiresUserAction = false,
         allowFileAccess = false,
-        allowContentAccess = false
+        allowContentAccess = false,
+        allowFileAccessFromFileURLs = false,
+        allowUniversalAccessFromFileURLs = false
     )
 
     ComposeWebView(
@@ -537,6 +544,7 @@ Track and respond to scroll position changes:
 @Composable
 fun ScrollTrackingWebView() {
     val state = rememberSaveableWebViewState(url = "https://example.com")
+    val controller = rememberWebViewController()
     var showScrollToTop by remember { mutableStateOf(false) }
 
     // Observe scroll position changes
@@ -548,6 +556,7 @@ fun ScrollTrackingWebView() {
     Box(modifier = Modifier.fillMaxSize()) {
         ComposeWebView(
             state = state,
+            controller = controller,
             modifier = Modifier.fillMaxSize()
         )
 
@@ -555,7 +564,6 @@ fun ScrollTrackingWebView() {
         if (showScrollToTop) {
             FloatingActionButton(
                 onClick = {
-                    val controller = rememberWebViewController()
                     controller.scrollTo(0, 0)
                 },
                 modifier = Modifier
@@ -578,10 +586,9 @@ Capture JavaScript console messages for debugging:
 fun DebuggableWebView() {
     val state = rememberSaveableWebViewState(url = "https://example.com")
 
-    ComposeWebView(
-        state = state,
-        modifier = Modifier.fillMaxSize(),
-        onConsoleMessage = { webView, message ->
+    // Configure chrome client to handle console messages
+    val chromeClient = rememberWebChromeClient {
+        onConsoleMessage { webView, message ->
             when (message.level) {
                 ConsoleMessageLevel.ERROR -> {
                     Log.e("WebView", "[${message.sourceId}:${message.lineNumber}] ${message.message}")
@@ -598,6 +605,12 @@ fun DebuggableWebView() {
             }
             false // Return true to suppress default logging
         }
+    }
+
+    ComposeWebView(
+        state = state,
+        chromeClient = chromeClient,
+        modifier = Modifier.fillMaxSize()
     )
 }
 ```
@@ -706,12 +719,14 @@ fun AdvancedClientExample() {
 #### Available Client Handlers
 
 **WebViewClient:**
+
 - `onPageStarted(handler: (WebView?, String?, PlatformBitmap?) -> Unit)`
 - `onPageFinished(handler: (WebView?, String?) -> Unit)`
 - `onReceivedError(handler: (WebView?, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit)`
 - `shouldOverrideUrlLoading(handler: (WebView?, PlatformWebResourceRequest?) -> Boolean)`
 
 **WebChromeClient:**
+
 - `onProgressChanged(handler: (WebView?, Int) -> Unit)`
 - `onConsoleMessage(handler: (WebView?, ConsoleMessage) -> Boolean)`
 - `onPermissionRequest(handler: (PlatformPermissionRequest) -> Unit)` (Platform-specific)
@@ -741,14 +756,8 @@ fun ComposeWebView(
     jsConfirmContent: @Composable (JsDialogState.Confirm) -> Unit = {},
     jsPromptContent: @Composable (JsDialogState.Prompt) -> Unit = {},
     customViewContent: (@Composable (CustomViewState) -> Unit)? = null,
-    onPageStarted: (WebView, String?, PlatformBitmap?) -> Unit = { _, _, _ -> },
-    onPageFinished: (WebView, String?) -> Unit = { _, _ -> },
-    onReceivedError: (WebView, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit = { _, _, _ -> },
-    onProgressChanged: (WebView, Int) -> Unit = { _, _ -> },
     onDownloadStart: ((String, String, String, String, Long) -> Unit)? = null,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)? = null,
-    onPermissionRequest: (PlatformPermissionRequest) -> Unit = { },
-    onConsoleMessage: ((WebView, ConsoleMessage) -> Boolean)? = null
 )
 
 // Alternative overload with state
@@ -777,13 +786,13 @@ class WebViewState(
     val loadingState: LoadingState
     val isLoading: Boolean
     var pageTitle: String?
-    var pageIcon: Bitmap?
+    var pageIcon: PlatformBitmap?
     var scrollPosition: ScrollPosition
-    val errorsForCurrentRequest: List<WebViewError>
+    val errorsForCurrentRequest: SnapshotStateList<WebViewError>
     var jsDialogState: JsDialogState?
     var customViewState: CustomViewState?
     var webView: WebView?
-    var bundle: Bundle?
+    var bundle: PlatformBundle?
 }
 ```
 
@@ -839,9 +848,9 @@ class WebViewJsBridge(
     private val nativeInterfaceName: String = "AppBridgeNative"
 ) {
     // Register a handler for calls from JavaScript
-    suspend inline fun <reified T, reified R> register(
-        name: String,
-        crossinline handler: suspend (T) -> R
+    inline fun <reified T, reified R> register(
+        method: String,
+        noinline handler: (T) -> R
     )
 
     // Register a handler with custom serializer

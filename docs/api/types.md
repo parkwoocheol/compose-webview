@@ -17,7 +17,7 @@ Holds the reactive state of the WebView.
 | `isLoading` | `Boolean` | Whether the WebView is currently loading a page. | All platforms |
 | `loadingState` | `LoadingState` | Detailed loading progress state (Initializing, Loading, Finished, Failed, Cancelled). | All platforms* |
 | `pageTitle` | `String?` | The current page title. | All platforms |
-| `pageIcon` | `Bitmap?` | The current page favicon. | Android, iOS, Desktop |
+| `pageIcon` | `PlatformBitmap?` | The current page favicon. | Android, iOS, Desktop |
 | `scrollPosition` | `ScrollPosition` | Current scroll position (x, y) in pixels. | Android (real-time), iOS (100ms polling), Web (CORS-limited) |
 | `errorsForCurrentRequest` | `List<WebViewError>` | Errors that occurred during the current page load. | Android, iOS, Desktop (partial), Web (limited) |
 | `jsDialogState` | `JsDialogState?` | Active JavaScript dialog (Alert, Confirm, Prompt). | Android, iOS |
@@ -60,8 +60,8 @@ Controls the navigation and execution of the WebView.
 
 | Method | Platform Support | Notes |
 | :--- | :--- | :--- |
-| `zoomIn()` | Android, Desktop | iOS: Not supported (pinch-to-zoom only) |
-| `zoomOut()` | Android, Desktop | iOS: Not supported (pinch-to-zoom only) |
+| `zoomIn(): Boolean` | Android, Desktop | iOS: Not supported (pinch-to-zoom only) |
+| `zoomOut(): Boolean` | Android, Desktop | iOS: Not supported (pinch-to-zoom only) |
 | `zoomBy(factor: Float)` | Android, Desktop | iOS: Not supported |
 
 ### Text Search
@@ -157,6 +157,7 @@ data class ScrollPosition(
 ```
 
 **Platform Support:**
+
 - **Android**: Real-time updates via `setOnScrollChangeListener`
 - **iOS**: 100ms polling of `scrollView.contentOffset`
 - **Desktop**: Not supported (KCEF limitations)
@@ -204,6 +205,7 @@ data class WebViewError(
 ```
 
 **Platform-Specific Error Codes:**
+
 - **Android**: Maps to `WebViewClient` error constants (e.g., `ERROR_HOST_LOOKUP`, `ERROR_CONNECT`)
 - **iOS**: Maps to `NSURLError` codes (e.g., `NSURLErrorNotConnectedToInternet`)
 - **Desktop/Web**: Limited error information
@@ -234,7 +236,7 @@ Sealed class representing JavaScript dialog state (alert, confirm, prompt).
 sealed class JsDialogState {
     data class Alert(
         val message: String,
-        val result: (Boolean) -> Unit
+        val callback: () -> Unit
     ) : JsDialogState()
 
     data class Confirm(
