@@ -29,6 +29,11 @@ kotlin {
         browser()
     }
 
+    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
+    wasmJs {
+        browser()
+    }
+
     sourceSets {
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -77,6 +82,13 @@ kotlin {
         getByName("jsMain") {
             dependencies {
                 implementation(compose.html.core)
+            }
+        }
+
+        getByName("wasmJsMain") {
+            dependencies {
+                // WASM uses Canvas-based Compose UI
+                // HTML interop is limited - WebView uses manual DOM manipulation
             }
         }
     }

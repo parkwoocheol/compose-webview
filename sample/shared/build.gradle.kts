@@ -16,6 +16,11 @@ kotlin {
 
     jvm("desktop")
 
+    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
+    wasmJs {
+        browser()
+    }
+
     listOf(
         iosX64(),
         iosArm64(),
