@@ -3,7 +3,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![API](https://img.shields.io/badge/API-24%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=24)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.2.0-blue.svg?style=flat&logo=kotlin)](https://kotlinlang.org)
-[![Release](https://jitpack.io/v/parkwoocheol/compose-webview.svg)](https://jitpack.io/#parkwoocheol/compose-webview)
+[![JitPack](https://jitpack.io/v/parkwoocheol/compose-webview.svg)](https://jitpack.io/#parkwoocheol/compose-webview)
+[![GitHub Release](https://img.shields.io/github/v/release/parkwoocheol/compose-webview?label=GitHub%20Packages)](https://github.com/parkwoocheol/compose-webview/packages)
 [![Compose Multiplatform](https://img.shields.io/badge/Compose%20Multiplatform-1.9.3-blue.svg)](https://github.com/JetBrains/compose-multiplatform)
 [![Documentation](https://img.shields.io/badge/docs-website-blueviolet)](https://parkwoocheol.github.io/compose-webview/)
 
@@ -70,6 +71,7 @@ Visit the documentation site for comprehensive guides, API references, and advan
  | **iOS** | `UIKitView` (WKWebView) | ✅ Stable | Full feature support (Seamless JS Bridge) |
  | **Desktop** | `SwingPanel` (CEF via KCEF) | 🚧 Experimental | **WIP**: KCEF integration is in progress. Basic browsing works, but advanced features are still being tested. |
  | **Web (JS)** | `Iframe` (DOM) | 🚧 Experimental | **WIP**: Basic navigation and JSBridge (via postMessage) are implemented but may have limitations. |
+ | **Web (WASM)** | `Iframe` (DOM) | 🚧 Experimental | **WIP**: Uses iframe with dynamic positioning. Same-origin policy restrictions apply. |
 
 ### API Support Matrix
 
@@ -289,6 +291,29 @@ dependencyResolutionManagement {
 - **Android/Desktop/Web/WASM only?** → Use **JitPack** (no auth required)
 - **iOS projects?** → Use **GitHub Packages** (required for iOS klibs)
 - **CI/CD?** → GitHub Packages supports `GITHUB_TOKEN` environment variables
+
+### Platform-Specific Artifacts
+
+When you add the dependency:
+
+```kotlin
+implementation("com.github.parkwoocheol:compose-webview:<version>")
+```
+
+The Kotlin Multiplatform Gradle plugin **automatically selects** the correct platform-specific artifact for each target:
+
+| Platform | Artifact ID | Maven Coordinates |
+|----------|-------------|-------------------|
+| **Android** | `compose-webview-android` | `com.github.parkwoocheol:compose-webview-android:<version>` |
+| **iOS (arm64)** | `compose-webview-iosarm64` | `com.github.parkwoocheol:compose-webview-iosarm64:<version>` |
+| **iOS (x64)** | `compose-webview-iosx64` | `com.github.parkwoocheol:compose-webview-iosx64:<version>` |
+| **iOS (Simulator arm64)** | `compose-webview-iossimulatorarm64` | `com.github.parkwoocheol:compose-webview-iossimulatorarm64:<version>` |
+| **Desktop (JVM)** | `compose-webview-desktop` | `com.github.parkwoocheol:compose-webview-desktop:<version>` |
+| **Web (JS)** | `compose-webview-js` | `com.github.parkwoocheol:compose-webview-js:<version>` |
+| **Web (WASM)** | `compose-webview-wasmjs` | `com.github.parkwoocheol:compose-webview-wasmjs:<version>` |
+| **Metadata** | `compose-webview` | `com.github.parkwoocheol:compose-webview:<version>` |
+
+> **Note**: You don't need to specify platform-specific artifacts manually. Just use `compose-webview` and Gradle resolves the correct artifact automatically.
 
 ## Quick Start
 

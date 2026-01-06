@@ -60,8 +60,8 @@ Controls the navigation and execution of the WebView.
 
 | Method | Platform Support | Notes |
 | :--- | :--- | :--- |
-| `zoomIn(): Boolean` | Android, Desktop | iOS: Not supported (pinch-to-zoom only) |
-| `zoomOut(): Boolean` | Android, Desktop | iOS: Not supported (pinch-to-zoom only) |
+| `zoomIn()` | Android, Desktop | iOS: Not supported (pinch-to-zoom only) |
+| `zoomOut()` | Android, Desktop | iOS: Not supported (pinch-to-zoom only) |
 | `zoomBy(factor: Float)` | Android, Desktop | iOS: Not supported |
 
 ### Text Search
@@ -85,8 +85,8 @@ Controls the navigation and execution of the WebView.
 
 | Method | Platform Support | Notes |
 | :--- | :--- | :--- |
-| `clearCache(includeDiskFiles: Boolean)` | Android, iOS, Desktop | Clear WebView cache |
-| `clearHistory()` | Android, iOS, Desktop | Clear navigation history |
+| `clearCache()` | Android | Clear WebView cache |
+| `clearHistory()` | Android | Clear navigation history |
 | `clearSslPreferences()` | Android | Clear SSL certificate decisions |
 | `clearFormData()` | Android | Clear form autofill data |
 

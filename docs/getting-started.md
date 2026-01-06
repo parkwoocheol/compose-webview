@@ -14,9 +14,14 @@ Before you begin, ensure your project meets the following requirements:
 
 ## Installation
 
-Artifacts are distributed via **JitPack**.
+This library is available from **JitPack** and **GitHub Packages**. Choose based on your platform needs:
 
-### Add the Repository
+| Repository | Best For | Authentication |
+|-----------|---------|---------------|
+| **JitPack** | Android, Desktop, Web, WASM | None required |
+| **GitHub Packages** | **iOS projects** (also supports all other platforms) | GitHub token required |
+
+### Option 1: JitPack (Recommended for non-iOS projects)
 
 1. **Add the JitPack repository**
 
@@ -40,6 +45,42 @@ Artifacts are distributed via **JitPack**.
                 google()
                 mavenCentral()
                 maven { url = "https://jitpack.io" }
+            }
+        }
+        ```
+
+### Option 2: GitHub Packages (Required for iOS)
+
+GitHub Packages includes **iOS klib artifacts** built on macOS. JitPack builds on Linux and cannot produce these.
+
+1. **Create a GitHub Personal Access Token (PAT)**
+    * Go to [GitHub Settings → Developer settings → Personal access tokens](https://github.com/settings/tokens)
+    * Click "Generate new token (classic)"
+    * Scopes: Select `read:packages`
+
+2. **Configure credentials** (`~/.gradle/gradle.properties`):
+
+    ```properties
+    gpr.user=YOUR_GITHUB_USERNAME
+    gpr.key=YOUR_GITHUB_PAT
+    ```
+
+3. **Add GitHub Packages repository**
+
+    === "Kotlin (`settings.gradle.kts`)"
+
+        ```kotlin
+        dependencyResolutionManagement {
+            repositories {
+                google()
+                mavenCentral()
+                maven {
+                    url = uri("https://maven.pkg.github.com/parkwoocheol/compose-webview")
+                    credentials {
+                        username = findProperty("gpr.user") as String? ?: System.getenv("GITHUB_ACTOR")
+                        password = findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN")
+                    }
+                }
             }
         }
         ```
@@ -72,10 +113,23 @@ Artifacts are distributed via **JitPack**.
         }
         ```
 
-The dependency snippet is identical in both Kotlin and Groovy DSL examples above.
-
 !!! tip "Latest Version"
     Check [GitHub Releases](https://github.com/parkwoocheol/compose-webview/releases) or the [JitPack badge](https://jitpack.io/#parkwoocheol/compose-webview) for the current version number.
+
+### Platform-Specific Artifacts
+
+The Kotlin Multiplatform Gradle plugin **automatically selects** the correct artifact:
+
+| Platform | Artifact ID |
+|----------|-------------|
+| **Android** | `compose-webview-android` |
+| **iOS (arm64)** | `compose-webview-iosarm64` |
+| **iOS (Simulator arm64)** | `compose-webview-iossimulatorarm64` |
+| **Desktop (JVM)** | `compose-webview-desktop` |
+| **Web (JS)** | `compose-webview-js` |
+| **Web (WASM)** | `compose-webview-wasmjs` |
+
+> **Note**: You don't need to specify platform-specific artifacts manually. Just use `compose-webview` and Gradle resolves the correct artifact automatically.
 
 ---
 
