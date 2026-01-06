@@ -42,10 +42,6 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
           echo "Publishing version: $VERSION"
 
-      - name: Update version in gradle.properties
-        run: |
-          echo "COMPOSE_WEBVIEW_VERSION=${{ steps.version.outputs.VERSION }}" >> gradle.properties
-
       - name: Check Code Style (Spotless)
         run: ./gradlew spotlessCheck
 
@@ -53,6 +49,7 @@ jobs:
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMPOSE_WEBVIEW_VERSION: ${{ steps.version.outputs.VERSION }}
         run: ./gradlew :compose-webview:publish
 
       - name: Summary
