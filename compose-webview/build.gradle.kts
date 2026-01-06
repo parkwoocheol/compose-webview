@@ -8,10 +8,11 @@ plugins {
 }
 
 group = "com.github.parkwoocheol"
-version = providers.environmentVariable("COMPOSE_WEBVIEW_VERSION")
-    .orElse(providers.gradleProperty("COMPOSE_WEBVIEW_VERSION"))
-    .orElse("0.0.0-SNAPSHOT")
-    .get()
+version =
+    providers.environmentVariable("COMPOSE_WEBVIEW_VERSION")
+        .orElse(providers.gradleProperty("COMPOSE_WEBVIEW_VERSION"))
+        .orElse("0.0.0-SNAPSHOT")
+        .get()
 
 kotlin {
     androidTarget {
