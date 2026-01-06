@@ -173,16 +173,18 @@ We focused heavily on making the interaction between Kotlin and JavaScript as se
 
 ## 📦 Installation
 
-This library is available from **JitPack** and **GitHub Packages**. Choose based on your platform needs:
+This library supports both **JitPack** and **GitHub Packages**. You can choose either repository to download the artifacts.
 
-| Repository | Best For | Authentication |
-|-----------|---------|---------------|
-| **JitPack** | Android, Desktop, Web, WASM | None required |
-| **GitHub Packages** | **iOS projects** (also supports all other platforms) | GitHub token required |
+| Repository | Recommended For | Authentication |
+| :--- | :--- | :--- |
+| **JitPack** | Android, Desktop, Web, WASM | **No** (Simplest) |
+| **GitHub Packages** | **iOS Projects** (and all others) | **Yes** (Requires GitHub Token) |
 
-### Option 1: JitPack (Recommended for non-iOS projects)
+### Step 1. Configure Repository
 
-JitPack is the easiest option for Android, Desktop, and Web targets.
+Choose one of the following methods to add the repository to `settings.gradle.kts` (or `settings.gradle`).
+
+#### Option A: JitPack (No Authentication)
 
 **Kotlin DSL (`settings.gradle.kts`):**
 
@@ -196,15 +198,7 @@ dependencyResolutionManagement {
 }
 ```
 
-**Add dependency (`build.gradle.kts`):**
-
-```kotlin
-dependencies {
-    implementation("com.github.parkwoocheol:compose-webview:<version>")
-}
-```
-
-**Groovy DSL (`build.gradle`):**
+**Groovy DSL (`settings.gradle`):**
 
 ```groovy
 dependencyResolutionManagement {
@@ -214,33 +208,19 @@ dependencyResolutionManagement {
         maven { url 'https://jitpack.io' }
     }
 }
-
-dependencies {
-    implementation 'com.github.parkwoocheol:compose-webview:<version>'
-}
 ```
 
-### Option 2: GitHub Packages (Required for iOS)
+#### Option B: GitHub Packages (Authenticated)
 
-GitHub Packages includes **iOS klib artifacts** built on macOS. JitPack builds on Linux and cannot produce these.
-
-**1. Create a GitHub Personal Access Token (PAT)**
-
-- Go to [GitHub Settings → Developer settings → Personal access tokens](https://github.com/settings/tokens)
-- Click "Generate new token (classic)"
-- Scopes: Select `read:packages`
-- Copy the token
-
-**2. Configure credentials**
-
-Add to `~/.gradle/gradle.properties` (or use environment variables):
+**1. Create a GitHub Token** with `read:packages` scope.
+**2. Add credentials** to `local.properties` or `~/.gradle/gradle.properties`:
 
 ```properties
 gpr.user=YOUR_GITHUB_USERNAME
-gpr.key=YOUR_GITHUB_PAT
+gpr.key=YOUR_GITHUB_TOKEN
 ```
 
-**3. Add GitHub Packages repository**
+**3. Add Repository:**
 
 **Kotlin DSL (`settings.gradle.kts`):**
 
@@ -257,14 +237,6 @@ dependencyResolutionManagement {
             }
         }
     }
-}
-```
-
-**Add dependency (same as JitPack):**
-
-```kotlin
-dependencies {
-    implementation("com.github.parkwoocheol:compose-webview:<version>")
 }
 ```
 
@@ -286,11 +258,23 @@ dependencyResolutionManagement {
 }
 ```
 
-### Which Repository Should I Use?
+### Step 2. Add Dependency
 
-- **Android/Desktop/Web/WASM only?** → Use **JitPack** (no auth required)
-- **iOS projects?** → Use **GitHub Packages** (required for iOS klibs)
-- **CI/CD?** → GitHub Packages supports `GITHUB_TOKEN` environment variables
+Add the dependency to your **commonMain** source set (for KMP) or app dependencies.
+
+**Kotlin DSL (`build.gradle.kts`):**
+
+```kotlin
+kotlin {
+    sourceSets {
+        commonMain.dependencies {
+            implementation("com.github.parkwoocheol:compose-webview:<version>")
+        }
+    }
+}
+```
+
+> **Note**: The artifacts in GitHub Packages maintain the same Group ID (`com.github.parkwoocheol`) and Artifact ID as JitPack for compatibility.
 
 ### Platform-Specific Artifacts
 
@@ -1185,3 +1169,5 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for more details.
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+```
