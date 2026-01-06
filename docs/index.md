@@ -46,6 +46,7 @@ It provides a unified API to control WebViews across **Android**, **iOS**, **Des
 | **iOS** | `UIKitView` (WKWebView) | :white_check_mark: Stable | Full feature support (Seamless JS Bridge) |
 | **Desktop** | `SwingPanel` (CEF via KCEF) | :construction: Experimental | **WIP**: Basic browsing works. KCEF integration in progress. |
 | **Web (JS)** | `Iframe` (DOM) | :construction: Experimental | **WIP**: Basic navigation and `postMessage` bridge. |
+| **Web (WASM)** | `Iframe` (DOM) | :construction: Experimental | **WIP**: Uses iframe with dynamic positioning. Same-origin policy restrictions. |
 
 !!! note "Project Focus: Mobile Productivity"
     This library is optimized for **Mobile (Android & iOS)** development. While Desktop and Web are supported, they are currently experimental. If you need a battle-tested solution primarily for Desktop/Web, other libraries might be a better fit.

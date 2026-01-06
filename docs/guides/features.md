@@ -6,17 +6,17 @@ This guide covers advanced capabilities of `compose-webview` including WebView C
 
 ## Platform Support Matrix
 
-| Feature | Android | iOS | Desktop | Web |
-|---------|:-------:|:---:|:-------:|:---:|
-| WebViewSettings Configuration | ✅ | ⚠️ | ⚠️ | ❌ |
-| Console Message Debugging | ✅ | ✅ | ❌ | ❌ |
-| Scroll Position Tracking | ✅ | ✅ | ❌ | ⚠️ |
-| Loading State with Progress | ✅ | ✅ | ⚠️ | ⚠️ |
-| Typed Error Handling | ✅ | ✅ | ⚠️ | ⚠️ |
-| File Uploads | ✅ | ✅ | ❌ | ❌ |
-| Downloads | ✅ | ⚠️ | ❌ | ❌ |
-| Custom View (Fullscreen) | ✅ | ❌ | ❌ | ❌ |
-| JS Dialogs (Alert/Confirm/Prompt) | ✅ | ✅ | ❌ | ❌ |
+| Feature | Android | iOS | Desktop | Web (JS) | Web (WASM) |
+|---------|:-------:|:---:|:-------:|:--------:|:----------:|
+| WebViewSettings Configuration | ✅ | ⚠️ | ⚠️ | ❌ | ❌ |
+| Console Message Debugging | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Scroll Position Tracking | ✅ | ✅ | ❌ | ⚠️ | ⚠️ |
+| Loading State with Progress | ✅ | ✅ | ⚠️ | ⚠️ | ⚠️ |
+| Typed Error Handling | ✅ | ✅ | ⚠️ | ⚠️ | ⚠️ |
+| File Uploads | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Downloads | ✅ | ⚠️ | ❌ | ❌ | ❌ |
+| Custom View (Fullscreen) | ✅ | ❌ | ❌ | ❌ | ❌ |
+| JS Dialogs (Alert/Confirm/Prompt) | ✅ | ✅ | ❌ | ❌ | ❌ |
 
 **Legend**: ✅ Full Support | ⚠️ Partial/Limited | ❌ Not Supported
 
@@ -46,14 +46,14 @@ ComposeWebView(
 
 ### Available Settings
 
-| Setting | Android | iOS | Desktop | Web | Notes |
-|---------|:-------:|:---:|:-------:|:---:|-------|
-| `userAgent` | ✅ | ✅ | ✅ | ❌ | Custom user agent string |
-| `javaScriptEnabled` | ✅ | ✅* | ✅ | ❌ | *iOS: Always enabled |
-| `domStorageEnabled` | ✅ | ✅ | ⚠️ | ❌ | localStorage/sessionStorage |
-| `cacheMode` | ✅ | ⚠️ | ⚠️ | ❌ | Cache behavior control |
-| `supportZoom` | ✅ | ⚠️** | ✅ | ❌ | **iOS: Pinch-to-zoom only |
-| `mediaPlaybackRequiresUserAction` | ✅ | ✅ | ⚠️ | ❌ | Autoplay control |
+| Setting | Android | iOS | Desktop | Web (JS) | Web (WASM) | Notes |
+|---------|:-------:|:---:|:-------:|:--------:|:----------:|-------|
+| `userAgent` | ✅ | ✅ | ✅ | ❌ | ❌ | Custom user agent string |
+| `javaScriptEnabled` | ✅ | ✅* | ✅ | ❌ | ❌ | *iOS: Always enabled |
+| `domStorageEnabled` | ✅ | ✅ | ⚠️ | ❌ | ❌ | localStorage/sessionStorage |
+| `cacheMode` | ✅ | ⚠️ | ⚠️ | ❌ | ❌ | Cache behavior control |
+| `supportZoom` | ✅ | ⚠️** | ✅ | ❌ | ❌ | **iOS: Pinch-to-zoom only |
+| `mediaPlaybackRequiresUserAction` | ✅ | ✅ | ⚠️ | ❌ | ❌ | Autoplay control |
 
 !!! info "Platform-Specific Behavior"
     - **iOS**: JavaScript is always enabled and cannot be disabled. The `javaScriptEnabled` setting is ignored.
