@@ -171,43 +171,124 @@ We focused heavily on making the interaction between Kotlin and JavaScript as se
 
 ## 📦 Installation
 
-Artifacts are published through **JitPack**.
+This library is available from **JitPack** and **GitHub Packages**. Choose based on your platform needs:
 
-### Setup
+| Repository | Best For | Authentication |
+|-----------|---------|---------------|
+| **JitPack** | Android, Desktop, Web, WASM | None required |
+| **GitHub Packages** | **iOS projects** (also supports all other platforms) | GitHub token required |
 
-1. **Add the JitPack repository** to your build file.
+### Option 1: JitPack (Recommended for non-iOS projects)
 
-   **Kotlin DSL (`settings.gradle.kts`):**
+JitPack is the easiest option for Android, Desktop, and Web targets.
 
-   ```kotlin
-   dependencyResolutionManagement {
-       repositories {
-           google()
-           mavenCentral()
-           maven { url = uri("https://jitpack.io") }
-       }
-   }
-   ```
+**Kotlin DSL (`settings.gradle.kts`):**
 
-2. **Add the dependency**.
+```kotlin
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url = uri("https://jitpack.io") }
+    }
+}
+```
 
-   **Kotlin DSL (`build.gradle.kts`):**
+**Add dependency (`build.gradle.kts`):**
 
-   ```kotlin
-   dependencies {
-       implementation("com.github.parkwoocheol:compose-webview:<version>")
-   }
-   ```
+```kotlin
+dependencies {
+    implementation("com.github.parkwoocheol:compose-webview:<version>")
+}
+```
 
-   **Groovy DSL (`build.gradle`):**
+**Groovy DSL (`build.gradle`):**
 
-   ```groovy
-   dependencies {
-       implementation 'com.github.parkwoocheol:compose-webview:<version>'
-   }
-   ```
+```groovy
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+    }
+}
 
-The dependency declaration is identical for both Kotlin and Groovy DSL examples above.
+dependencies {
+    implementation 'com.github.parkwoocheol:compose-webview:<version>'
+}
+```
+
+### Option 2: GitHub Packages (Required for iOS)
+
+GitHub Packages includes **iOS klib artifacts** built on macOS. JitPack builds on Linux and cannot produce these.
+
+**1. Create a GitHub Personal Access Token (PAT)**
+
+- Go to [GitHub Settings → Developer settings → Personal access tokens](https://github.com/settings/tokens)
+- Click "Generate new token (classic)"
+- Scopes: Select `read:packages`
+- Copy the token
+
+**2. Configure credentials**
+
+Add to `~/.gradle/gradle.properties` (or use environment variables):
+
+```properties
+gpr.user=YOUR_GITHUB_USERNAME
+gpr.key=YOUR_GITHUB_PAT
+```
+
+**3. Add GitHub Packages repository**
+
+**Kotlin DSL (`settings.gradle.kts`):**
+
+```kotlin
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven {
+            url = uri("https://maven.pkg.github.com/parkwoocheol/compose-webview")
+            credentials {
+                username = findProperty("gpr.user") as String? ?: System.getenv("GITHUB_ACTOR")
+                password = findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
+}
+```
+
+**Add dependency (same as JitPack):**
+
+```kotlin
+dependencies {
+    implementation("com.github.parkwoocheol:compose-webview:<version>")
+}
+```
+
+**Groovy DSL (`settings.gradle`):**
+
+```groovy
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven {
+            url 'https://maven.pkg.github.com/parkwoocheol/compose-webview'
+            credentials {
+                username = findProperty('gpr.user') ?: System.getenv('GITHUB_ACTOR')
+                password = findProperty('gpr.key') ?: System.getenv('GITHUB_TOKEN')
+            }
+        }
+    }
+}
+```
+
+### Which Repository Should I Use?
+
+- **Android/Desktop/Web/WASM only?** → Use **JitPack** (no auth required)
+- **iOS projects?** → Use **GitHub Packages** (required for iOS klibs)
+- **CI/CD?** → GitHub Packages supports `GITHUB_TOKEN` environment variables
 
 ## Quick Start
 
