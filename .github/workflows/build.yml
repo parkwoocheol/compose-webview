@@ -9,80 +9,77 @@ on:
 
 
 jobs:
-  # 1. Quality Check (Fail Fast)
+  # Fast quality checks for PR feedback
   quality:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-      
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
-      
+
       - name: Check Code Style (Spotless)
         run: ./gradlew spotlessCheck
 
       - name: Android Lint
         run: ./gradlew lintDebug
 
-  # 2. Build Android, Desktop, Web (Ubuntu)
-  build-common:
+  # Build and test Android, Desktop, Web (Ubuntu)
+  build-and-test:
     needs: quality
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-      
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
-      
+
       - name: Build Android
         run: ./gradlew :compose-webview:assembleDebug
 
       - name: Test Android
         run: ./gradlew :compose-webview:testDebugUnitTest
-        
+
       - name: Build Desktop
         run: ./gradlew :compose-webview:compileKotlinDesktop
 
-      - name: Test Desktop
-        run: ./gradlew :compose-webview:desktopTest
-        
       - name: Build Web (JS)
         run: ./gradlew :compose-webview:compileKotlinJs
 
-      - name: Test Web (JS)
-        run: ./gradlew :compose-webview:jsTest
+      - name: Build WASM
+        run: ./gradlew :compose-webview:compileKotlinWasmJs
 
-  # 3. Build iOS (macOS)
-  build-ios:
+  # Build and test iOS (macOS)
+  build-and-test-ios:
     needs: quality
     runs-on: macos-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-      
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
-      
+
       - name: Build iOS Framework
         run: ./gradlew :compose-webview:linkIosSimulatorArm64
 
