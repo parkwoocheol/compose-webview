@@ -5,26 +5,30 @@ description: Builds, tests, and formats ComposeWebView multiplatform library. Ha
 
 # ComposeWebView Development Workflow
 
-This skill automates building, testing, and formatting for the ComposeWebView multiplatform library across Android, iOS, Desktop (JVM), and Web (JS) platforms.
+This skill automates building, testing, and formatting for the ComposeWebView multiplatform library across Android, iOS, Desktop (JVM), Web (JS), and Web (WASM) platforms.
 
 ## Quick Commands
 
 ### Format Code (REQUIRED before commits)
+
 ```bash
 ./gradlew spotlessApply
 ```
 
 ### Run All Tests
+
 ```bash
 ./gradlew :compose-webview:allTests
 ```
 
 ### Build All Platforms
+
 ```bash
 bash .agent/skills/development/scripts/build_all.sh
 ```
 
 ### Check Implementation Status
+
 ```bash
 bash .agent/skills/development/scripts/platform_status.sh
 ```
@@ -32,6 +36,7 @@ bash .agent/skills/development/scripts/platform_status.sh
 ## Platform-Specific Workflows
 
 ### Android
+
 ```bash
 # Build
 ./gradlew :compose-webview:assembleDebug
@@ -44,6 +49,7 @@ bash .agent/skills/development/scripts/platform_status.sh
 ```
 
 ### iOS
+
 ```bash
 # Link (build)
 ./gradlew :compose-webview:linkIosSimulatorArm64
@@ -53,6 +59,7 @@ bash .agent/skills/development/scripts/platform_status.sh
 ```
 
 ### Desktop (JVM)
+
 ```bash
 # Compile
 ./gradlew :compose-webview:compileKotlinDesktop
@@ -62,6 +69,7 @@ bash .agent/skills/development/scripts/platform_status.sh
 ```
 
 ### Web (JS)
+
 ```bash
 # Compile
 ./gradlew :compose-webview:compileKotlinJs
@@ -70,11 +78,22 @@ bash .agent/skills/development/scripts/platform_status.sh
 ./gradlew :compose-webview:jsTest
 ```
 
+### Web (WASM)
+
+```bash
+# Compile
+./gradlew :compose-webview:compileKotlinWasmJs
+
+# Test
+./gradlew :compose-webview:wasmJsTest
+```
+
 ## Adding New Features
 
 ComposeWebView uses the **expect/actual pattern** for multiplatform code. Follow these steps:
 
 1. **Define in Common**: Add `expect` declaration in `commonMain/kotlin/com/parkwoocheol/composewebview/`
+
    ```kotlin
    expect class PlatformFeature {
        fun doSomething(): String
@@ -86,18 +105,22 @@ ComposeWebView uses the **expect/actual pattern** for multiplatform code. Follow
    - `iosMain/` - WKWebView implementation
    - `desktopMain/` - CEF (Chromium Embedded Framework) implementation
    - `jsMain/` - Web/JS implementation
+   - `wasmJsMain/` - WASM implementation
 
 3. **Verify Completeness**: Run platform status check
+
    ```bash
    bash .agent/skills/development/scripts/platform_status.sh
    ```
 
 4. **Test**: Run platform-specific tests
+
    ```bash
    bash .agent/skills/development/scripts/test_all.sh
    ```
 
 5. **Format**: MUST run Spotless before committing
+
    ```bash
    ./gradlew spotlessApply
    ```
@@ -107,9 +130,11 @@ See [reference/platform_specifics.md](reference/platform_specifics.md) for detai
 ## Code Templates
 
 ### Creating expect/actual
+
 Use the template: [templates/ExpectActualTemplate.kt.template](templates/ExpectActualTemplate.kt.template)
 
 ### Creating Composables
+
 Use the template: [templates/ComposableTemplate.kt.template](templates/ComposableTemplate.kt.template)
 
 ## Gradle Tasks Reference
@@ -119,16 +144,19 @@ For a complete list of available Gradle tasks, see [reference/gradle_tasks.md](r
 ## Common Tasks
 
 ### Clean Build
+
 ```bash
 ./gradlew clean
 ```
 
 ### Build and Test Everything
+
 ```bash
 bash .agent/skills/development/scripts/test_all.sh
 ```
 
 ### Check Code Formatting (without applying)
+
 ```bash
 bash .agent/skills/development/scripts/format_check.sh
 ```
@@ -136,16 +164,19 @@ bash .agent/skills/development/scripts/format_check.sh
 ## Platform Constraints
 
 ### iOS (WKWebView)
+
 - Limited zoom control
 - Strict security policies
 - Requires message handlers for JSBridge
 
 ### Desktop (CEF via KCEF)
+
 - Asynchronous initialization required
 - SwingPanel integration
 - Platform-specific threading considerations
 
 ### Web (JS)
+
 - IFrame-based implementation
 - postMessage bridge for communication
 - Limited native features
@@ -166,16 +197,19 @@ All scripts are located in `scripts/` and can be run from the project root.
 ## Troubleshooting
 
 ### Build Failures
+
 1. Clean Gradle cache: `./gradlew clean`
 2. Invalidate caches: `rm -rf .gradle`
 3. Check Java version: `java -version` (should be 17+)
 
 ### Test Failures
+
 1. Run specific platform tests to isolate issues
 2. Check platform-specific logs
 3. Verify all expect/actual pairs are implemented
 
 ### Formatting Issues
+
 Run `./gradlew spotlessApply` to auto-fix formatting issues.
 
 ## Related Resources
