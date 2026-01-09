@@ -22,11 +22,13 @@ This executes all quality checks: formatting, expect/actual validation, KDoc cov
 ### 1. Code Formatting
 
 **Check formatting** (non-destructive):
+
 ```bash
 ./gradlew spotlessCheck
 ```
 
 **Auto-fix formatting**:
+
 ```bash
 ./gradlew spotlessApply
 ```
@@ -36,23 +38,27 @@ Spotless enforces ktlint rules. **REQUIRED** before all commits.
 ### 2. Multiplatform Completeness
 
 **Check expect/actual pairs**:
+
 ```bash
 bash .agent/skills/code-review/scripts/check_expect_actual.sh
 ```
 
 Verifies:
+
 - Every `expect` declaration has corresponding `actual` implementations
-- All platforms (Android, iOS, Desktop, Web) are covered
+- All platforms (Android, iOS, Desktop, JS, WASM) are covered
 - No orphaned `actual` declarations
 
 ### 3. Documentation Coverage
 
 **Verify KDoc**:
+
 ```bash
 bash .agent/skills/code-review/scripts/verify_kdoc.sh
 ```
 
 Checks:
+
 - All `public` APIs have KDoc comments
 - KDoc includes `@param` and `@return` where applicable
 - No placeholder documentation (e.g., "TODO")
@@ -60,11 +66,13 @@ Checks:
 ### 4. Testing Coverage
 
 Ensure tests exist for:
+
 - Common functionality in `commonTest`
 - Platform-specific features in platform test sources
 - Critical paths (WebView loading, JS bridge, state management)
 
 **Run tests**:
+
 ```bash
 bash .agent/skills/development/scripts/test_all.sh
 ```
@@ -72,6 +80,7 @@ bash .agent/skills/development/scripts/test_all.sh
 ### 5. Architecture Compliance
 
 Verify adherence to project patterns:
+
 - State management via `WebViewState` (see `.agent/knowledge/architecture.md`)
 - Controller separation via `WebViewController`
 - Proper platform abstraction (expect/actual)
@@ -85,15 +94,19 @@ See [reference/common_patterns.md](reference/common_patterns.md) for patterns.
 Copy and work through: [checklists/feature_checklist.md](checklists/feature_checklist.md)
 
 Quick checklist:
+
 ```markdown
 - [ ] Defined in commonMain with expect
-- [ ] Implemented in all 4 platforms (actual)
+- [ ] Implemented in all 5 platforms (Android, iOS, Desktop, JS, WASM)
 - [ ] Public APIs have KDoc with @param/@return
 - [ ] Tests added in commonTest and platform tests
 - [ ] Spotless formatting applied
 - [ ] Updated relevant documentation
 - [ ] Follows existing patterns (State/Controller)
-- [ ] Platform constraints considered
+- [ ] Platform constraints considered (iOS, Desktop, WASM)
+- [ ] Kotlinx Serialization used for JSON
+- [ ] Null safety enforced (no !! operator)
+- [ ] Immutability preferred (val over var)
 ```
 
 ### Pull Request Review
@@ -101,6 +114,7 @@ Quick checklist:
 Copy and work through: [checklists/pr_checklist.md](checklists/pr_checklist.md)
 
 Essential checks:
+
 - Code quality (formatting, naming, structure)
 - Multiplatform completeness
 - Test coverage
@@ -112,10 +126,12 @@ Essential checks:
 For complex platform work: [checklists/multiplatform_checklist.md](checklists/multiplatform_checklist.md)
 
 Platform-specific considerations:
+
 - Android: WebView API usage, permissions
 - iOS: WKWebView constraints, message handlers
 - Desktop: CEF initialization, threading
-- Web: IFrame limitations, postMessage bridge
+- Web (JS): IFrame limitations, postMessage bridge
+- Web (WASM): Same-origin policy, limited native features
 
 ## Automated Checks
 
@@ -126,28 +142,33 @@ bash .agent/skills/code-review/scripts/review_checklist.sh
 ```
 
 **Checks performed**:
+
 1. ✅ Code formatting (Spotless)
 2. ✅ Expect/actual completeness
 3. ⚠️  KDoc coverage (warning only)
 4. ✅ All tests passing
 
 **Exit codes**:
+
 - `0` - All checks passed
 - `1` - Critical issues found (formatting, tests, expect/actual)
 
 ### Individual Checks
 
 **Expect/Actual**:
+
 ```bash
 bash .agent/skills/code-review/scripts/check_expect_actual.sh
 ```
 
 **KDoc Coverage**:
+
 ```bash
 bash .agent/skills/code-review/scripts/verify_kdoc.sh
 ```
 
 **Formatting**:
+
 ```bash
 bash .agent/skills/development/scripts/format_check.sh
 ```
@@ -155,6 +176,7 @@ bash .agent/skills/development/scripts/format_check.sh
 ## Common Issues & Solutions
 
 See [reference/review_guidelines.md](reference/review_guidelines.md) for:
+
 - Common multiplatform pitfalls
 - Platform-specific gotchas (WKWebView, CEF)
 - Performance considerations
@@ -163,16 +185,19 @@ See [reference/review_guidelines.md](reference/review_guidelines.md) for:
 ### Quick Fixes
 
 **Formatting issues**:
+
 ```bash
 ./gradlew spotlessApply
 ```
 
 **Missing actual implementation**:
+
 1. Identify the `expect` declaration
 2. Add `actual` to all platform source sets
 3. Verify: `bash .agent/skills/code-review/scripts/check_expect_actual.sh`
 
 **Missing KDoc**:
+
 ```kotlin
 /**
  * Brief description of what this does.
@@ -188,11 +213,13 @@ fun publicFunction(param: String): Result
 ### Before Submitting PR
 
 1. **Format code**:
+
    ```bash
    ./gradlew spotlessApply
    ```
 
 2. **Run full review**:
+
    ```bash
    bash .agent/skills/code-review/scripts/review_checklist.sh
    ```
@@ -200,6 +227,7 @@ fun publicFunction(param: String): Result
 3. **Fix any issues** reported
 
 4. **Run tests**:
+
    ```bash
    bash .agent/skills/development/scripts/test_all.sh
    ```
@@ -212,6 +240,7 @@ fun publicFunction(param: String): Result
    - Use [pr_checklist.md](checklists/pr_checklist.md)
 
 2. **Verify multiplatform completeness**:
+
    ```bash
    bash .agent/skills/code-review/scripts/check_expect_actual.sh
    ```
@@ -221,6 +250,7 @@ fun publicFunction(param: String): Result
    - Check `.agent/knowledge/architecture.md`
 
 4. **Test locally**:
+
    ```bash
    git checkout pr-branch
    bash .agent/skills/development/scripts/test_all.sh
@@ -270,12 +300,15 @@ These checks can be integrated into GitHub Actions:
 ## Scripts Reference
 
 ### review_checklist.sh
+
 Comprehensive review running all checks. Returns non-zero exit code if critical issues found.
 
 ### check_expect_actual.sh
+
 Validates that all expect declarations have actual implementations on all platforms.
 
 ### verify_kdoc.sh
+
 Checks KDoc coverage for public APIs. Warning-level (doesn't fail build).
 
 ## Related Resources
@@ -290,6 +323,7 @@ Checks KDoc coverage for public APIs. Warning-level (doesn't fail build).
 ### Review Script Fails
 
 **Check output** for specific failure:
+
 - Formatting → Run `./gradlew spotlessApply`
 - Tests → Fix failing tests
 - Expect/actual → Implement missing actuals
@@ -297,6 +331,7 @@ Checks KDoc coverage for public APIs. Warning-level (doesn't fail build).
 ### False Positives
 
 **Expect/actual check** counts declarations - may show warnings for:
+
 - Internal implementations
 - Platform-specific extensions
 
