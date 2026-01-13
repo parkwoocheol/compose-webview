@@ -13,7 +13,9 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ObjCSignatureOverride
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.usePinned
+import platform.Foundation.NSData
 import platform.Foundation.NSError
+import platform.Foundation.dataWithBytes
 import platform.WebKit.WKNavigation
 import platform.WebKit.WKNavigationAction
 import platform.WebKit.WKNavigationActionPolicy
@@ -215,13 +217,10 @@ internal class ComposeWKURLSchemeHandler(
                 )
             startURLSchemeTask.didReceiveResponse(nsUrlResponse)
 
-            val data =
+            val data: NSData? =
                 response.data?.let { bytes ->
                     bytes.usePinned { pinned ->
-                        platform.Foundation.NSData.create(
-                            bytes = pinned.addressOf(0),
-                            length = bytes.size.toULong(),
-                        )
+                        NSData.dataWithBytes(pinned.addressOf(0), bytes.size.toULong())
                     }
                 }
             if (data != null) {

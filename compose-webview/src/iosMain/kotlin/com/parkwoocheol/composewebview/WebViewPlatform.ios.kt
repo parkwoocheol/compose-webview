@@ -205,7 +205,7 @@ actual fun WebView.platformFindAllAsync(find: String) {
 
     findString(find, withConfiguration = config) { result ->
         if (result != null) {
-            state.listener?.invoke(0, result.matchCount.toInt(), result.isDone)
+            state.listener?.invoke(0, if (result.matchFound) 1 else 0, true)
         }
     }
 }
@@ -219,9 +219,9 @@ actual fun WebView.platformFindNext(forward: Boolean) {
     config.caseSensitive = false
 
     findString(state.lastSearchString, withConfiguration = config) { result ->
-        // WKFindResult doesn't provide the current index easily, only matchCount
+        // WKFindResult doesn't provide the current index easily, only matchFound
         if (result != null) {
-            state.listener?.invoke(0, result.matchCount.toInt(), result.isDone)
+            state.listener?.invoke(0, if (result.matchFound) 1 else 0, true)
         }
     }
 }
