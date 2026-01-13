@@ -16,6 +16,9 @@ actual open class ComposeWebViewClient {
     internal var onPageFinishedCallback: (WebView?, String?) -> Unit = { _, _ -> }
     internal var onReceivedErrorCallback: (WebView?, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit = { _, _, _ -> }
     internal var shouldOverrideUrlLoadingCallback: ((WebView?, PlatformWebResourceRequest?) -> Boolean)? = null
+    internal var shouldInterceptRequestCallback: (
+        (WebView?, PlatformWebResourceRequest?) -> com.parkwoocheol.composewebview.PlatformWebResourceResponse?
+    )? = null
 
     internal actual fun setOnPageStartedHandler(handler: (WebView?, String?, PlatformBitmap?) -> Unit) {
         onPageStartedCallback = handler
@@ -31,6 +34,12 @@ actual open class ComposeWebViewClient {
 
     internal actual fun setShouldOverrideUrlLoadingHandler(handler: (WebView?, PlatformWebResourceRequest?) -> Boolean) {
         shouldOverrideUrlLoadingCallback = handler
+    }
+
+    internal actual fun setShouldInterceptRequestHandler(
+        handler: (WebView?, PlatformWebResourceRequest?) -> com.parkwoocheol.composewebview.PlatformWebResourceResponse?,
+    ) {
+        shouldInterceptRequestCallback = handler
     }
 
     actual open fun onPageStarted(
@@ -66,6 +75,18 @@ actual open class ComposeWebViewClient {
             }
         }
         return false
+    }
+
+    actual open fun shouldInterceptRequest(
+        view: WebView?,
+        request: PlatformWebResourceRequest?,
+    ): com.parkwoocheol.composewebview.PlatformWebResourceResponse? {
+        view?.let { v ->
+            shouldInterceptRequestCallback?.let { handler ->
+                return handler(v, request)
+            }
+        }
+        return null
     }
 }
 

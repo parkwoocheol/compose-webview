@@ -48,6 +48,12 @@ actual object PlatformCookieManager {
         }
     }
 
+    actual suspend fun removeCookies(url: String) {
+        // Simple implementation for JS - removes all for now as same-origin policy
+        // usually limits JS access to cookies of the current domain anyway.
+        removeAllCookies()
+    }
+
     actual suspend fun flush() {
         // No-op for JS - cookies are written immediately
     }

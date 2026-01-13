@@ -34,6 +34,7 @@ internal actual fun ComposeWebViewImpl(
     customViewContent: (@Composable (CustomViewState) -> Unit)?,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
+    onStartActionMode: ((WebView, PlatformActionModeCallback?) -> PlatformActionModeCallback?)?,
 ) {
     // Use Iframe from org.jetbrains.compose.web.dom
     // Note: This works best when using Compose HTML (DOM).
@@ -82,6 +83,7 @@ internal actual fun ComposeWebViewImpl(
     jsBridge: WebViewJsBridge?,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
+    onStartActionMode: ((WebView, PlatformActionModeCallback?) -> PlatformActionModeCallback?)?,
 ) {
     LaunchedEffect(state) {
         snapshotFlow { state.content }.collect { content ->
