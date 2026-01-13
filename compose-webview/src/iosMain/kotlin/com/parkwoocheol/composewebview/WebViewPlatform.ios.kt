@@ -201,10 +201,12 @@ actual fun WebView.platformFindAllAsync(find: String) {
 
     val config = platform.WebKit.WKFindConfiguration()
     config.backwards = false
-    config.caseInsensitive = true
+    config.caseSensitive = false
 
     findString(find, withConfiguration = config) { result ->
-        state.listener?.invoke(0, result.matchCount.toInt(), result.isDone())
+        if (result != null) {
+            state.listener?.invoke(0, result.matchCount.toInt(), result.isDone)
+        }
     }
 }
 
@@ -214,11 +216,13 @@ actual fun WebView.platformFindNext(forward: Boolean) {
 
     val config = platform.WebKit.WKFindConfiguration()
     config.backwards = !forward
-    config.caseInsensitive = true
+    config.caseSensitive = false
 
     findString(state.lastSearchString, withConfiguration = config) { result ->
         // WKFindResult doesn't provide the current index easily, only matchCount
-        state.listener?.invoke(0, result.matchCount.toInt(), result.isDone())
+        if (result != null) {
+            state.listener?.invoke(0, result.matchCount.toInt(), result.isDone)
+        }
     }
 }
 

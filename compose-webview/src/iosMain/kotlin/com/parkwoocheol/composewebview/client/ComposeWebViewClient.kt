@@ -11,6 +11,8 @@ import com.parkwoocheol.composewebview.WebViewError
 import com.parkwoocheol.composewebview.WebViewState
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ObjCSignatureOverride
+import kotlinx.cinterop.addressOf
+import kotlinx.cinterop.usePinned
 import platform.Foundation.NSError
 import platform.WebKit.WKNavigation
 import platform.WebKit.WKNavigationAction
@@ -195,6 +197,7 @@ internal class ComposeWKURLSchemeHandler(
     private val client: ComposeWebViewClient,
 ) : NSObject(), platform.WebKit.WKURLSchemeHandlerProtocol {
     @OptIn(ExperimentalForeignApi::class, kotlinx.cinterop.BetaInteropApi::class)
+    @ObjCSignatureOverride
     override fun webView(
         webView: WKWebView,
         startURLSchemeTask: platform.WebKit.WKURLSchemeTaskProtocol,
@@ -213,9 +216,12 @@ internal class ComposeWKURLSchemeHandler(
             startURLSchemeTask.didReceiveResponse(nsUrlResponse)
 
             val data =
-                response.data?.let {
-                    it.usePinned { pinned ->
-                        platform.Foundation.NSData.dataWithBytes(pinned.addressOf(0), it.size.toULong())
+                response.data?.let { bytes ->
+                    bytes.usePinned { pinned ->
+                        platform.Foundation.NSData.create(
+                            bytes = pinned.addressOf(0),
+                            length = bytes.size.toULong(),
+                        )
                     }
                 }
             if (data != null) {
@@ -233,10 +239,9 @@ internal class ComposeWKURLSchemeHandler(
         }
     }
 
+    @ObjCSignatureOverride
     override fun webView(
-        webView:
-            @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
-            WKWebView,
+        webView: WKWebView,
         stopURLSchemeTask: platform.WebKit.WKURLSchemeTaskProtocol,
     ) {
         // No-op

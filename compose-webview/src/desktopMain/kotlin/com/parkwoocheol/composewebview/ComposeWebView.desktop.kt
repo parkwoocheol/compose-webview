@@ -42,6 +42,7 @@ internal actual fun ComposeWebViewImpl(
     customViewContent: (@Composable (CustomViewState) -> Unit)?,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
+    onStartActionMode: ((WebView, PlatformActionModeCallback?) -> PlatformActionModeCallback?)?,
 ) {
     val state = rememberWebViewState(url)
 
@@ -65,6 +66,7 @@ internal actual fun ComposeWebViewImpl(
         jsBridge = null,
         onDownloadStart = onDownloadStart,
         onFindResultReceived = onFindResultReceived,
+        onStartActionMode = onStartActionMode,
     )
 }
 
@@ -89,6 +91,7 @@ internal actual fun ComposeWebViewImpl(
     jsBridge: WebViewJsBridge?,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
+    onStartActionMode: ((WebView, PlatformActionModeCallback?) -> PlatformActionModeCallback?)?,
 ) {
     var initialized by remember { mutableStateOf(false) }
     var browser: KCEFBrowser? by remember { mutableStateOf(null) }

@@ -300,8 +300,7 @@ private fun WKWebViewConfiguration.applySettings(
     client: ComposeWebViewClient,
 ) {
     // JavaScript
-    // Set both legacy and modern properties for maximum compatibility/reliability
-    preferences.javaScriptEnabled = webViewSettings.javaScriptEnabled
+    // Set modern property for maximum compatibility/reliability
     defaultWebpagePreferences.allowsContentJavaScript = webViewSettings.javaScriptEnabled
 
     // User Agent

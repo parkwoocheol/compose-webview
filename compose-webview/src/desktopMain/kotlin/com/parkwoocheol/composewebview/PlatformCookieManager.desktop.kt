@@ -22,6 +22,10 @@ actual object PlatformCookieManager {
         // Placeholder
     }
 
+    actual suspend fun removeCookies(url: String) {
+        // Placeholder
+    }
+
     actual suspend fun flush() {
         // Placeholder
     }
