@@ -95,9 +95,9 @@ fun TransientBrowserScreen(onBack: () -> Unit) {
                 ComposeWebView(
                     state = transientState,
                     modifier = Modifier.fillMaxSize(),
-                    onCreated = {
-                        it.platformJavaScriptEnabled = true
-                        it.platformDomStorageEnabled = true
+                    onCreated = { webView ->
+                        webView.platformJavaScriptEnabled = true
+                        webView.platformDomStorageEnabled = true
                     },
                 )
             }
@@ -112,9 +112,9 @@ fun TransientBrowserScreen(onBack: () -> Unit) {
                 ComposeWebView(
                     state = savedState,
                     modifier = Modifier.fillMaxSize(),
-                    onCreated = {
-                        it.platformJavaScriptEnabled = true
-                        it.platformDomStorageEnabled = true
+                    onCreated = { webView ->
+                        webView.platformJavaScriptEnabled = true
+                        webView.platformDomStorageEnabled = true
                     },
                 )
             }

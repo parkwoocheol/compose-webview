@@ -5,6 +5,7 @@ import androidx.compose.runtime.remember
 import com.parkwoocheol.composewebview.PlatformBitmap
 import com.parkwoocheol.composewebview.PlatformWebResourceError
 import com.parkwoocheol.composewebview.PlatformWebResourceRequest
+import com.parkwoocheol.composewebview.PlatformWebResourceResponse
 import com.parkwoocheol.composewebview.WebView
 
 /**
@@ -61,6 +62,23 @@ fun ComposeWebViewClient.onReceivedError(
 fun ComposeWebViewClient.shouldOverrideUrlLoading(handler: (WebView?, PlatformWebResourceRequest?) -> Boolean): ComposeWebViewClient =
     apply {
         setShouldOverrideUrlLoadingHandler(handler)
+    }
+
+/**
+ * Sets a handler for intercepting resource requests.
+ *
+ * Return a [PlatformWebResourceResponse] to provide custom content, or null to let the WebView handle it.
+ *
+ * This is a convenience extension that allows configuration of the client.
+ *
+ * @param handler Callback invoked with (view, request) parameters.
+ * @return This client instance for chaining.
+ */
+fun ComposeWebViewClient.shouldInterceptRequest(
+    handler: (WebView?, PlatformWebResourceRequest?) -> PlatformWebResourceResponse?,
+): ComposeWebViewClient =
+    apply {
+        setShouldInterceptRequestHandler(handler)
     }
 
 /**

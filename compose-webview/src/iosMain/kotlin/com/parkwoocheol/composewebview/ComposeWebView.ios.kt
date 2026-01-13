@@ -51,6 +51,7 @@ internal actual fun ComposeWebViewImpl(
     customViewContent: (@Composable (CustomViewState) -> Unit)?,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
+    onStartActionMode: ((WebView, PlatformActionModeCallback?) -> PlatformActionModeCallback?)?,
 ) {
     val state = rememberSaveableWebViewState(url = url)
 
@@ -73,6 +74,7 @@ internal actual fun ComposeWebViewImpl(
         customViewContent = customViewContent,
         onDownloadStart = onDownloadStart,
         onFindResultReceived = onFindResultReceived,
+        onStartActionMode = onStartActionMode,
     )
 }
 
@@ -98,12 +100,13 @@ internal actual fun ComposeWebViewImpl(
     jsBridge: WebViewJsBridge?,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
+    onStartActionMode: ((WebView, PlatformActionModeCallback?) -> PlatformActionModeCallback?)?,
 ) {
     val webView =
-        state.webView ?: remember {
+        state.webView ?: remember(settings, client) {
             val config =
                 WKWebViewConfiguration().apply {
-                    applySettings(settings)
+                    applySettings(settings, client)
                 }
             WKWebView(frame = kotlinx.cinterop.cValue { }, configuration = config).apply {
                 allowsBackForwardNavigationGestures = true
@@ -251,6 +254,7 @@ internal actual fun ComposeWebViewImpl(
             factory = {
                 webView.navigationDelegate = delegate
                 webView.UIDelegate = uiDelegate
+                webView.setPlatformFindListener(onFindResultReceived)
                 onCreated(webView)
                 webView
             },
@@ -258,6 +262,7 @@ internal actual fun ComposeWebViewImpl(
             update = { _ ->
                 webView.navigationDelegate = delegate
                 webView.UIDelegate = uiDelegate
+                webView.setPlatformFindListener(onFindResultReceived)
             },
             onRelease = {
                 onDispose(webView)
@@ -290,12 +295,14 @@ internal actual fun ComposeWebViewImpl(
 }
 
 @OptIn(ExperimentalForeignApi::class)
-private fun WKWebViewConfiguration.applySettings(webViewSettings: WebViewSettings) {
-    preferences.apply {
-        // JavaScript (Note: WKWebView JavaScript is always enabled by default)
-        // javaScriptEnabled property is not available in WKPreferences
-        // JavaScript can be controlled via setValue:forKey: if needed
-    }
+private fun WKWebViewConfiguration.applySettings(
+    webViewSettings: WebViewSettings,
+    client: ComposeWebViewClient,
+) {
+    // JavaScript
+    // Set both legacy and modern properties for maximum compatibility/reliability
+    preferences.javaScriptEnabled = webViewSettings.javaScriptEnabled
+    defaultWebpagePreferences.allowsContentJavaScript = webViewSettings.javaScriptEnabled
 
     // User Agent
     webViewSettings.userAgent?.let { ua ->
@@ -312,6 +319,11 @@ private fun WKWebViewConfiguration.applySettings(webViewSettings: WebViewSetting
 
     // File Access is not directly configurable in WKWebView
     // allowFileAccessFromFileURLs is available via preferences for iOS 14+
+
+    // Intercepted Schemes
+    webViewSettings.interceptedSchemes.forEach { scheme ->
+        setURLSchemeHandler(com.parkwoocheol.composewebview.client.ComposeWKURLSchemeHandler(client), forURLScheme = scheme)
+    }
 }
 
 @OptIn(ExperimentalForeignApi::class)
@@ -321,6 +333,25 @@ private fun WKWebView.applyWebViewSettings(webViewSettings: WebViewSettings) {
 
     // Most settings are applied via configuration
     // iOS WKWebView has limited settings compared to Android WebView
+
+    // Zoom Support
+    platformSupportZoom = webViewSettings.supportZoom
+
+    // Dark Mode
+    overrideUserInterfaceStyle =
+        when (webViewSettings.darkMode) {
+            DarkMode.AUTO -> {
+                platform.UIKit.UIUserInterfaceStyle.UIUserInterfaceStyleUnspecified
+            }
+
+            DarkMode.LIGHT -> {
+                platform.UIKit.UIUserInterfaceStyle.UIUserInterfaceStyleLight
+            }
+
+            DarkMode.DARK -> {
+                platform.UIKit.UIUserInterfaceStyle.UIUserInterfaceStyleDark
+            }
+        }
 }
 
 @OptIn(ExperimentalForeignApi::class)

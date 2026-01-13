@@ -34,6 +34,44 @@ actual class PlatformWebResourceRequest(val impl: WebResourceRequest) {
     actual val isForMainFrame: Boolean get() = impl.isForMainFrame
 }
 
+actual class PlatformWebResourceResponse(
+    actual val mimeType: String?,
+    actual val encoding: String?,
+    actual val data: ByteArray?,
+    actual val statusCode: Int = 200,
+    actual val reasonPhrase: String? = "OK",
+    actual val responseHeaders: Map<String, String>? = null,
+) {
+    fun asAndroidResponse(): android.webkit.WebResourceResponse {
+        val inputStream = data?.let { java.io.ByteArrayInputStream(it) }
+        return android.webkit.WebResourceResponse(
+            mimeType,
+            encoding,
+            statusCode,
+            reasonPhrase ?: "OK",
+            responseHeaders,
+            inputStream,
+        )
+    }
+}
+
+actual fun createPlatformWebResourceResponse(
+    mimeType: String?,
+    encoding: String?,
+    data: ByteArray?,
+    statusCode: Int,
+    reasonPhrase: String?,
+    responseHeaders: Map<String, String>?,
+): PlatformWebResourceResponse =
+    PlatformWebResourceResponse(
+        mimeType = mimeType,
+        encoding = encoding,
+        data = data,
+        statusCode = statusCode,
+        reasonPhrase = reasonPhrase,
+        responseHeaders = responseHeaders,
+    )
+
 fun createPlatformWebResourceRequest(impl: WebResourceRequest) = PlatformWebResourceRequest(impl)
 
 fun createPlatformWebResourceError(impl: WebResourceError) = PlatformWebResourceError(impl)
@@ -118,6 +156,8 @@ actual fun WebView.platformAddJavascriptInterface(
 actual typealias PlatformJavascriptInterface = android.webkit.JavascriptInterface
 
 actual typealias PlatformContext = android.content.Context
+
+actual typealias PlatformActionModeCallback = android.view.ActionMode.Callback
 
 actual var WebView.platformJavaScriptEnabled: Boolean
     get() = settings.javaScriptEnabled

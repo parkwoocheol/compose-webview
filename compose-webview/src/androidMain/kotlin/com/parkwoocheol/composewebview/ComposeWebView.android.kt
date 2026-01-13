@@ -78,6 +78,7 @@ internal actual fun ComposeWebViewImpl(
     customViewContent: (@Composable (CustomViewState) -> Unit)?,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
+    onStartActionMode: ((WebView, PlatformActionModeCallback?) -> PlatformActionModeCallback?)?,
 ) {
     val state = rememberSaveableWebViewState(url = url)
 
@@ -100,6 +101,7 @@ internal actual fun ComposeWebViewImpl(
         customViewContent = customViewContent,
         onDownloadStart = onDownloadStart,
         onFindResultReceived = onFindResultReceived,
+        onStartActionMode = onStartActionMode,
     )
 }
 
@@ -124,6 +126,7 @@ internal actual fun ComposeWebViewImpl(
     jsBridge: WebViewJsBridge?,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
+    onStartActionMode: ((WebView, PlatformActionModeCallback?) -> PlatformActionModeCallback?)?,
 ) {
     val webView = state.webView
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -221,7 +224,20 @@ internal actual fun ComposeWebViewImpl(
         AndroidView(
             factory = { context ->
                 val wv =
-                    factory?.invoke(context) ?: WebView(context).apply {
+                    factory?.invoke(context) ?: object : WebView(context) {
+                        override fun startActionMode(callback: android.view.ActionMode.Callback?): android.view.ActionMode? {
+                            val wrappedCallback = onStartActionMode?.invoke(this, callback) ?: callback
+                            return super.startActionMode(wrappedCallback)
+                        }
+
+                        override fun startActionMode(
+                            callback: android.view.ActionMode.Callback?,
+                            type: Int,
+                        ): android.view.ActionMode? {
+                            val wrappedCallback = onStartActionMode?.invoke(this, callback) ?: callback
+                            return super.startActionMode(wrappedCallback, type)
+                        }
+                    }.apply {
                         this.layoutParams = layoutParams
                     }
 
@@ -425,6 +441,23 @@ private fun WebView.applySettings(webViewSettings: WebViewSettings) {
         webViewSettings.userAgent?.let { ua ->
             userAgentString = ua
         }
+
+        // Dark Mode
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            isAlgorithmicDarkeningAllowed =
+                when (webViewSettings.darkMode) {
+                    DarkMode.AUTO -> true
+                    DarkMode.LIGHT -> false
+                    DarkMode.DARK -> true
+                }
+        } else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            forceDark =
+                when (webViewSettings.darkMode) {
+                    DarkMode.AUTO -> android.webkit.WebSettings.FORCE_DARK_AUTO
+                    DarkMode.LIGHT -> android.webkit.WebSettings.FORCE_DARK_OFF
+                    DarkMode.DARK -> android.webkit.WebSettings.FORCE_DARK_ON
+                }
+        }
     }
 }
 
@@ -482,6 +515,7 @@ fun ComposeWebView(
             android.webkit.WebChromeClient.FileChooserParams,
         ) -> Boolean
     )? = null,
+    onStartActionMode: ((WebView, PlatformActionModeCallback?) -> PlatformActionModeCallback?)? = null,
 ) {
     // Set the custom file chooser callback if provided
     if (onShowFileChooser != null) {
@@ -509,5 +543,6 @@ fun ComposeWebView(
         jsBridge = jsBridge,
         onDownloadStart = onDownloadStart,
         onFindResultReceived = onFindResultReceived,
+        onStartActionMode = onStartActionMode,
     )
 }

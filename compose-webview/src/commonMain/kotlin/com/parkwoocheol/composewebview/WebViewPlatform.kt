@@ -43,6 +43,26 @@ expect class PlatformWebResourceRequest {
     val isForMainFrame: Boolean
 }
 
+expect class PlatformWebResourceResponse {
+    val mimeType: String?
+    val encoding: String?
+    val statusCode: Int
+    val reasonPhrase: String?
+    val responseHeaders: Map<String, String>?
+    val data: ByteArray?
+}
+
+expect fun createPlatformWebResourceResponse(
+    mimeType: String?,
+    encoding: String?,
+    data: ByteArray?,
+    statusCode: Int = 200,
+    reasonPhrase: String? = "OK",
+    responseHeaders: Map<String, String>? = null,
+): PlatformWebResourceResponse
+
+expect interface PlatformActionModeCallback
+
 expect abstract class PlatformPermissionRequest
 
 /**

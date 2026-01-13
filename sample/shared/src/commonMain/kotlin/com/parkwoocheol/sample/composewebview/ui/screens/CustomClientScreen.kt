@@ -7,8 +7,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
@@ -17,20 +20,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.parkwoocheol.composewebview.ComposeWebView
+import com.parkwoocheol.composewebview.PlatformCookieManager
+import com.parkwoocheol.composewebview.WebViewSettings
 import com.parkwoocheol.composewebview.client.ComposeWebViewClient
-import com.parkwoocheol.composewebview.platformBuiltInZoomControls
-import com.parkwoocheol.composewebview.platformDisplayZoomControls
+import com.parkwoocheol.composewebview.client.shouldInterceptRequest
+import com.parkwoocheol.composewebview.createPlatformWebResourceResponse
 import com.parkwoocheol.composewebview.platformDomStorageEnabled
 import com.parkwoocheol.composewebview.platformJavaScriptEnabled
 import com.parkwoocheol.composewebview.platformSupportZoom
 import com.parkwoocheol.composewebview.rememberSaveableWebViewState
 import com.parkwoocheol.sample.composewebview.ui.components.AppTopBar
+import kotlinx.coroutines.launch
 
 @Composable
 fun CustomClientScreen(onBack: () -> Unit) {
@@ -38,13 +45,43 @@ fun CustomClientScreen(onBack: () -> Unit) {
     var jsEnabled by remember { mutableStateOf(true) }
     var domStorageEnabled by remember { mutableStateOf(true) }
     var zoomEnabled by remember { mutableStateOf(true) }
+    var interceptionEnabled by remember { mutableStateOf(true) }
+
+    val scope = rememberCoroutineScope()
 
     // Custom Client that logs page starts
+    // Custom Client with Request Interception
     val client =
-        remember {
+        remember(interceptionEnabled) {
             object : ComposeWebViewClient() {
-                // You can override methods here if needed, or just use the default
-                // For this sample, we just use the default but show how to pass it
+                override fun shouldInterceptRequest(
+                    view: com.parkwoocheol.composewebview.WebView?,
+                    request: com.parkwoocheol.composewebview.PlatformWebResourceRequest?,
+                ): com.parkwoocheol.composewebview.PlatformWebResourceResponse? {
+                    if (interceptionEnabled && request?.url?.contains("intercept-test") == true) {
+                        val responseData = "<html><body><h1>Intercepted!</h1><p>This content was served from native code.</p></body></html>"
+                        return createPlatformWebResourceResponse(
+                            mimeType = "text/html",
+                            encoding = "UTF-8",
+                            data = responseData.encodeToByteArray(),
+                        )
+                    }
+                    return null
+                }
+            }.apply {
+                // For iOS, we need to register the scheme in settings.interceptedSchemes
+                // This example also demonstrates the DSL extension
+                shouldInterceptRequest { webView, request ->
+                    if (interceptionEnabled && request?.url?.contains("intercept-test") == true) {
+                        createPlatformWebResourceResponse(
+                            mimeType = "text/html",
+                            encoding = "UTF-8",
+                            data = "<html><body><h1>Intercepted (iOS)!</h1></body></html>".encodeToByteArray(),
+                        )
+                    } else {
+                        null
+                    }
+                }
             }
         }
 
@@ -79,6 +116,36 @@ fun CustomClientScreen(onBack: () -> Unit) {
                     SettingSwitch("JavaScript Enabled", jsEnabled) { jsEnabled = it }
                     SettingSwitch("DOM Storage Enabled", domStorageEnabled) { domStorageEnabled = it }
                     SettingSwitch("Zoom Support", zoomEnabled) { zoomEnabled = it }
+
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
+                    Text(
+                        text = "New Features",
+                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.secondary,
+                    )
+
+                    SettingSwitch("Request Interception", interceptionEnabled) { interceptionEnabled = it }
+
+                    Button(
+                        onClick = { state.content = com.parkwoocheol.composewebview.WebContent.Url("https://intercept-test.com") },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = interceptionEnabled,
+                    ) {
+                        Text("Test Interception")
+                    }
+
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                PlatformCookieManager.removeCookies("https://whatismybrowser.com")
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.filledTonalButtonColors(),
+                    ) {
+                        Text("Remove Cookies for Current Site")
+                    }
                 }
             }
 
@@ -88,15 +155,20 @@ fun CustomClientScreen(onBack: () -> Unit) {
                     state = state,
                     modifier = Modifier.fillMaxSize(),
                     client = client,
+                    settings =
+                        WebViewSettings(
+                            // For iOS interception demo
+                            interceptedSchemes = listOf("https"),
+                        ),
                     onCreated = { webView ->
-                        // Apply settings dynamically
-                        // Note: In a real app, you might want to trigger a reload or re-creation
-                        // if some settings require it, but most WebView settings can be updated on the fly.
                         webView.platformJavaScriptEnabled = jsEnabled
                         webView.platformDomStorageEnabled = domStorageEnabled
                         webView.platformSupportZoom = zoomEnabled
-                        webView.platformBuiltInZoomControls = zoomEnabled
-                        webView.platformDisplayZoomControls = false
+                    },
+                    onStartActionMode = { webView, callback ->
+                        // Android Custom Context Menu Demo (handled by platform-specific cast in sample if needed)
+                        // This logic is platform-specific, so we use a helper defined in sample
+                        configureAndroidContextMenu(webView, callback)
                     },
                 )
             }

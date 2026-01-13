@@ -39,6 +39,26 @@ enum class CacheMode {
 }
 
 /**
+ * Defines the dark mode strategy for WebView.
+ */
+enum class DarkMode {
+    /**
+     * Follow system/App theme.
+     */
+    AUTO,
+
+    /**
+     * Force light mode.
+     */
+    LIGHT,
+
+    /**
+     * Force dark mode.
+     */
+    DARK,
+}
+
+/**
  * Configuration settings for WebView behavior across all platforms.
  *
  * This class provides a unified interface for configuring WebView settings.
@@ -63,23 +83,22 @@ enum class CacheMode {
  * | Setting | Android | iOS | Desktop | Web |
  * |---------|:-------:|:---:|:-------:|:---:|
  * | userAgent | ✅ | ✅ | ✅ | ❌ |
- * | javaScriptEnabled | ✅ | ✅* | ✅ | ❌ |
+ * | javaScriptEnabled | ✅ | ✅ | ✅ | ❌ |
  * | domStorageEnabled | ✅ | ✅ | ⚠️ | ❌ |
  * | cacheMode | ✅ | ⚠️ | ⚠️ | ❌ |
  * | allowFileAccess | ✅ | ⚠️ | ⚠️ | ❌ |
  * | allowContentAccess | ✅ | ❌ | ❌ | ❌ |
- * | supportZoom | ✅ | ⚠️** | ✅ | ❌ |
+ * | supportZoom | ✅ | ⚠️* | ✅ | ❌ |
  * | loadWithOverviewMode | ✅ | ❌ | ❌ | ❌ |
  * | useWideViewPort | ✅ | ⚠️ | ⚠️ | ❌ |
  * | allowFileAccessFromFileURLs | ✅ | ⚠️ | ⚠️ | ❌ |
  * | allowUniversalAccessFromFileURLs | ✅ | ⚠️ | ⚠️ | ❌ |
  * | mediaPlaybackRequiresUserAction | ✅ | ✅ | ⚠️ | ❌ |
  *
- * *iOS: JavaScript always enabled, setting is ignored
- * **iOS: User pinch-to-zoom only, no programmatic zoom
+ * *iOS: User pinch-to-zoom only, no programmatic zoom
  *
  * @property userAgent Custom user agent string. If null, platform default is used.
- * @property javaScriptEnabled Enable JavaScript execution. Default: true. (iOS: always enabled)
+ * @property javaScriptEnabled Enable JavaScript execution. Default: true.
  * @property domStorageEnabled Enable DOM storage API. Default: true.
  * @property cacheMode Cache behavior mode. Default: CacheMode.DEFAULT.
  * @property allowFileAccess Allow access to file:// URLs. Default: false (security).
@@ -90,6 +109,9 @@ enum class CacheMode {
  * @property allowFileAccessFromFileURLs Allow file access from file URLs. Default: false (security).
  * @property allowUniversalAccessFromFileURLs Allow universal access from file URLs. Default: false (security).
  * @property mediaPlaybackRequiresUserAction Require user gesture for media playback. Default: false.
+ * @property darkMode Dark mode strategy for the WebView. Default: DarkMode.AUTO.
+ * @property interceptedSchemes List of URL schemes to intercept (iOS only).
+ * For example, if you add "my-app", requests to "my-app://" will be handled via [ComposeWebViewClient.shouldInterceptRequest].
  */
 @Immutable
 data class WebViewSettings(
@@ -105,6 +127,8 @@ data class WebViewSettings(
     val allowFileAccessFromFileURLs: Boolean = false,
     val allowUniversalAccessFromFileURLs: Boolean = false,
     val mediaPlaybackRequiresUserAction: Boolean = false,
+    val darkMode: DarkMode = DarkMode.AUTO,
+    val interceptedSchemes: List<String> = emptyList(),
 ) {
     companion object {
         /**
