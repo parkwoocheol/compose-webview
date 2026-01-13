@@ -47,6 +47,11 @@ actual object PlatformCookieManager {
         }
     }
 
+    actual suspend fun removeCookies(url: String) {
+        // WASM context follows same-origin policy
+        removeAllCookies()
+    }
+
     actual suspend fun flush() {
         // No-op for WASM - cookies are written immediately
     }

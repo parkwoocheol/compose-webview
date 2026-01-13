@@ -35,6 +35,34 @@ actual class PlatformWebResourceRequest {
     actual val isForMainFrame: Boolean = true
 }
 
+actual class PlatformWebResourceResponse(
+    actual val mimeType: String?,
+    actual val encoding: String?,
+    actual val statusCode: Int,
+    actual val reasonPhrase: String?,
+    actual val responseHeaders: Map<String, String>?,
+    actual val data: ByteArray?,
+)
+
+actual fun createPlatformWebResourceResponse(
+    mimeType: String?,
+    encoding: String?,
+    data: ByteArray?,
+    statusCode: Int,
+    reasonPhrase: String?,
+    responseHeaders: Map<String, String>?,
+): PlatformWebResourceResponse =
+    PlatformWebResourceResponse(
+        mimeType = mimeType,
+        encoding = encoding,
+        data = data,
+        statusCode = statusCode,
+        reasonPhrase = reasonPhrase,
+        responseHeaders = responseHeaders,
+    )
+
+actual interface PlatformActionModeCallback
+
 actual fun WebView.platformSaveState(bundle: PlatformBundle): Any? = null
 
 actual fun WebView.platformRestoreState(bundle: PlatformBundle): Any? = null
