@@ -31,6 +31,7 @@ fun ComposeWebView(
     customViewContent: (@Composable (CustomViewState) -> Unit)? = null,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)? = null,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)? = null,
+    onStartActionMode: ((WebView, PlatformActionModeCallback?) -> PlatformActionModeCallback?)? = null,
 )
 ```
 
@@ -73,7 +74,8 @@ fun ComposeWebView(
 | `jsPromptContent` | `@Composable (JsDialogState.Prompt) -> Unit` | Custom UI for JavaScript `prompt()` dialogs. | Android, iOS |
 | `customViewContent` | `(@Composable (CustomViewState) -> Unit)?` | Custom view content (e.g., fullscreen video). | Android |
 | `onDownloadStart` | `((String, String, String, String, Long) -> Unit)?` | Callback for download requests (url, userAgent, contentDisposition, mimeType, contentLength). | Android, iOS (partial) |
-| `onFindResultReceived` | `((Int, Int, Boolean) -> Unit)?` | Callback for text search results (activeMatchOrdinal, numberOfMatches, isDoneCounting). | Android |
+| `onFindResultReceived` | `((Int, Int, Boolean) -> Unit)?` | Callback for text search results (activeMatchOrdinal, numberOfMatches, isDoneCounting). | Android, iOS |
+| `onStartActionMode` | `((WebView, PlatformActionModeCallback?) -> PlatformActionModeCallback?)?` | Callback for Android action mode (context menu). Return a custom callback or null. | Android |
 
 \* **Controller**: All platforms support basic navigation, but some features (like zoom) are platform-specific. See `WebViewController` documentation for details.
 
