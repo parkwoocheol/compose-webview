@@ -19,11 +19,12 @@ include(":sample:androidApp")
 include(":sample:desktopApp")
 
 // Only include wasmApp if WASM is enabled (not on JitPack by default)
-val enableWasm = providers.gradleProperty("ENABLE_WASM")
-    .orElse(providers.environmentVariable("JITPACK").map { "false" })
-    .orElse("true")
-    .get()
-    .toBoolean()
+val enableWasm =
+    providers.gradleProperty("ENABLE_WASM")
+        .orElse(providers.environmentVariable("JITPACK").map { "false" })
+        .orElse("true")
+        .get()
+        .toBoolean()
 
 if (enableWasm) {
     include(":sample:wasmApp")
