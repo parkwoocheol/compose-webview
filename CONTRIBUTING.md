@@ -22,6 +22,25 @@ Don't worry about getting everything perfect. We're here to help!
 
 2. Open in Android Studio and run the sample app to make sure everything works
 
+### WASM Target (Optional)
+
+The WASM target is **enabled by default** for local development but **disabled on JitPack** due to GLIBC compatibility issues.
+
+**To disable WASM locally** (if you encounter Node.js or build issues):
+```bash
+./gradlew build -PENABLE_WASM=false
+```
+
+**To explicitly enable WASM**:
+```bash
+./gradlew build -PENABLE_WASM=true
+```
+
+You can also add this to your `gradle.properties` to persist the setting:
+```properties
+ENABLE_WASM=false
+```
+
 ## How to Contribute
 
 ### Found a Bug?
@@ -45,6 +64,10 @@ Cool! Open an issue first so we can discuss it.
 2. Make your changes
 
 3. Test it with the sample app
+   - Android: `./gradlew :sample:androidApp:installDebug`
+   - Desktop: `./gradlew :sample:desktopApp:run`
+   - WASM: `./gradlew :sample:wasmApp:wasmJsBrowserDevelopmentRun`
+   - If WASM build fails due to Node.js issues, you can disable it: `./gradlew build -PENABLE_WASM=false`
 
 4. Push and open a PR
 

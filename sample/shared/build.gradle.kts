@@ -16,9 +16,19 @@ kotlin {
 
     jvm("desktop")
 
-    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
-    wasmJs {
-        browser()
+    // Only enable WASM target if not building on JitPack or explicitly enabled
+    val enableWasm =
+        providers.gradleProperty("ENABLE_WASM")
+            .orElse(providers.environmentVariable("JITPACK").map { "false" })
+            .orElse("true")
+            .get()
+            .toBoolean()
+
+    if (enableWasm) {
+        @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
+        wasmJs {
+            browser()
+        }
     }
 
     listOf(

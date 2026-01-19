@@ -184,8 +184,10 @@ This library supports both **JitPack** and **GitHub Packages**. You can choose e
 
 | Repository | Recommended For | Authentication |
 | :--- | :--- | :--- |
-| **JitPack** | Android, Desktop, Web, WASM | **No** (Simplest) |
-| **GitHub Packages** | **iOS Projects** (and all others) | **Yes** (Requires GitHub Token) |
+| **JitPack** | Android, Desktop, Web (JS only) | **No** (Simplest) |
+| **GitHub Packages** | **iOS Projects, WASM** (and all others) | **Yes** (Requires GitHub Token) |
+
+> **Note**: WASM artifacts are only available via GitHub Packages. JitPack builds on Linux with an older GLIBC version incompatible with the Node.js required for WASM compilation.
 
 ### Step 1. Configure Repository
 
@@ -293,16 +295,16 @@ implementation("com.github.parkwoocheol:compose-webview:<version>")
 
 The Kotlin Multiplatform Gradle plugin **automatically selects** the correct platform-specific artifact for each target:
 
-| Platform | Artifact ID | Maven Coordinates |
-|----------|-------------|-------------------|
-| **Android** | `compose-webview-android` | `com.github.parkwoocheol:compose-webview-android:<version>` |
-| **iOS (arm64)** | `compose-webview-iosarm64` | `com.github.parkwoocheol:compose-webview-iosarm64:<version>` |
-| **iOS (x64)** | `compose-webview-iosx64` | `com.github.parkwoocheol:compose-webview-iosx64:<version>` |
-| **iOS (Simulator arm64)** | `compose-webview-iossimulatorarm64` | `com.github.parkwoocheol:compose-webview-iossimulatorarm64:<version>` |
-| **Desktop (JVM)** | `compose-webview-desktop` | `com.github.parkwoocheol:compose-webview-desktop:<version>` |
-| **Web (JS)** | `compose-webview-js` | `com.github.parkwoocheol:compose-webview-js:<version>` |
-| **Web (WASM)** | `compose-webview-wasmjs` | `com.github.parkwoocheol:compose-webview-wasmjs:<version>` |
-| **Metadata** | `compose-webview` | `com.github.parkwoocheol:compose-webview:<version>` |
+| Platform | Artifact ID | Maven Coordinates | Available On |
+|----------|-------------|-------------------|--------------|
+| **Android** | `compose-webview-android` | `com.github.parkwoocheol:compose-webview-android:<version>` | JitPack, GitHub Packages |
+| **iOS (arm64)** | `compose-webview-iosarm64` | `com.github.parkwoocheol:compose-webview-iosarm64:<version>` | GitHub Packages only |
+| **iOS (x64)** | `compose-webview-iosx64` | `com.github.parkwoocheol:compose-webview-iosx64:<version>` | GitHub Packages only |
+| **iOS (Simulator arm64)** | `compose-webview-iossimulatorarm64` | `com.github.parkwoocheol:compose-webview-iossimulatorarm64:<version>` | GitHub Packages only |
+| **Desktop (JVM)** | `compose-webview-desktop` | `com.github.parkwoocheol:compose-webview-desktop:<version>` | JitPack, GitHub Packages |
+| **Web (JS)** | `compose-webview-js` | `com.github.parkwoocheol:compose-webview-js:<version>` | JitPack, GitHub Packages |
+| **Web (WASM)** | `compose-webview-wasmjs` | `com.github.parkwoocheol:compose-webview-wasmjs:<version>` | GitHub Packages only |
+| **Metadata** | `compose-webview` | `com.github.parkwoocheol:compose-webview:<version>` | JitPack, GitHub Packages |
 
 > **Note**: You don't need to specify platform-specific artifacts manually. Just use `compose-webview` and Gradle resolves the correct artifact automatically.
 
@@ -1159,6 +1161,7 @@ All sample targets use the same feature screens:
 - **Android**: `./gradlew :sample:androidApp:installDebug`
 - **Desktop**: `./gradlew :sample:desktopApp:run`
 - **Web/Wasm**: `./gradlew :sample:wasmApp:wasmJsBrowserDevelopmentRun` (open the printed URL in a browser).
+  - **Note**: WASM target is enabled by default. If you encounter build issues, you can disable it by adding `-PENABLE_WASM=false` to any Gradle command.
 - **iOS**: Open `sample/iosApp/iosApp.xcodeproj` in Xcode and run the `iosApp` scheme.
 
 ## Contributing
