@@ -26,6 +26,5 @@ allprojects {
     repositories {
         google()
         mavenCentral()
-        maven("https://jogamp.org/deployment/maven")
     }
 }
