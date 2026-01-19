@@ -18,8 +18,11 @@ This library supports both **JitPack** and **GitHub Packages**. You can choose e
 
 | Repository | Recommended For | Authentication |
 | :--- | :--- | :--- |
-| **JitPack** | Android, Desktop, Web, WASM | **No** (Simplest) |
-| **GitHub Packages** | **iOS Projects** (and all others) | **Yes** (Requires GitHub Token) |
+| **JitPack** | Android, Desktop, Web (JS only) | **No** (Simplest) |
+| **GitHub Packages** | **iOS Projects, WASM** (and all others) | **Yes** (Requires GitHub Token) |
+
+!!! warning "WASM Availability"
+    WASM artifacts are only available via **GitHub Packages**. JitPack builds on Linux with GLIBC 2.23, which is incompatible with Node.js v22 required for WASM compilation.
 
 ### Step 1. Configure Repository
 
@@ -138,14 +141,14 @@ Add the dependency to your **commonMain** source set.
 
 The Kotlin Multiplatform Gradle plugin **automatically selects** the correct artifact:
 
-| Platform | Artifact ID |
-|----------|-------------|
-| **Android** | `compose-webview-android` |
-| **iOS (arm64)** | `compose-webview-iosarm64` |
-| **iOS (Simulator arm64)** | `compose-webview-iossimulatorarm64` |
-| **Desktop (JVM)** | `compose-webview-desktop` |
-| **Web (JS)** | `compose-webview-js` |
-| **Web (WASM)** | `compose-webview-wasmjs` |
+| Platform | Artifact ID | Available On |
+|----------|-------------|--------------|
+| **Android** | `compose-webview-android` | JitPack, GitHub Packages |
+| **iOS (arm64)** | `compose-webview-iosarm64` | GitHub Packages only |
+| **iOS (Simulator arm64)** | `compose-webview-iossimulatorarm64` | GitHub Packages only |
+| **Desktop (JVM)** | `compose-webview-desktop` | JitPack, GitHub Packages |
+| **Web (JS)** | `compose-webview-js` | JitPack, GitHub Packages |
+| **Web (WASM)** | `compose-webview-wasmjs` | **GitHub Packages only** |
 
 > **Note**: You don't need to specify platform-specific artifacts manually. Just use `compose-webview` and Gradle resolves the correct artifact automatically.
 

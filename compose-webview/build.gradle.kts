@@ -36,9 +36,18 @@ kotlin {
         browser()
     }
 
-    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
-    wasmJs {
-        browser()
+    // Only enable WASM target if not building on JitPack or explicitly enabled
+    val enableWasm = providers.gradleProperty("ENABLE_WASM")
+        .orElse(providers.environmentVariable("JITPACK").map { "false" })
+        .orElse("true")
+        .get()
+        .toBoolean()
+
+    if (enableWasm) {
+        @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
+        wasmJs {
+            browser()
+        }
     }
 
     sourceSets {
@@ -92,10 +101,12 @@ kotlin {
             }
         }
 
-        getByName("wasmJsMain") {
-            dependencies {
-                // WASM uses Canvas-based Compose UI
-                // HTML interop is limited - WebView uses manual DOM manipulation
+        if (enableWasm) {
+            getByName("wasmJsMain") {
+                dependencies {
+                    // WASM uses Canvas-based Compose UI
+                    // HTML interop is limited - WebView uses manual DOM manipulation
+                }
             }
         }
     }
