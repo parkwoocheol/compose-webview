@@ -44,6 +44,7 @@ internal actual fun ComposeWebViewImpl(
     customViewContent: (@Composable (CustomViewState) -> Unit)?,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
+    onStartActionMode: ((WebView, PlatformActionModeCallback?) -> PlatformActionModeCallback?)?,
 ) {
     val density = LocalDensity.current.density
     val scope = rememberCoroutineScope()
@@ -134,6 +135,7 @@ internal actual fun ComposeWebViewImpl(
     jsBridge: WebViewJsBridge?,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
+    onStartActionMode: ((WebView, PlatformActionModeCallback?) -> PlatformActionModeCallback?)?,
 ) {
     val density = LocalDensity.current.density
     val scope = rememberCoroutineScope()

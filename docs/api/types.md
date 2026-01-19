@@ -8,7 +8,7 @@ Reference documentation for the core classes used in the library.
 
 Holds the reactive state of the WebView.
 
-### Properties
+### WebViewState Properties
 
 | Name | Type | Description | Platform Support |
 | :--- | :--- | :--- | :--- |
@@ -31,7 +31,7 @@ Holds the reactive state of the WebView.
 
 Controls the navigation and execution of the WebView.
 
-### Properties
+### WebViewController Properties
 
 | Name | Type | Description | Platform Support |
 | :--- | :--- | :--- | :--- |
@@ -68,9 +68,9 @@ Controls the navigation and execution of the WebView.
 
 | Method | Platform Support | Notes |
 | :--- | :--- | :--- |
-| `findAllAsync(find: String)` | Android | Highlight all matches |
-| `findNext(forward: Boolean)` | Android | Navigate through matches |
-| `clearMatches()` | Android | Clear search highlights |
+| `findAllAsync(find: String)` | Android, iOS | Highlight all matches |
+| `findNext(forward: Boolean)` | Android, iOS | Navigate through matches |
+| `clearMatches()` | Android, iOS | Clear search highlights |
 
 ### Scroll Control
 
@@ -116,10 +116,12 @@ Helper class for managing the connection between Kotlin and JavaScript.
 
 Configuration settings for WebView behavior across all platforms.
 
-### Properties
+### WebViewSettings Properties
 
 | Setting | Type | Default | Platform Support | Notes |
 | :--- | :--- | :--- | :--- | :--- |
+| `interceptedSchemes` | `Set<String>` | `emptySet()` | Android, iOS | URL schemes to intercept (iOS registration required) |
+| `darkMode` | `DarkMode` | `AUTO` | Android, iOS | Theme mode (AUTO, LIGHT, DARK) |
 | `userAgent` | `String?` | `null` | Android, iOS, Desktop | Custom user agent string |
 | `javaScriptEnabled` | `Boolean` | `true` | Android, iOS*, Desktop | *iOS: Always enabled |
 | `domStorageEnabled` | `Boolean` | `true` | Android, iOS, Desktop (partial) | localStorage/sessionStorage |

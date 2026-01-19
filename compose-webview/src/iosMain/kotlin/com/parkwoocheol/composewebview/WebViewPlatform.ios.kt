@@ -23,6 +23,18 @@ import platform.WebKit.WKUserScriptInjectionTime
 import platform.WebKit.WKWebView
 import platform.darwin.NSObject
 
+private class FindState(
+    var lastSearchString: String = "",
+    var listener: ((Int, Int, Boolean) -> Unit)? = null,
+)
+
+private val findStates = platform.Foundation.NSMapTable.weakToStrongObjectsMapTable()
+
+internal fun WebView.setPlatformFindListener(listener: ((Int, Int, Boolean) -> Unit)?) {
+    val state = findStates.objectForKey(this) as? FindState ?: FindState().also { findStates.setObject(it, forKey = this) }
+    state.listener = listener
+}
+
 fun <T> T.runOnMainThread(block: T.() -> Unit) {
     if (platform.Foundation.NSThread.isMainThread) {
         block()
@@ -34,6 +46,8 @@ fun <T> T.runOnMainThread(block: T.() -> Unit) {
 }
 
 actual abstract class PlatformPermissionRequest
+
+actual interface PlatformActionModeCallback
 
 actual typealias WebView = WKWebView
 
@@ -48,6 +62,32 @@ actual class PlatformWebResourceRequest(val impl: NSURLRequest, val isMainFrame:
     actual val headers: Map<String, String> get() = (impl.allHTTPHeaderFields as? Map<String, String>) ?: emptyMap()
     actual val isForMainFrame: Boolean get() = isMainFrame
 }
+
+actual class PlatformWebResourceResponse(
+    actual val mimeType: String?,
+    actual val encoding: String?,
+    actual val data: ByteArray?,
+    actual val statusCode: Int = 200,
+    actual val reasonPhrase: String? = "OK",
+    actual val responseHeaders: Map<String, String>? = null,
+)
+
+actual fun createPlatformWebResourceResponse(
+    mimeType: String?,
+    encoding: String?,
+    data: ByteArray?,
+    statusCode: Int,
+    reasonPhrase: String?,
+    responseHeaders: Map<String, String>?,
+): PlatformWebResourceResponse =
+    PlatformWebResourceResponse(
+        mimeType = mimeType,
+        encoding = encoding,
+        data = data,
+        statusCode = statusCode,
+        reasonPhrase = reasonPhrase,
+        responseHeaders = responseHeaders,
+    )
 actual typealias PlatformBitmap = UIImage
 
 actual class PlatformBundle(val map: Map<String, Any?>)
@@ -156,15 +196,39 @@ actual fun WebView.platformZoomOut(): Boolean {
 }
 
 actual fun WebView.platformFindAllAsync(find: String) {
-    // Not directly supported
+    val state = findStates.objectForKey(this) as? FindState ?: FindState().also { findStates.setObject(it, forKey = this) }
+    state.lastSearchString = find
+
+    val config = platform.WebKit.WKFindConfiguration()
+    config.backwards = false
+    config.caseSensitive = false
+
+    findString(find, withConfiguration = config) { result ->
+        if (result != null) {
+            state.listener?.invoke(0, if (result.matchFound) 1 else 0, true)
+        }
+    }
 }
 
 actual fun WebView.platformFindNext(forward: Boolean) {
-    // Not directly supported
+    val state = findStates.objectForKey(this) as? FindState ?: return
+    if (state.lastSearchString.isEmpty()) return
+
+    val config = platform.WebKit.WKFindConfiguration()
+    config.backwards = !forward
+    config.caseSensitive = false
+
+    findString(state.lastSearchString, withConfiguration = config) { result ->
+        // WKFindResult doesn't provide the current index easily, only matchFound
+        if (result != null) {
+            state.listener?.invoke(0, if (result.matchFound) 1 else 0, true)
+        }
+    }
 }
 
 actual fun WebView.platformClearMatches() {
-    // Not directly supported
+    // WKWebView doesn't have a direct clearMatches, but selecting nothing or finding empty string might work.
+    // However, usually it's handled by finding nothing.
 }
 
 actual fun WebView.platformClearCache(includeDiskFiles: Boolean) {

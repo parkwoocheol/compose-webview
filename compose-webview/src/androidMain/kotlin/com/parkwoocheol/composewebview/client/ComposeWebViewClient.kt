@@ -6,13 +6,16 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import com.parkwoocheol.composewebview.LoadingState
+import com.parkwoocheol.composewebview.PlatformBitmap
 import com.parkwoocheol.composewebview.PlatformWebResourceError
 import com.parkwoocheol.composewebview.PlatformWebResourceRequest
+import com.parkwoocheol.composewebview.PlatformWebResourceResponse
 import com.parkwoocheol.composewebview.WebViewController
 import com.parkwoocheol.composewebview.WebViewError
 import com.parkwoocheol.composewebview.WebViewState
 import com.parkwoocheol.composewebview.createPlatformWebResourceError
 import com.parkwoocheol.composewebview.createPlatformWebResourceRequest
+import com.parkwoocheol.composewebview.WebView as ComposeWebView
 
 /**
  * A [WebViewClient] implementation that integrates with [WebViewState] and [WebViewController].
@@ -28,27 +31,35 @@ actual open class ComposeWebViewClient : WebViewClient() {
     internal var onPageFinishedCallback: (WebView?, String?) -> Unit = { _, _ -> }
     internal var onReceivedErrorCallback: (WebView?, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit = { _, _, _ -> }
     internal var shouldOverrideUrlLoadingCallback: ((WebView?, PlatformWebResourceRequest?) -> Boolean)? = null
+    internal var shouldInterceptRequestCallback: (
+        (WebView?, PlatformWebResourceRequest?) -> PlatformWebResourceResponse?
+    )? = null
 
-    internal actual fun setOnPageStartedHandler(
-        handler: (com.parkwoocheol.composewebview.WebView?, String?, com.parkwoocheol.composewebview.PlatformBitmap?) -> Unit,
-    ) {
+    internal actual fun setOnPageStartedHandler(handler: (ComposeWebView?, String?, PlatformBitmap?) -> Unit) {
         onPageStartedCallback = handler
     }
 
-    internal actual fun setOnPageFinishedHandler(handler: (com.parkwoocheol.composewebview.WebView?, String?) -> Unit) {
+    internal actual fun setOnPageFinishedHandler(handler: (ComposeWebView?, String?) -> Unit) {
         onPageFinishedCallback = handler
     }
 
     internal actual fun setOnReceivedErrorHandler(
-        handler: (com.parkwoocheol.composewebview.WebView?, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit,
+        handler: (ComposeWebView?, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit,
     ) {
         onReceivedErrorCallback = handler
     }
 
-    internal actual fun setShouldOverrideUrlLoadingHandler(
-        handler: (com.parkwoocheol.composewebview.WebView?, PlatformWebResourceRequest?) -> Boolean,
-    ) {
+    internal actual fun setShouldOverrideUrlLoadingHandler(handler: (ComposeWebView?, PlatformWebResourceRequest?) -> Boolean) {
         shouldOverrideUrlLoadingCallback = handler
+    }
+
+    internal actual fun setShouldInterceptRequestHandler(
+        handler: (
+            ComposeWebView?,
+            PlatformWebResourceRequest?,
+        ) -> PlatformWebResourceResponse?,
+    ) {
+        shouldInterceptRequestCallback = handler
     }
 
     actual override fun onPageStarted(
@@ -126,5 +137,26 @@ actual open class ComposeWebViewClient : WebViewClient() {
         val platformRequest = request?.let { createPlatformWebResourceRequest(it) }
         val result = shouldOverrideUrlLoading(view, platformRequest)
         return if (result) true else super.shouldOverrideUrlLoading(view, request)
+    }
+
+    actual open fun shouldInterceptRequest(
+        view: WebView?,
+        request: PlatformWebResourceRequest?,
+    ): PlatformWebResourceResponse? {
+        view?.let { v ->
+            shouldInterceptRequestCallback?.let { handler ->
+                return handler(v, request)
+            }
+        }
+        return null
+    }
+
+    override fun shouldInterceptRequest(
+        view: WebView?,
+        request: WebResourceRequest?,
+    ): android.webkit.WebResourceResponse? {
+        val platformRequest = request?.let { createPlatformWebResourceRequest(it) }
+        val platformResponse = shouldInterceptRequest(view, platformRequest)
+        return platformResponse?.let { it.asAndroidResponse() } ?: super.shouldInterceptRequest(view, request)
     }
 }

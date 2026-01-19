@@ -77,6 +77,41 @@ actual object PlatformCookieManager {
         }
     }
 
+    actual suspend fun removeCookies(url: String) =
+        suspendCancellableCoroutine { continuation ->
+            val cookieStore = WKWebsiteDataStore.defaultDataStore().httpCookieStore
+            val nsUrl = platform.Foundation.NSURL.URLWithString(url)
+            val host = nsUrl?.host
+
+            cookieStore.getAllCookies { cookies ->
+                val cookiesToRemove =
+                    (cookies as? List<NSHTTPCookie>)?.filter { cookie ->
+                        if (host != null && cookie.domain.isNotEmpty()) {
+                            val domain = cookie.domain
+                            val cleanDomain = if (domain.startsWith(".")) domain.substring(1) else domain
+                            host.endsWith(cleanDomain, ignoreCase = true)
+                        } else {
+                            false
+                        }
+                    } ?: emptyList()
+
+                var remaining = cookiesToRemove.size
+                if (remaining == 0) {
+                    continuation.resume(Unit)
+                    return@getAllCookies
+                }
+
+                cookiesToRemove.forEach { cookie ->
+                    cookieStore.deleteCookie(cookie) {
+                        remaining--
+                        if (remaining == 0) {
+                            continuation.resume(Unit)
+                        }
+                    }
+                }
+            }
+        }
+
     actual suspend fun removeAllCookies() =
         suspendCancellableCoroutine { continuation ->
             val dataStore = WKWebsiteDataStore.defaultDataStore()

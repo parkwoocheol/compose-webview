@@ -202,16 +202,17 @@ fun AdvancedClient() {
 ### ComposeWebViewClient
 
 | Handler | Parameters | Return Type | Description |
-|---------|-----------|-------------|-------------|
+|---------|------------|-------------|-------------|
 | `onPageStarted` | `(WebView?, String?, PlatformBitmap?)` | `Unit` | Called when page starts loading |
 | `onPageFinished` | `(WebView?, String?)` | `Unit` | Called when page finishes loading |
 | `onReceivedError` | `(WebView?, PlatformWebResourceRequest?, PlatformWebResourceError?)` | `Unit` | Called when an error occurs |
+| `shouldInterceptRequest` | `(WebView?, PlatformWebResourceRequest?)` | `PlatformWebResourceResponse?` | Intercept and provide custom response |
 | `shouldOverrideUrlLoading` | `(WebView?, PlatformWebResourceRequest?)` | `Boolean` | Return `true` to prevent navigation |
 
 ### ComposeWebChromeClient
 
 | Handler | Parameters | Return Type | Description |
-|---------|-----------|-------------|-------------|
+|---------|------------|-------------|-------------|
 | `onProgressChanged` | `(WebView?, Int)` | `Unit` | Called when loading progress changes (0-100) |
 | `onConsoleMessage` | `(WebView?, ConsoleMessage)` | `Boolean` | Called when JS console logs. Return `true` to suppress default |
 | `onPermissionRequest` | `(PlatformPermissionRequest)` | `Unit` | Called when permission is requested (platform-specific) |
@@ -221,10 +222,11 @@ fun AdvancedClient() {
 ## Platform Support
 
 | Handler | Android | iOS | Desktop | Web |
-|---------|:-------:|:---:|:-------:|:---:|
+| :--- | :--- | :--- | :--- | :--- |
 | `onPageStarted` | ✅ | ✅ | ✅ | ❌ |
 | `onPageFinished` | ✅ | ✅ | ✅ | ✅ |
 | `onReceivedError` | ✅ | ✅ | ⚠️ | ❌ |
+| `shouldInterceptRequest` | ✅ | ✅ | ❌ | ❌ |
 | `shouldOverrideUrlLoading` | ✅ | ✅ | ✅ | ❌ |
 | `onProgressChanged` | ✅ | ✅ | ❌ | ❌ |
 | `onConsoleMessage` | ✅ | ✅ | ❌ | ❌ |
@@ -393,6 +395,42 @@ ComposeWebView(
 ```
 
 **Note**: The direct callback parameters have been removed to cleaner API surface and better separation of concerns.
+
+---
+
+### Request Interception (Mocking)
+
+Intercept network requests to provide local mock data or handle custom assets.
+
+```kotlin
+@Composable
+fun MockingWebView() {
+    val settings = WebViewSettings(
+        interceptedSchemes = setOf("https") // Required for iOS
+    )
+    
+    val client = rememberWebViewClient {
+        shouldInterceptRequest { webView, request ->
+            if (request?.url?.contains("api/user") == true) {
+                // Return custom JSON response
+                createPlatformWebResourceResponse(
+                    mimeType = "application/json",
+                    encoding = "UTF-8",
+                    data = """{"name": "Local User", "id": 123}""".encodeToByteArray(),
+                )
+            } else {
+                null // Continue with normal request
+            }
+        }
+    }
+
+    ComposeWebView(
+        state = rememberSaveableWebViewState(url = "https://example.com"),
+        settings = settings,
+        client = client,
+        modifier = Modifier.fillMaxSize()
+    )
+}
 
 ---
 

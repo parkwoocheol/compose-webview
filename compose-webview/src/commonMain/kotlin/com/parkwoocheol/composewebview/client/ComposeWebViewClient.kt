@@ -3,6 +3,7 @@ package com.parkwoocheol.composewebview.client
 import com.parkwoocheol.composewebview.PlatformBitmap
 import com.parkwoocheol.composewebview.PlatformWebResourceError
 import com.parkwoocheol.composewebview.PlatformWebResourceRequest
+import com.parkwoocheol.composewebview.PlatformWebResourceResponse
 import com.parkwoocheol.composewebview.WebView
 import com.parkwoocheol.composewebview.WebViewController
 import com.parkwoocheol.composewebview.WebViewState
@@ -43,6 +44,11 @@ expect open class ComposeWebViewClient() {
         request: PlatformWebResourceRequest?,
     ): Boolean
 
+    open fun shouldInterceptRequest(
+        view: WebView?,
+        request: PlatformWebResourceRequest?,
+    ): PlatformWebResourceResponse?
+
     // Internal setters for extension functions
     internal fun setOnPageStartedHandler(handler: (WebView?, String?, PlatformBitmap?) -> Unit)
 
@@ -51,4 +57,6 @@ expect open class ComposeWebViewClient() {
     internal fun setOnReceivedErrorHandler(handler: (WebView?, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit)
 
     internal fun setShouldOverrideUrlLoadingHandler(handler: (WebView?, PlatformWebResourceRequest?) -> Boolean)
+
+    internal fun setShouldInterceptRequestHandler(handler: (WebView?, PlatformWebResourceRequest?) -> PlatformWebResourceResponse?)
 }

@@ -32,7 +32,7 @@ jobs:
         run: ./gradlew lintDebug
 
   # Build and test Android, Desktop, Web (Ubuntu)
-  build-and-test:
+  build-common:
     needs: quality
     runs-on: ubuntu-latest
     steps:
@@ -64,7 +64,7 @@ jobs:
         run: ./gradlew :compose-webview:compileKotlinWasmJs
 
   # Build and test iOS (macOS)
-  build-and-test-ios:
+  build-ios:
     needs: quality
     runs-on: macos-latest
     steps:

@@ -44,6 +44,20 @@ actual object PlatformCookieManager {
         cookieManager.setCookie(url, cookieValue)
     }
 
+    actual suspend fun removeCookies(url: String) =
+        withContext(Dispatchers.IO) {
+            val cookieManager = CookieManager.getInstance()
+            val cookieStr = cookieManager.getCookie(url) ?: return@withContext
+            cookieStr.split(";").forEach { part ->
+                val eqIndex = part.indexOf('=')
+                if (eqIndex > 0) {
+                    val name = part.substring(0, eqIndex).trim()
+                    cookieManager.setCookie(url, "$name=; Expires=Thu, 01 Jan 1970 00:00:00 GMT")
+                }
+            }
+            cookieManager.flush()
+        }
+
     actual suspend fun removeAllCookies() =
         withContext(Dispatchers.IO) {
             val cookieManager = CookieManager.getInstance()

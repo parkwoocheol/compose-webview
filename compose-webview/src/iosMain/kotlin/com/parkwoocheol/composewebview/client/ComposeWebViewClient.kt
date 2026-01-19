@@ -4,13 +4,18 @@ import com.parkwoocheol.composewebview.LoadingState
 import com.parkwoocheol.composewebview.PlatformBitmap
 import com.parkwoocheol.composewebview.PlatformWebResourceError
 import com.parkwoocheol.composewebview.PlatformWebResourceRequest
+import com.parkwoocheol.composewebview.PlatformWebResourceResponse
 import com.parkwoocheol.composewebview.WebView
 import com.parkwoocheol.composewebview.WebViewController
 import com.parkwoocheol.composewebview.WebViewError
 import com.parkwoocheol.composewebview.WebViewState
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ObjCSignatureOverride
+import kotlinx.cinterop.addressOf
+import kotlinx.cinterop.usePinned
+import platform.Foundation.NSData
 import platform.Foundation.NSError
+import platform.Foundation.dataWithBytes
 import platform.WebKit.WKNavigation
 import platform.WebKit.WKNavigationAction
 import platform.WebKit.WKNavigationActionPolicy
@@ -26,6 +31,9 @@ actual open class ComposeWebViewClient {
     internal var onPageFinishedCallback: (WebView?, String?) -> Unit = { _, _ -> }
     internal var onReceivedErrorCallback: (WebView?, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit = { _, _, _ -> }
     internal var shouldOverrideUrlLoadingCallback: ((WebView?, PlatformWebResourceRequest?) -> Boolean)? = null
+    internal var shouldInterceptRequestCallback: (
+        (WebView?, PlatformWebResourceRequest?) -> PlatformWebResourceResponse?
+    )? = null
 
     internal actual fun setOnPageStartedHandler(handler: (WebView?, String?, PlatformBitmap?) -> Unit) {
         onPageStartedCallback = handler
@@ -41,6 +49,15 @@ actual open class ComposeWebViewClient {
 
     internal actual fun setShouldOverrideUrlLoadingHandler(handler: (WebView?, PlatformWebResourceRequest?) -> Boolean) {
         shouldOverrideUrlLoadingCallback = handler
+    }
+
+    internal actual fun setShouldInterceptRequestHandler(
+        handler: (
+            WebView?,
+            PlatformWebResourceRequest?,
+        ) -> PlatformWebResourceResponse?,
+    ) {
+        shouldInterceptRequestCallback = handler
     }
 
     actual open fun onPageStarted(
@@ -89,6 +106,18 @@ actual open class ComposeWebViewClient {
             }
         }
         return false
+    }
+
+    actual open fun shouldInterceptRequest(
+        view: WebView?,
+        request: PlatformWebResourceRequest?,
+    ): PlatformWebResourceResponse? {
+        view?.let { v ->
+            shouldInterceptRequestCallback?.let { handler ->
+                return handler(v, request)
+            }
+        }
+        return null
     }
 }
 
@@ -162,5 +191,58 @@ internal class ComposeWebViewDelegate(
         withError: NSError,
     ) {
         client.onReceivedError(webView, null, PlatformWebResourceError(withError))
+    }
+}
+
+@Suppress("CONFLICTING_OVERLOADS")
+internal class ComposeWKURLSchemeHandler(
+    private val client: ComposeWebViewClient,
+) : NSObject(), platform.WebKit.WKURLSchemeHandlerProtocol {
+    @OptIn(ExperimentalForeignApi::class, kotlinx.cinterop.BetaInteropApi::class)
+    @ObjCSignatureOverride
+    override fun webView(
+        webView: WKWebView,
+        startURLSchemeTask: platform.WebKit.WKURLSchemeTaskProtocol,
+    ) {
+        val request = PlatformWebResourceRequest(startURLSchemeTask.request, false)
+        val response = client.shouldInterceptRequest(webView, request)
+
+        if (response != null) {
+            val nsUrlResponse =
+                platform.Foundation.NSHTTPURLResponse(
+                    uRL = startURLSchemeTask.request.URL!!,
+                    statusCode = response.statusCode.toLong(),
+                    HTTPVersion = "HTTP/1.1",
+                    headerFields = response.responseHeaders?.let { it as Map<Any?, *> },
+                )
+            startURLSchemeTask.didReceiveResponse(nsUrlResponse)
+
+            val data: NSData? =
+                response.data?.let { bytes ->
+                    bytes.usePinned { pinned ->
+                        NSData.dataWithBytes(pinned.addressOf(0), bytes.size.toULong())
+                    }
+                }
+            if (data != null) {
+                startURLSchemeTask.didReceiveData(data)
+            }
+            startURLSchemeTask.didFinish()
+        } else {
+            val error =
+                platform.Foundation.NSError.errorWithDomain(
+                    domain = "com.parkwoocheol.composewebview",
+                    code = -1,
+                    userInfo = null,
+                )
+            startURLSchemeTask.didFailWithError(error)
+        }
+    }
+
+    @ObjCSignatureOverride
+    override fun webView(
+        webView: WKWebView,
+        stopURLSchemeTask: platform.WebKit.WKURLSchemeTaskProtocol,
+    ) {
+        // No-op
     }
 }

@@ -49,7 +49,11 @@ Visit the documentation site for comprehensive guides, API references, and advan
 - **State Management**: Reactive state handling for URL, loading progress, and navigation.
 - **Flexible API**: Full control over `WebViewClient`, `WebChromeClient`, and WebView settings with convenient composable functions (`rememberWebViewClient`, `rememberWebChromeClient`).
 - **Lifecycle Management**: Automatically handles `onResume`, `onPause`, and cleanup.
-- **Custom View Support**: Built-in support for fullscreen videos and custom HTML views.
+- **Network Request Interception**: Intercept and provide custom responses for specific URL schemes (Android & iOS).
+- **Dark Mode Support**: Automatic theme synchronization with system or manual control (Android & iOS).
+- **Enhanced Cookie Management**: Support for removing cookies for specific URLs (Android & iOS).
+- **Find on Page**: Built-in support for searching text within pages with result callbacks (Android & iOS).
+- **Custom Context Menu**: Override default Android action mode with custom callbacks.
 - **Loading & Error States**: Built-in state management for loading indicators and error handling.
 - **Back Navigation**: Integrated with Compose `BackHandler` for seamless back navigation (Android) and native swipe gestures (iOS).
 - **File Upload**: Full support for file upload functionality (Android & iOS).
@@ -96,7 +100,7 @@ Visit the documentation site for comprehensive guides, API references, and advan
 | `zoomIn/Out/By()` | ✅ | ❌ | ✅ | ❌ | iOS: Pinch-to-zoom only |
 | `scrollTo/By()` | ✅ | ✅ | ❌ | ✅ | Desktop not supported |
 | `pageUp/Down()` | ✅ | ⚠️ | ❌ | ⚠️ | Via scrollBy on iOS/Web |
-| `findAllAsync()` | ✅ | ❌ | ❌ | ❌ | Android only |
+| `findAllAsync()` | ✅ | ✅ | ❌ | ❌ | Now supported on iOS |
 | `clearCache/History()` | ✅ | ❌ | ❌ | ❌ | Android only |
 
 #### State Management
@@ -114,7 +118,9 @@ Visit the documentation site for comprehensive guides, API references, and advan
 
 | Setting | Android | iOS | Desktop | Web | Notes |
 |---------|:-------:|:---:|:-------:|:---:|-------|
-| `userAgent` | ✅ | ✅ | ✅ | ❌ | Browser controlled on Web |
+| `interceptedSchemes` | ✅ | ✅ | ❌ | ❌ | URL schemes to intercept (iOS registration required) |
+| `darkMode` | ✅ | ✅ | ❌ | ❌ | DARK, LIGHT, or AUTO theme support |
+| `userAgent` | ✅ | ✅ | ✅ | ❌ | Custom user agent string |
 | `javaScriptEnabled` | ✅ | ✅* | ✅ | ❌ | *iOS: Always enabled |
 | `domStorageEnabled` | ✅ | ✅ | ⚠️ | ❌ | Limited on Desktop |
 | `cacheMode` | ✅ | ⚠️ | ⚠️ | ❌ | Full support on Android |
@@ -129,6 +135,7 @@ Visit the documentation site for comprehensive guides, API references, and advan
 | `onPageFinished` | ✅ | ✅ | ✅ | ✅ | Navigation completed |
 | `onProgressChanged` | ✅ | ✅ | ❌ | ❌ | iOS: 100ms polling |
 | `onReceivedError` | ✅ | ✅ | ⚠️ | ❌ | Typed error information |
+| `shouldInterceptRequest` | ✅ | ✅ | ❌ | ❌ | Handle custom request interception |
 | `onConsoleMessage` | ✅ | ✅ | ❌ | ❌ | JavaScript console debugging |
 | `shouldOverrideUrlLoading` | ✅ | ✅ | ✅ | ❌ | Custom URL handling |
 | JS Dialogs (Alert/Confirm/Prompt) | ✅ | ✅ | ❌ | ❌ | Custom dialog UI |
@@ -819,6 +826,7 @@ fun AdvancedClientExample() {
 - `onPageStarted(handler: (WebView?, String?, PlatformBitmap?) -> Unit)`
 - `onPageFinished(handler: (WebView?, String?) -> Unit)`
 - `onReceivedError(handler: (WebView?, PlatformWebResourceRequest?, PlatformWebResourceError?) -> Unit)`
+- `shouldInterceptRequest(handler: (WebView?, PlatformWebResourceRequest?) -> PlatformWebResourceResponse?)`
 - `shouldOverrideUrlLoading(handler: (WebView?, PlatformWebResourceRequest?) -> Boolean)`
 
 **WebChromeClient:**
@@ -854,6 +862,7 @@ fun ComposeWebView(
     customViewContent: (@Composable (CustomViewState) -> Unit)? = null,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)? = null,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)? = null,
+    onStartActionMode: ((WebView, PlatformActionModeCallback?) -> PlatformActionModeCallback?)? = null,
 )
 
 // Alternative overload with state
@@ -1169,5 +1178,3 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for more details.
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-```

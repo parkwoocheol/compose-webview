@@ -54,6 +54,7 @@ fun ComposeWebView(
     customViewContent: (@Composable (CustomViewState) -> Unit)? = null,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)? = null,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)? = null,
+    onStartActionMode: ((WebView, PlatformActionModeCallback?) -> PlatformActionModeCallback?)? = null,
 ) {
     ComposeWebViewImpl(
         url = url,
@@ -74,6 +75,7 @@ fun ComposeWebView(
         customViewContent = customViewContent,
         onDownloadStart = onDownloadStart,
         onFindResultReceived = onFindResultReceived,
+        onStartActionMode = onStartActionMode,
     )
 }
 
@@ -97,6 +99,7 @@ internal expect fun ComposeWebViewImpl(
     customViewContent: (@Composable (CustomViewState) -> Unit)?,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
+    onStartActionMode: ((WebView, PlatformActionModeCallback?) -> PlatformActionModeCallback?)?,
 )
 
 /**
@@ -147,6 +150,7 @@ fun ComposeWebView(
     jsBridge: WebViewJsBridge? = null,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)? = null,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)? = null,
+    onStartActionMode: ((WebView, PlatformActionModeCallback?) -> PlatformActionModeCallback?)? = null,
 ) {
     ComposeWebViewImpl(
         state = state,
@@ -168,6 +172,7 @@ fun ComposeWebView(
         jsBridge = jsBridge,
         onDownloadStart = onDownloadStart,
         onFindResultReceived = onFindResultReceived,
+        onStartActionMode = onStartActionMode,
     )
 }
 
@@ -192,4 +197,5 @@ internal expect fun ComposeWebViewImpl(
     jsBridge: WebViewJsBridge?,
     onDownloadStart: ((String, String, String, String, Long) -> Unit)?,
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
+    onStartActionMode: ((WebView, PlatformActionModeCallback?) -> PlatformActionModeCallback?)?,
 )

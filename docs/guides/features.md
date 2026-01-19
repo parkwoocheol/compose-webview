@@ -7,11 +7,14 @@ This guide covers advanced capabilities of `compose-webview` including WebView C
 ## Platform Support Matrix
 
 | Feature | Android | iOS | Desktop | Web (JS) | Web (WASM) |
-|---------|:-------:|:---:|:-------:|:--------:|:----------:|
-| WebViewSettings Configuration | ✅ | ⚠️ | ⚠️ | ❌ | ❌ |
+|---------|---------|-----|---------|----------|------------|
+| WebViewSettings Configuration | ✅ | ✅ | ⚠️ | ❌ | ❌ |
+| Network Interception | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Dark Mode Support | ✅ | ✅ | ❌ | ❌ | ❌ |
 | Console Message Debugging | ✅ | ✅ | ❌ | ❌ | ❌ |
 | Scroll Position Tracking | ✅ | ✅ | ❌ | ⚠️ | ⚠️ |
 | Loading State with Progress | ✅ | ✅ | ⚠️ | ⚠️ | ⚠️ |
+| Find on Page | ✅ | ✅ | ❌ | ❌ | ❌ |
 | Typed Error Handling | ✅ | ✅ | ⚠️ | ⚠️ | ⚠️ |
 | File Uploads | ✅ | ✅ | ❌ | ❌ | ❌ |
 | Downloads | ✅ | ⚠️ | ❌ | ❌ | ❌ |
@@ -47,7 +50,9 @@ ComposeWebView(
 ### Available Settings
 
 | Setting | Android | iOS | Desktop | Web (JS) | Web (WASM) | Notes |
-|---------|:-------:|:---:|:-------:|:--------:|:----------:|-------|
+|---------|---------|-----|---------|----------|------------|-------|
+| `interceptedSchemes` | ✅ | ✅ | ❌ | ❌ | ❌ | Schemes to intercept (e.g., "http", "https", "myapp") |
+| `darkMode` | ✅ | ✅ | ❌ | ❌ | ❌ | Theme mode (AUTO, LIGHT, DARK) |
 | `userAgent` | ✅ | ✅ | ✅ | ❌ | ❌ | Custom user agent string |
 | `javaScriptEnabled` | ✅ | ✅* | ✅ | ❌ | ❌ | *iOS: Always enabled |
 | `domStorageEnabled` | ✅ | ✅ | ⚠️ | ❌ | ❌ | localStorage/sessionStorage |
@@ -77,15 +82,15 @@ enum class CacheMode {
 
 Capture and debug JavaScript console messages from your WebView.
 
-### Platform Support
+### Console Message Platform Support
 
 | Platform | Status | Implementation |
-|----------|--------|----------------|
+| :--- | :---: | :--- |
 | **Android** | ✅ Full | `WebChromeClient.onConsoleMessage` |
 | **iOS** | ✅ Full | Custom message handler |
 | **Desktop/Web** | ❌ Not supported | - |
 
-### Usage
+### Console Message Usage
 
 ```kotlin
 @Composable
@@ -141,16 +146,16 @@ enum class ConsoleMessageLevel {
 
 Track the WebView's scroll position in real-time.
 
-### Platform Support
+### Scroll Position Platform Support
 
 | Platform | Support | Implementation | Update Frequency |
-|----------|---------|----------------|------------------|
+| :--- | :--- | :--- | :--- |
 | **Android** | ✅ Full | `setOnScrollChangeListener` | Real-time |
 | **iOS** | ✅ Full | `contentOffset` polling | 100ms intervals |
 | **Desktop** | ❌ Not supported | CEF limitations | - |
 | **Web** | ⚠️ Limited | `onscroll` event | CORS restricted (same-origin only) |
 
-### Usage
+### Scroll Position Usage
 
 ```kotlin
 val webViewState = rememberWebViewState(url = "https://example.com")
@@ -185,7 +190,7 @@ data class ScrollPosition(
 
 Uploading files (e.g., via `<input type="file">`) is often a hassle to implement in Android WebViews because it requires handling `WebChromeClient.onShowFileChooser`.
 
-### Platform Support
+### File Upload Platform Support
 
 | Platform | Status | Notes |
 |----------|--------|-------|
@@ -289,4 +294,120 @@ For fullscreen video to work smoothly (and to allow orientation changes), your A
     android:name=".MainActivity"
     android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout"
     android:hardwareAccelerated="true"> <!-- Required for video -->
+```
+
+---
+
+## Request Interception
+
+Intercept network requests and provide custom local responses.
+
+### 1. Configuration (iOS specific)
+
+On iOS, you must explicitly register the schemes you want to intercept in `WebViewSettings`. This is required because iOS doesn't allow intercepting standard schemes (http/https) without a custom `WKURLSchemeHandler`.
+
+```kotlin
+val settings = WebViewSettings(
+    interceptedSchemes = setOf("https", "myapp") // Schemes to intercept
+)
+```
+
+### 2. Implementation
+
+Use the `shouldInterceptRequest` handler in `ComposeWebViewClient`.
+
+```kotlin
+val client = rememberWebViewClient {
+    shouldInterceptRequest { webView, request ->
+        if (request?.url?.contains("intercept-test") == true) {
+            createPlatformWebResourceResponse(
+                mimeType = "text/html",
+                encoding = "UTF-8",
+                data = "<html><body><h1>Intercepted!</h1></body></html>".encodeToByteArray(),
+            )
+        } else {
+            null // Let the WebView handle original request
+        }
+    }
+}
+```
+
+---
+
+## Dark Mode Support
+
+ComposeWebView supports automatic dark mode synchronization with the system theme or manual control.
+
+### Dark Mode Usage
+
+```kotlin
+val settings = WebViewSettings(
+    darkMode = DarkMode.AUTO // AUTO (System), LIGHT (Always Light), DARK (Always Dark)
+)
+```
+
+### Platform Behavior
+
+- **Android**: Uses `WebSettingsCompat.setForceDark` or algorithmic darkening depending on API level.
+- **iOS**: Uses `overrideUserInterfaceStyle` and informs the system theme to the WebView.
+
+---
+
+## Cookie Management
+
+The library provides a global `PlatformCookieManager` to manage browser cookies across all platforms.
+
+### Cookie Usage
+
+```kotlin
+val cookieManager = PlatformCookieManager.instance
+
+// Remove all cookies for a specific URL
+cookieManager.removeCookies("https://google.com")
+
+// Get cookies for a URL
+val cookies = cookieManager.getCookies("https://google.com")
+```
+
+---
+
+## Find on Page
+
+Search for text within the current page and get real-time feedback on match results.
+
+### Find on Page Usage
+
+```kotlin
+val controller = rememberWebViewController()
+var matchCount by remember { mutableStateOf(0) }
+
+ComposeWebView(
+    state = state,
+    controller = controller,
+    onFindResultReceived = { activeIndex, count, isDone ->
+        matchCount = count
+    }
+)
+
+// Trigger search
+controller.findAllAsync("Compose")
+controller.findNext(true) // Next match
+```
+
+---
+
+## Custom Context Menu (Android)
+
+Override the default Android action mode (context menu) with custom callbacks.
+
+### Action Mode Usage (Android)
+
+```kotlin
+ComposeWebView(
+    onStartActionMode = { webView, callback ->
+        // Return your custom PlatformActionModeCallback implementation
+        // or null to keep default behavior
+        object : PlatformActionModeCallback { /* override needed methods */ }
+    }
+)
 ```

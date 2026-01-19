@@ -32,6 +32,11 @@ expect object PlatformCookieManager {
     )
 
     /**
+     * Removes all cookies for a specific URL.
+     */
+    suspend fun removeCookies(url: String)
+
+    /**
      * Removes all cookies.
      */
     suspend fun removeAllCookies()
