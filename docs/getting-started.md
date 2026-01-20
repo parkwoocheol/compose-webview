@@ -17,9 +17,11 @@ Before you begin, ensure your project meets the following requirements:
 This library is available on **Maven Central** for universal access without authentication starting from **v1.6.0**.
 
 !!! warning "Version Availability"
-    - **v1.6.0+**: Maven Central only
-    - **v1.6.0**: JitPack, GitHub Packages, and Maven Central (transition version)
-    - **v1.5.x and earlier**: JitPack and GitHub Packages only
+    - **v1.6.1+ (future)**: Maven Central only (`io.github.parkwoocheol`)
+    - **v1.6.0 (current)**: Available on all repositories but uses different group IDs
+        - JitPack/GitHub Packages: `com.github.parkwoocheol:compose-webview:1.6.0`
+        - Maven Central: `io.github.parkwoocheol:compose-webview:1.6.0` ← **Recommended**
+    - **v1.5.x and earlier**: JitPack and GitHub Packages only (`com.github.parkwoocheol`)
 
 !!! info "Migration from v1.5.x"
     If you're upgrading from v1.5.x or earlier (JitPack/GitHub Packages), see the [Migration Guide](#migration-guide) below.
@@ -105,17 +107,26 @@ If you previously used this library from JitPack or GitHub Packages:
 
 #### Version History
 
-| Version | Group ID | Available On |
-|---------|----------|--------------|
-| v1.5.x and earlier | `com.github.parkwoocheol` | JitPack, GitHub Packages |
-| **v1.6.0** | `io.github.parkwoocheol` | JitPack, GitHub Packages, **Maven Central** |
-| **v1.6.0+** | `io.github.parkwoocheol` | **Maven Central only** |
+| Version | Repository | Group ID | Coordinates |
+|---------|------------|----------|-------------|
+| v1.5.x and earlier | JitPack, GitHub Packages | `com.github.parkwoocheol` | `com.github.parkwoocheol:compose-webview:1.5.x` |
+| **v1.6.0** (current) | JitPack, GitHub Packages | `com.github.parkwoocheol` | `com.github.parkwoocheol:compose-webview:1.6.0` |
+| **v1.6.0** (current) | **Maven Central** | `io.github.parkwoocheol` | `io.github.parkwoocheol:compose-webview:1.6.0` |
+| **v1.6.1+** (future) | **Maven Central only** | `io.github.parkwoocheol` | `io.github.parkwoocheol:compose-webview:1.6.1+` |
 
-#### Recommended: Two-Step Migration
+!!! info "v1.6.0 Group ID Difference"
+    v1.6.0 uses different group IDs depending on the repository:
 
-=== "Step 1: Test with v1.6.0"
+    - JitPack/GitHub Packages: `com.github.parkwoocheol`
+    - Maven Central: `io.github.parkwoocheol`
 
-    First, upgrade to v1.6.0 while keeping your existing repository to test compatibility:
+    Same version, different coordinates.
+
+#### Recommended: Three-Step Migration
+
+=== "Step 1: Test v1.6.0"
+
+    Upgrade to v1.6.0 while keeping your existing repository:
 
     ```kotlin
     // settings.gradle.kts - Keep existing repository
@@ -125,7 +136,31 @@ If you previously used this library from JitPack or GitHub Packages:
         maven { url = uri("https://jitpack.io") }  // or GitHub Packages
     }
 
-    // build.gradle.kts - Update to v1.6.0
+    // build.gradle.kts - Upgrade version only, keep same group ID
+    kotlin {
+        sourceSets {
+            commonMain.dependencies {
+                implementation("com.github.parkwoocheol:compose-webview:1.6.0")
+            }
+        }
+    }
+    ```
+
+    Build and test your app.
+
+=== "Step 2: Switch to Maven Central"
+
+    Change group ID to use Maven Central:
+
+    ```kotlin
+    // settings.gradle.kts - Keep both temporarily
+    repositories {
+        google()
+        mavenCentral()
+        maven { url = uri("https://jitpack.io") }  // will remove soon
+    }
+
+    // build.gradle.kts - Change group ID to io.github
     kotlin {
         sourceSets {
             commonMain.dependencies {
@@ -135,11 +170,11 @@ If you previously used this library from JitPack or GitHub Packages:
     }
     ```
 
-    Build and test your app to ensure everything works.
+    Verify it downloads from Maven Central.
 
-=== "Step 2: Switch to Maven Central"
+=== "Step 3: Clean Up"
 
-    After confirming compatibility, clean up and use the latest version:
+    Remove old repositories:
 
     ```kotlin
     // settings.gradle.kts - Remove old repositories
@@ -148,11 +183,11 @@ If you previously used this library from JitPack or GitHub Packages:
         mavenCentral()  // All you need!
     }
 
-    // build.gradle.kts - Use latest version
+    // build.gradle.kts - Same as Step 2
     kotlin {
         sourceSets {
             commonMain.dependencies {
-                implementation("io.github.parkwoocheol:compose-webview:1.6.0")  // or later
+                implementation("io.github.parkwoocheol:compose-webview:1.6.0")
             }
         }
     }
@@ -175,16 +210,17 @@ repositories {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation("io.github.parkwoocheol:compose-webview:1.6.0")  // or latest
+            // Before: implementation("com.github.parkwoocheol:compose-webview:1.5.1")
+            implementation("io.github.parkwoocheol:compose-webview:1.6.0")
         }
     }
 }
 ```
 
 !!! note "Backward Compatibility"
-    - Old versions (v1.5.x and earlier) remain available on JitPack/GitHub Packages
-    - v1.6.0 is the last version available on all repositories
-    - v1.6.0+ are Maven Central exclusive
+    - Old versions (v1.5.x and earlier) remain available on JitPack/GitHub Packages with `com.github` group ID
+    - v1.6.0 is the current and last version available on JitPack/GitHub Packages
+    - Future versions (v1.6.1+) will be Maven Central exclusive with `io.github` group ID
 
 ---
 

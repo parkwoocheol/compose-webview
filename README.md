@@ -181,7 +181,9 @@ We focused heavily on making the interaction between Kotlin and JavaScript as se
 
 This library is available on **Maven Central** for universal access without authentication starting from **v1.6.0**.
 
-> **Important**: v1.6.0+ will be available **only on Maven Central**. v1.6.0 is the last version available on JitPack/GitHub Packages.
+> **Important**: Future versions (v1.6.1+) will be available **only on Maven Central**. The current version v1.6.0 is available on all repositories but uses different group IDs:
+> - JitPack/GitHub Packages: `com.github.parkwoocheol:compose-webview:1.6.0`
+> - Maven Central: `io.github.parkwoocheol:compose-webview:1.6.0` ← **Recommended**
 >
 > **Migration Note**: If you're upgrading from v1.5.x or earlier, see the [Migration Guide](#migration-from-jitpackgithub-packages) below.
 
@@ -270,15 +272,18 @@ If you previously used this library from JitPack or GitHub Packages, here's how 
 
 #### Version History
 
-| Version | Group ID | Available On |
-|---------|----------|--------------|
-| v1.5.x and earlier | `com.github.parkwoocheol` | JitPack, GitHub Packages |
-| **v1.6.0** | `io.github.parkwoocheol` | JitPack, GitHub Packages, **Maven Central** |
-| **v1.6.0+** | `io.github.parkwoocheol` | **Maven Central only** |
+| Version | Repository | Group ID | Coordinates |
+|---------|------------|----------|-------------|
+| v1.5.x and earlier | JitPack, GitHub Packages | `com.github.parkwoocheol` | `com.github.parkwoocheol:compose-webview:1.5.x` |
+| **v1.6.0** (current) | JitPack, GitHub Packages | `com.github.parkwoocheol` | `com.github.parkwoocheol:compose-webview:1.6.0` |
+| **v1.6.0** (current) | **Maven Central** | `io.github.parkwoocheol` | `io.github.parkwoocheol:compose-webview:1.6.0` |
+| **v1.6.1+** (future) | **Maven Central only** | `io.github.parkwoocheol` | `io.github.parkwoocheol:compose-webview:1.6.1+` |
 
-#### Recommended: Two-Step Migration
+> **Note**: v1.6.0 uses different group IDs depending on the repository. Same version, different coordinates.
 
-**Step 1: Upgrade to v1.6.0** (test compatibility with existing repository)
+#### Recommended: Three-Step Migration
+
+**Step 1: Upgrade to v1.6.0** (test compatibility, keep existing repository)
 
 ```kotlin
 // settings.gradle.kts - Keep existing repository
@@ -288,13 +293,29 @@ repositories {
     maven { url = uri("https://jitpack.io") }  // or GitHub Packages
 }
 
-// build.gradle.kts - Update group ID and version
+// build.gradle.kts - Upgrade version only, keep group ID
+implementation("com.github.parkwoocheol:compose-webview:1.6.0")
+```
+
+Build and test your app.
+
+**Step 2: Switch to Maven Central** (change group ID)
+
+```kotlin
+// settings.gradle.kts - Keep both temporarily
+repositories {
+    google()
+    mavenCentral()
+    maven { url = uri("https://jitpack.io") }  // will remove soon
+}
+
+// build.gradle.kts - Change group ID to io.github
 implementation("io.github.parkwoocheol:compose-webview:1.6.0")
 ```
 
-Test your app to ensure everything works.
+Verify it downloads from Maven Central.
 
-**Step 2: Clean migration to Maven Central**
+**Step 3: Clean up** (remove old repositories)
 
 ```kotlin
 // settings.gradle.kts - Remove old repositories
@@ -303,15 +324,15 @@ repositories {
     mavenCentral()  // All you need!
 }
 
-// build.gradle.kts - Use latest version
-implementation("io.github.parkwoocheol:compose-webview:1.6.0")  // or later
+// build.gradle.kts - Same as Step 2
+implementation("io.github.parkwoocheol:compose-webview:1.6.0")
 ```
 
-Remove authentication configuration (GitHub tokens, etc.).
+Remove authentication (GitHub tokens, etc.).
 
 #### Quick Migration
 
-For direct migration without testing:
+For direct migration:
 
 ```kotlin
 // settings.gradle.kts
@@ -321,7 +342,8 @@ repositories {
 }
 
 // build.gradle.kts
-implementation("io.github.parkwoocheol:compose-webview:1.6.0")  // or latest
+// Before: implementation("com.github.parkwoocheol:compose-webview:1.5.1")
+implementation("io.github.parkwoocheol:compose-webview:1.6.0")
 ```
 
 **Note**: Old versions remain available on JitPack/GitHub Packages for backward compatibility.
