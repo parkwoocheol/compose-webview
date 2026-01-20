@@ -14,23 +14,19 @@ Before you begin, ensure your project meets the following requirements:
 
 ## Installation
 
-This library supports both **JitPack** and **GitHub Packages**. You can choose either repository to download the artifacts.
+This library is available on **Maven Central** for universal access without authentication starting from **v1.6.0**.
 
-| Repository | Recommended For | Authentication |
-| :--- | :--- | :--- |
-| **JitPack** | Android, Desktop, Web (JS only) | **No** (Simplest) |
-| **GitHub Packages** | **iOS Projects, WASM** (and all others) | **Yes** (Requires GitHub Token) |
+!!! warning "Version Availability"
+    - **v1.6.0+**: Maven Central only
+    - **v1.6.0**: JitPack, GitHub Packages, and Maven Central (transition version)
+    - **v1.5.x and earlier**: JitPack and GitHub Packages only
 
-!!! warning "WASM Availability"
-    WASM artifacts are only available via **GitHub Packages**. JitPack builds on Linux with GLIBC 2.23, which is incompatible with Node.js v22 required for WASM compilation.
+!!! info "Migration from v1.5.x"
+    If you're upgrading from v1.5.x or earlier (JitPack/GitHub Packages), see the [Migration Guide](#migration-guide) below.
 
 ### Step 1. Configure Repository
 
-Choose one of the following methods to add the repository to `settings.gradle.kts` (or `settings.gradle`).
-
-#### Option A: JitPack (No Authentication)
-
-**Add the JitPack repository:**
+Add Maven Central to `settings.gradle.kts` (or `settings.gradle`):
 
 === "Kotlin (`settings.gradle.kts`)"
 
@@ -39,7 +35,6 @@ Choose one of the following methods to add the repository to `settings.gradle.kt
         repositories {
             google()
             mavenCentral()
-            maven { url = uri("https://jitpack.io") }
         }
     }
     ```
@@ -51,55 +46,6 @@ Choose one of the following methods to add the repository to `settings.gradle.kt
         repositories {
             google()
             mavenCentral()
-            maven { url = "https://jitpack.io" }
-        }
-    }
-    ```
-
-#### Option B: GitHub Packages (Authenticated)
-
-**1. Create a GitHub Token** with `read:packages` scope.
-**2. Add credentials** to `local.properties` or `~/.gradle/gradle.properties`:
-
-```properties
-gpr.user=YOUR_GITHUB_USERNAME
-gpr.key=YOUR_GITHUB_TOKEN
-```
-
-**3. Add Repository:**
-
-=== "Kotlin (`settings.gradle.kts`)"
-
-    ```kotlin
-    dependencyResolutionManagement {
-        repositories {
-            google()
-            mavenCentral()
-            maven {
-                url = uri("https://maven.pkg.github.com/parkwoocheol/compose-webview")
-                credentials {
-                    username = findProperty("gpr.user") as String? ?: System.getenv("GITHUB_ACTOR")
-                    password = findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN")
-                }
-            }
-        }
-    }
-    ```
-
-=== "Groovy (`settings.gradle`)"
-
-    ```groovy
-    dependencyResolutionManagement {
-        repositories {
-            google()
-            mavenCentral()
-            maven {
-                url 'https://maven.pkg.github.com/parkwoocheol/compose-webview'
-                credentials {
-                    username = findProperty('gpr.user') ?: System.getenv('GITHUB_ACTOR')
-                    password = findProperty('gpr.key') ?: System.getenv('GITHUB_TOKEN')
-                }
-            }
         }
     }
     ```
@@ -114,7 +60,7 @@ Add the dependency to your **commonMain** source set.
     kotlin {
         sourceSets {
             commonMain.dependencies {
-                implementation("com.github.parkwoocheol:compose-webview:<version>")
+                implementation("io.github.parkwoocheol:compose-webview:<version>")
             }
         }
     }
@@ -127,7 +73,7 @@ Add the dependency to your **commonMain** source set.
         sourceSets {
             commonMain {
                 dependencies {
-                    implementation 'com.github.parkwoocheol:compose-webview:<version>'
+                    implementation 'io.github.parkwoocheol:compose-webview:<version>'
                 }
             }
         }
@@ -135,22 +81,110 @@ Add the dependency to your **commonMain** source set.
     ```
 
 !!! tip "Latest Version"
-    Check [GitHub Releases](https://github.com/parkwoocheol/compose-webview/releases) or the [JitPack badge](https://jitpack.io/#parkwoocheol/compose-webview) for the current version number.
+    Check [GitHub Releases](https://github.com/parkwoocheol/compose-webview/releases) or [Maven Central](https://central.sonatype.com/artifact/io.github.parkwoocheol/compose-webview) for the current version number.
 
 ### Platform-Specific Artifacts
 
 The Kotlin Multiplatform Gradle plugin **automatically selects** the correct artifact:
 
-| Platform | Artifact ID | Available On |
-|----------|-------------|--------------|
-| **Android** | `compose-webview-android` | JitPack, GitHub Packages |
-| **iOS (arm64)** | `compose-webview-iosarm64` | GitHub Packages only |
-| **iOS (Simulator arm64)** | `compose-webview-iossimulatorarm64` | GitHub Packages only |
-| **Desktop (JVM)** | `compose-webview-desktop` | JitPack, GitHub Packages |
-| **Web (JS)** | `compose-webview-js` | JitPack, GitHub Packages |
-| **Web (WASM)** | `compose-webview-wasmjs` | **GitHub Packages only** |
+| Platform | Artifact ID |
+|----------|-------------|
+| **Android** | `compose-webview-android` |
+| **iOS (arm64)** | `compose-webview-iosarm64` |
+| **iOS (x64)** | `compose-webview-iosx64` |
+| **iOS (Simulator arm64)** | `compose-webview-iossimulatorarm64` |
+| **Desktop (JVM)** | `compose-webview-desktop` |
+| **Web (JS)** | `compose-webview-js` |
+| **Web (WASM)** | `compose-webview-wasmjs` |
 
 > **Note**: You don't need to specify platform-specific artifacts manually. Just use `compose-webview` and Gradle resolves the correct artifact automatically.
+
+### Migration Guide
+
+If you previously used this library from JitPack or GitHub Packages:
+
+#### Version History
+
+| Version | Group ID | Available On |
+|---------|----------|--------------|
+| v1.5.x and earlier | `com.github.parkwoocheol` | JitPack, GitHub Packages |
+| **v1.6.0** | `io.github.parkwoocheol` | JitPack, GitHub Packages, **Maven Central** |
+| **v1.6.0+** | `io.github.parkwoocheol` | **Maven Central only** |
+
+#### Recommended: Two-Step Migration
+
+=== "Step 1: Test with v1.6.0"
+
+    First, upgrade to v1.6.0 while keeping your existing repository to test compatibility:
+
+    ```kotlin
+    // settings.gradle.kts - Keep existing repository
+    repositories {
+        google()
+        mavenCentral()
+        maven { url = uri("https://jitpack.io") }  // or GitHub Packages
+    }
+
+    // build.gradle.kts - Update to v1.6.0
+    kotlin {
+        sourceSets {
+            commonMain.dependencies {
+                implementation("io.github.parkwoocheol:compose-webview:1.6.0")
+            }
+        }
+    }
+    ```
+
+    Build and test your app to ensure everything works.
+
+=== "Step 2: Switch to Maven Central"
+
+    After confirming compatibility, clean up and use the latest version:
+
+    ```kotlin
+    // settings.gradle.kts - Remove old repositories
+    repositories {
+        google()
+        mavenCentral()  // All you need!
+    }
+
+    // build.gradle.kts - Use latest version
+    kotlin {
+        sourceSets {
+            commonMain.dependencies {
+                implementation("io.github.parkwoocheol:compose-webview:1.6.0")  // or later
+            }
+        }
+    }
+    ```
+
+    Remove authentication configuration (GitHub tokens, etc.).
+
+#### Quick Migration
+
+For direct migration without intermediate testing:
+
+```kotlin
+// settings.gradle.kts
+repositories {
+    google()
+    mavenCentral()
+}
+
+// build.gradle.kts
+kotlin {
+    sourceSets {
+        commonMain.dependencies {
+            implementation("io.github.parkwoocheol:compose-webview:1.6.0")  // or latest
+        }
+    }
+}
+```
+
+!!! note "Backward Compatibility"
+    - Old versions (v1.5.x and earlier) remain available on JitPack/GitHub Packages
+    - v1.6.0 is the last version available on all repositories
+    - v1.6.0+ are Maven Central exclusive
 
 ---
 

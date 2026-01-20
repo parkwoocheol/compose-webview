@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform) apply false
     alias(libs.plugins.compose.multiplatform) apply false
     alias(libs.plugins.spotless)
+    alias(libs.plugins.maven.publish) apply false
 }
 
 allprojects {
@@ -26,5 +27,6 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        maven { url = uri("https://www.jogamp.org/deployment/maven") }
     }
 }
