@@ -1,10 +1,10 @@
-name: Publish to GitHub Packages
+name: Publish to Maven Central
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to publish (e.g., 1.5.1)'
+        description: 'Version to publish (e.g., 1.6.0)'
         required: true
         type: string
   release:
@@ -12,7 +12,6 @@ on:
 
 permissions:
   contents: read
-  packages: write
 
 jobs:
   publish:
@@ -45,16 +44,26 @@ jobs:
       - name: Check Code Style (Spotless)
         run: ./gradlew spotlessCheck
 
-      - name: Publish to GitHub Packages
+      - name: Validate POM for Maven Publication
         env:
-          GITHUB_ACTOR: ${{ github.actor }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COMPOSE_WEBVIEW_VERSION: ${{ steps.version.outputs.VERSION }}
-        run: ./gradlew :compose-webview:publish
+        run: ./gradlew :compose-webview:checkPomFileForMavenPublication --no-configuration-cache
+
+
+
+      - name: Publish to Maven Central
+        env:
+          COMPOSE_WEBVIEW_VERSION: ${{ steps.version.outputs.VERSION }}
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.GPG_SIGNING_KEY_ID }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_SIGNING_PASSWORD }}
+        run: ./gradlew :compose-webview:publishAndReleaseToMavenCentral --no-configuration-cache
 
       - name: Summary
         run: |
-          echo "✅ Published version ${{ steps.version.outputs.VERSION }} to GitHub Packages" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Published version ${{ steps.version.outputs.VERSION }} to Maven Central" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Published Artifacts:**" >> $GITHUB_STEP_SUMMARY
           echo "- androidRelease" >> $GITHUB_STEP_SUMMARY
@@ -66,4 +75,6 @@ jobs:
           echo "- wasmJs" >> $GITHUB_STEP_SUMMARY
           echo "- kotlinMultiplatform" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Repository:** https://github.com/parkwoocheol/compose-webview/packages" >> $GITHUB_STEP_SUMMARY
+          echo "**Maven Central URL:** https://central.sonatype.com/artifact/io.github.parkwoocheol/compose-webview" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "⏳ Note: It may take 15-30 minutes for the artifact to be indexed on Maven Central" >> $GITHUB_STEP_SUMMARY

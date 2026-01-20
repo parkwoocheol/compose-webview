@@ -4,10 +4,10 @@ plugins {
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.serialization)
-    id("maven-publish")
+    alias(libs.plugins.maven.publish)
 }
 
-group = "com.github.parkwoocheol"
+group = "io.github.parkwoocheol"
 version =
     providers.environmentVariable("COMPOSE_WEBVIEW_VERSION")
         .orElse(providers.gradleProperty("COMPOSE_WEBVIEW_VERSION"))
@@ -138,54 +138,40 @@ android {
     }
 }
 
-publishing {
-    publications {
-        withType<MavenPublication> {
-            pom {
-                name.set("Compose WebView")
-                description.set("A powerful and flexible WebView wrapper for Compose Multiplatform (Android, iOS, Desktop, Web).")
-                url.set("https://github.com/parkwoocheol/compose-webview")
+mavenPublishing {
+    publishToMavenCentral()
+    signAllPublications()
 
-                licenses {
-                    license {
-                        name.set("MIT License")
-                        url.set("https://opensource.org/licenses/MIT")
-                    }
-                }
+    coordinates(
+        groupId = "io.github.parkwoocheol",
+        artifactId = "compose-webview",
+        version = version.toString(),
+    )
 
-                developers {
-                    developer {
-                        id.set("parkwoocheol")
-                        name.set("Woocheol Park")
-                    }
-                }
+    pom {
+        name.set("Compose WebView")
+        description.set("A powerful and flexible WebView wrapper for Compose Multiplatform (Android, iOS, Desktop, Web).")
+        url.set("https://github.com/parkwoocheol/compose-webview")
 
-                scm {
-                    connection.set("scm:git:git://github.com/parkwoocheol/compose-webview.git")
-                    developerConnection.set("scm:git:ssh://git@github.com/parkwoocheol/compose-webview.git")
-                    url.set("https://github.com/parkwoocheol/compose-webview")
-                }
+        licenses {
+            license {
+                name.set("MIT License")
+                url.set("https://opensource.org/licenses/MIT")
             }
         }
-    }
 
-    repositories {
-        val githubActor =
-            providers.environmentVariable("GITHUB_ACTOR")
-                .orElse(providers.provider { findProperty("gpr.user") as String? })
-        val githubToken =
-            providers.environmentVariable("GITHUB_TOKEN")
-                .orElse(providers.provider { findProperty("gpr.key") as String? })
-
-        if (githubActor.isPresent && githubToken.isPresent) {
-            maven {
-                name = "GitHubPackages"
-                url = uri("https://maven.pkg.github.com/parkwoocheol/compose-webview")
-                credentials {
-                    username = githubActor.get()
-                    password = githubToken.get()
-                }
+        developers {
+            developer {
+                id.set("parkwoocheol")
+                name.set("Woocheol Park")
+                email.set("parkwoocheol@users.noreply.github.com")
             }
+        }
+
+        scm {
+            connection.set("scm:git:git://github.com/parkwoocheol/compose-webview.git")
+            developerConnection.set("scm:git:ssh://git@github.com/parkwoocheol/compose-webview.git")
+            url.set("https://github.com/parkwoocheol/compose-webview")
         }
     }
 }
