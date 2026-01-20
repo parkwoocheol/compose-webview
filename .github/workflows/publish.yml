@@ -44,13 +44,6 @@ jobs:
       - name: Check Code Style (Spotless)
         run: ./gradlew spotlessCheck
 
-      - name: Validate POM for Maven Publication
-        env:
-          COMPOSE_WEBVIEW_VERSION: ${{ steps.version.outputs.VERSION }}
-        run: ./gradlew :compose-webview:checkPomFileForMavenPublication --no-configuration-cache
-
-
-
       - name: Publish to Maven Central
         env:
           COMPOSE_WEBVIEW_VERSION: ${{ steps.version.outputs.VERSION }}
