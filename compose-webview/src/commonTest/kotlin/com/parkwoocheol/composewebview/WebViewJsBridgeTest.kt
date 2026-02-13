@@ -84,8 +84,8 @@ class WebViewJsBridgeTest {
 
         val exception =
             assertFailsWith<IllegalArgumentException> {
-            handler(null)
-        }
+                handler(null)
+            }
         assertTrue(exception.message?.contains("registerNullable") == true)
     }
 
