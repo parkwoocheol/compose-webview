@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![API](https://img.shields.io/badge/API-24%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=24)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.2.0-blue.svg?style=flat&logo=kotlin)](https://kotlinlang.org)
-[![Release](https://jitpack.io/v/parkwoocheol/compose-webview.svg)](https://jitpack.io/#parkwoocheol/compose-webview)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.parkwoocheol/compose-webview.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/io.github.parkwoocheol/compose-webview)
 [![Compose Multiplatform](https://img.shields.io/badge/Compose%20Multiplatform-1.9.3-blue.svg)](https://github.com/JetBrains/compose-multiplatform)
 
 **ComposeWebView** is a powerful, flexible, and feature-rich WebView wrapper designed specifically for **Jetpack Compose** and **Compose Multiplatform**.

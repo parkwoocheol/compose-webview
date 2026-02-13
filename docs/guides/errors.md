@@ -21,9 +21,11 @@ All errors are wrapped in a typed `WebViewError` data class for consistent handl
 
 ```kotlin
 data class WebViewError(
-    val errorCode: Int,           // Platform-specific error code
-    val description: String,      // Human-readable description
-    val failingUrl: String? = null // The URL that failed to load
+    val type: WebViewErrorType = WebViewErrorType.UNKNOWN,
+    val errorCode: Int = 0,        // Platform-specific error code
+    val description: String = "Unknown error",
+    val request: PlatformWebResourceRequest? = null,
+    val platformError: PlatformWebResourceError? = null
 )
 ```
 
@@ -65,7 +67,7 @@ val state = rememberWebViewState(url = "https://example.com")
 LaunchedEffect(state.errorsForCurrentRequest) {
     state.errorsForCurrentRequest.forEach { error ->
         println("Error ${error.errorCode}: ${error.description}")
-        println("Failed URL: ${error.failingUrl}")
+        println("Failed URL: ${error.request?.url}")
     }
 }
 ```

@@ -98,9 +98,9 @@ Use `data class` for model definitions:
 ```kotlin
 @Serializable
 data class WebViewError(
-    val errorCode: Int,
-    val description: String,
-    val failingUrl: String?
+    val type: WebViewErrorType = WebViewErrorType.UNKNOWN,
+    val errorCode: Int = 0,
+    val description: String = "Unknown error"
 )
 ```
 

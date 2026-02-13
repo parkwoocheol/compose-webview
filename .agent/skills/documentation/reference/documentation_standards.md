@@ -125,7 +125,7 @@ fun WebViewExample() {
   state.loadUrl("https://example.com")
 
   // Good: Complete example
-  val controller = rememberWebViewController(state)
+  val controller = rememberWebViewController()
 
   LaunchedEffect(Unit) {
       controller.loadUrl("https://example.com")

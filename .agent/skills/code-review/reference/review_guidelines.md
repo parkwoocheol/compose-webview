@@ -283,7 +283,7 @@ var url by mutableStateOf("")
 **Controller Pattern**:
 ```kotlin
 // ✅ Use WebViewController for actions
-val controller = rememberWebViewController(state)
+val controller = rememberWebViewController()
 controller.loadUrl("https://example.com")
 
 // ❌ Don't expose platform WebView directly

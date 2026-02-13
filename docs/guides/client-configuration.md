@@ -406,7 +406,7 @@ Intercept network requests to provide local mock data or handle custom assets.
 @Composable
 fun MockingWebView() {
     val settings = WebViewSettings(
-        interceptedSchemes = setOf("https") // Required for iOS
+        interceptedSchemes = listOf("https") // Required for iOS
     )
     
     val client = rememberWebViewClient {
