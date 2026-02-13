@@ -97,6 +97,8 @@ class WebViewJsBridge(
     /**
      * Registers a handler for the given method name.
      * The handler receives the data as type [T] and returns a result of type [R].
+     * For null input from JavaScript, only [Unit] is accepted in this overload.
+     * For nullable payloads, use [registerNullable].
      *
      * @param method The name of the method to register.
      * @param handler The function to handle the method call.
@@ -106,15 +108,19 @@ class WebViewJsBridge(
         noinline handler: (T) -> R,
     ) {
         handlers[method] = { jsonStr ->
+            val inputType = typeOf<T>()
             val input =
                 if (jsonStr != null) {
-                    serializer.decode<T>(jsonStr, typeOf<T>())
+                    serializer.decode<T>(jsonStr, inputType)
                 } else {
-                    if (typeOf<T>().isMarkedNullable) {
+                    if (inputType == typeOf<Unit>()) {
                         @Suppress("UNCHECKED_CAST")
-                        null as T
+                        Unit as T
                     } else {
-                        throw IllegalArgumentException("Input data is null but type is not nullable")
+                        throw IllegalArgumentException(
+                            "Input data is null but type is not nullable. " +
+                                "Use registerNullable<T, R>(...) for nullable payloads.",
+                        )
                     }
                 }
 
@@ -135,6 +141,26 @@ class WebViewJsBridge(
     ) {
         handlers[method] = { _ ->
             val result = handler()
+            serializer.encode(result, typeOf<R>())
+        }
+    }
+
+    /**
+     * Registers a handler that accepts nullable input.
+     * Use this overload when JavaScript may pass `null` for payloads.
+     *
+     * @param method The name of the method to register.
+     * @param handler The function to handle the method call.
+     */
+    inline fun <reified T : Any, reified R : Any> registerNullable(
+        method: String,
+        noinline handler: (T?) -> R,
+    ) {
+        handlers[method] = { jsonStr ->
+            val inputType = typeOf<T>()
+            val input = if (jsonStr != null) serializer.decode<T>(jsonStr, inputType) else null
+
+            val result = handler(input)
             serializer.encode(result, typeOf<R>())
         }
     }
