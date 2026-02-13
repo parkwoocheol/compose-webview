@@ -1,13 +1,12 @@
 package com.parkwoocheol.composewebview
 
 /**
- * Desktop implementation of [PlatformCookieManager] using KCEF.
+ * Desktop implementation of [PlatformCookieManager] using JCEF.
  */
 actual object PlatformCookieManager {
     actual suspend fun getCookies(url: String): List<PlatformCookie> {
-        // KCEF's Cookie Manager is async and callback based.
-        // Implementing full KCEF cookie support requires careful setup.
-        // Placeholder for now as KCEF implementation requires a running CefClient/Manager.
+        // JCEF's Cookie Manager is async and callback based.
+        // Full cookie support requires dedicated CefCookieManager lifecycle handling.
         return emptyList()
     }
 

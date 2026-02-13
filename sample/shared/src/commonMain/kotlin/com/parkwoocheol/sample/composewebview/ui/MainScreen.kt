@@ -55,45 +55,57 @@ data class Feature(
 @Composable
 fun MainScreen() {
     val features =
-        listOf(
-            Feature(
-                "Basic Browser",
-                "Standard WebView with navigation controls",
-                Icons.Default.Public,
-                Primary,
-                Screen.BasicBrowser,
-            ),
-            Feature(
-                "Transient State",
-                "State lost on config change (lightweight)",
-                Icons.Default.Save,
-                Secondary,
-                Screen.TransientBrowser,
-            ),
-            Feature(
-                "HTML & JS Bridge",
-                "Two-way communication with JavaScript",
-                Icons.Default.Javascript,
-                Tertiary,
-                Screen.HtmlJs,
-            ),
-            Feature(
-                "Fullscreen Video",
-                "Native fullscreen video support",
-                Icons.Default.Videocam,
-                // Violet
-                Color(0xFF8B5CF6),
-                Screen.FullscreenVideo,
-            ),
-            Feature(
-                "Custom Client",
-                "Custom WebViewClient & Settings",
-                Icons.Default.Settings,
-                // Emerald
-                Color(0xFF10B981),
-                Screen.CustomClient,
-            ),
-        )
+        buildList {
+            add(
+                Feature(
+                    "Basic Browser",
+                    "Standard WebView with navigation controls",
+                    Icons.Default.Public,
+                    Primary,
+                    Screen.BasicBrowser,
+                ),
+            )
+            add(
+                Feature(
+                    "Transient State",
+                    "State lost on config change (lightweight)",
+                    Icons.Default.Save,
+                    Secondary,
+                    Screen.TransientBrowser,
+                ),
+            )
+            add(
+                Feature(
+                    "HTML & JS Bridge",
+                    "Two-way communication with JavaScript",
+                    Icons.Default.Javascript,
+                    Tertiary,
+                    Screen.HtmlJs,
+                ),
+            )
+            if (supportsFullscreenVideoDemo) {
+                add(
+                    Feature(
+                        "Fullscreen Video",
+                        "Native fullscreen video support",
+                        Icons.Default.Videocam,
+                        // Violet
+                        Color(0xFF8B5CF6),
+                        Screen.FullscreenVideo,
+                    ),
+                )
+            }
+            add(
+                Feature(
+                    "Custom Client",
+                    "Custom WebViewClient & Settings",
+                    Icons.Default.Settings,
+                    // Emerald
+                    Color(0xFF10B981),
+                    Screen.CustomClient,
+                ),
+            )
+        }
 
     AppTheme {
         var currentScreen by remember { mutableStateOf(Screen.Main) }

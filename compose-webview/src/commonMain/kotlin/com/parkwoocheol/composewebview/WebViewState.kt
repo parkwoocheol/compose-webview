@@ -129,7 +129,7 @@ class WebViewState(webContent: WebContent) {
      * |----------|---------|-------|
      * | Android  | ✅ Full | WebChromeClient.onReceivedIcon |
      * | iOS      | ⚠️ Limited | Not directly available, requires custom handling |
-     * | Desktop  | ⚠️ Limited | KCEF favicon handling limited |
+     * | Desktop  | ⚠️ Limited | JCEF favicon handling limited |
      * | Web      | ⚠️ Limited | CORS restrictions apply |
      */
     var pageIcon: PlatformBitmap? by mutableStateOf(null)
@@ -151,7 +151,7 @@ class WebViewState(webContent: WebContent) {
      * |----------|---------|-------|
      * | Android  | ✅ Full | WebChromeClient callbacks |
      * | iOS      | ✅ Full | WKUIDelegate callbacks |
-     * | Desktop  | ❌ Not supported | KCEF dialog handling different |
+     * | Desktop  | ❌ Not supported | JCEF dialog handling different |
      * | Web      | ❌ Not supported | Browser handles dialogs natively |
      */
     var jsDialogState: JsDialogState? by mutableStateOf(null)
@@ -166,7 +166,7 @@ class WebViewState(webContent: WebContent) {
      * |----------|---------|-------|
      * | Android  | ✅ Full | WebChromeClient.onShowCustomView |
      * | iOS      | ⚠️ Limited | Emits state when WKWebView enters native fullscreen |
-     * | Desktop  | ❌ Not supported | KCEF handles fullscreen separately |
+     * | Desktop  | ❌ Not supported | JCEF handles fullscreen separately |
      * | Web      | ❌ Not supported | Browser handles fullscreen natively |
      */
     var customViewState: CustomViewState? by mutableStateOf(null)

@@ -183,7 +183,7 @@ data class ScrollPosition(
 
 - **Android**: Real-time updates via `setOnScrollChangeListener`
 - **iOS**: 100ms polling of `scrollView.contentOffset`
-- **Desktop**: Not supported (KCEF limitations)
+- **Desktop**: Not supported (current JCEF integration limitations)
 - **Web**: CORS-limited (same-origin iframes only)
 
 ---

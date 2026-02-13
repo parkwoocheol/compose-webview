@@ -126,7 +126,7 @@ class WebViewController(private val coroutineScope: CoroutineScope) {
      * |----------|---------|----------------|-------|
      * | Android  | ✅ Full | WebView.loadUrl | HTTP headers supported |
      * | iOS      | ✅ Full | WKWebView.load | HTTP headers supported |
-     * | Desktop  | ✅ Partial | KCEF loadURL | HTTP headers not supported |
+     * | Desktop  | ✅ Partial | JCEF loadURL | HTTP headers not supported |
      * | Web      | ✅ Partial | iframe src | HTTP headers not supported |
      *
      * @param url The URL to load.
@@ -149,7 +149,7 @@ class WebViewController(private val coroutineScope: CoroutineScope) {
      * |----------|---------|----------------|-------|
      * | Android  | ✅ Full | WebView.loadDataWithBaseURL | Supports all parameters |
      * | iOS      | ✅ Full | WKWebView.loadHTMLString | Supports baseURL |
-     * | Desktop  | ✅ Full | KCEF loadHTML | Supports HTML loading |
+     * | Desktop  | ✅ Full | JCEF loadHTML | Supports HTML loading |
      * | Web      | ⚠️ Limited | iframe srcdoc/data URI | Limited baseURL support, CORS restrictions |
      *
      * @param html The HTML content string.
@@ -209,7 +209,7 @@ class WebViewController(private val coroutineScope: CoroutineScope) {
      * |----------|---------|----------------|-------|
      * | Android  | ✅ Full | WebView.evaluateJavascript | Async with callback |
      * | iOS      | ✅ Full | WKWebView.evaluateJavaScript | Async with callback |
-     * | Desktop  | ✅ Full | KCEF executeJavaScript | Async with callback |
+     * | Desktop  | ✅ Full | JCEF executeJavaScript | Async with callback |
      * | Web      | ⚠️ Limited | contentWindow.eval | CORS restricted - same-origin only |
      *
      * @param script The JavaScript to evaluate.
@@ -232,7 +232,7 @@ class WebViewController(private val coroutineScope: CoroutineScope) {
      * |----------|---------|----------------|-------|
      * | Android  | ✅ Full | WebView.goBack | Native history navigation |
      * | iOS      | ✅ Full | WKWebView.goBack | Native history navigation |
-     * | Desktop  | ✅ Full | KCEF goBack | Native history navigation |
+     * | Desktop  | ✅ Full | JCEF goBack | Native history navigation |
      * | Web      | ⚠️ Limited | history.back | CORS restricted - same-origin only |
      */
     fun navigateBack() {
@@ -247,7 +247,7 @@ class WebViewController(private val coroutineScope: CoroutineScope) {
      * |----------|---------|----------------|-------|
      * | Android  | ✅ Full | WebView.goForward | Native history navigation |
      * | iOS      | ✅ Full | WKWebView.goForward | Native history navigation |
-     * | Desktop  | ✅ Full | KCEF goForward | Native history navigation |
+     * | Desktop  | ✅ Full | JCEF goForward | Native history navigation |
      * | Web      | ⚠️ Limited | history.forward | CORS restricted - same-origin only |
      */
     fun navigateForward() {
@@ -262,7 +262,7 @@ class WebViewController(private val coroutineScope: CoroutineScope) {
      * |----------|---------|----------------|-------|
      * | Android  | ✅ Full | WebView.reload | Reloads from network or cache |
      * | iOS      | ✅ Full | WKWebView.reload | Reloads from network or cache |
-     * | Desktop  | ✅ Full | KCEF reload | Reloads from network or cache |
+     * | Desktop  | ✅ Full | JCEF reload | Reloads from network or cache |
      * | Web      | ⚠️ Limited | location.reload | CORS restricted - same-origin only |
      */
     fun reload() {
@@ -277,7 +277,7 @@ class WebViewController(private val coroutineScope: CoroutineScope) {
      * |----------|---------|----------------|-------|
      * | Android  | ✅ Full | WebView.stopLoading | Stops page loading immediately |
      * | iOS      | ✅ Full | WKWebView.stopLoading | Stops page loading immediately |
-     * | Desktop  | ✅ Full | KCEF stop | Stops page loading immediately |
+     * | Desktop  | ✅ Full | JCEF stop | Stops page loading immediately |
      * | Web      | ⚠️ Limited | window.stop | CORS restricted - same-origin only |
      */
     fun stopLoading() {
@@ -292,7 +292,7 @@ class WebViewController(private val coroutineScope: CoroutineScope) {
      * |----------|---------|----------------|-------|
      * | Android  | ✅ Full | WebView.zoomBy | Multiplies current zoom level |
      * | iOS      | ❌ Not supported | - | WKWebView doesn't support programmatic zoom |
-     * | Desktop  | ✅ Full | KCEF setZoomLevel | Sets absolute zoom level |
+     * | Desktop  | ✅ Full | JCEF setZoomLevel | Sets absolute zoom level |
      * | Web      | ❌ Not supported | - | Browser controlled |
      *
      * @param zoomFactor The zoom factor to apply (e.g., 1.5 for 150% zoom).
@@ -309,7 +309,7 @@ class WebViewController(private val coroutineScope: CoroutineScope) {
      * |----------|---------|----------------|-------|
      * | Android  | ✅ Full | WebView.zoomIn | Native zoom controls |
      * | iOS      | ❌ Not supported | - | WKWebView doesn't support programmatic zoom |
-     * | Desktop  | ✅ Full | KCEF zoomIn | Native zoom controls |
+     * | Desktop  | ✅ Full | JCEF zoomIn | Native zoom controls |
      * | Web      | ❌ Not supported | - | Browser controlled |
      */
     fun zoomIn() {
@@ -324,7 +324,7 @@ class WebViewController(private val coroutineScope: CoroutineScope) {
      * |----------|---------|----------------|-------|
      * | Android  | ✅ Full | WebView.zoomOut | Native zoom controls |
      * | iOS      | ❌ Not supported | - | WKWebView doesn't support programmatic zoom |
-     * | Desktop  | ✅ Full | KCEF zoomOut | Native zoom controls |
+     * | Desktop  | ✅ Full | JCEF zoomOut | Native zoom controls |
      * | Web      | ❌ Not supported | - | Browser controlled |
      */
     fun zoomOut() {
@@ -341,7 +341,7 @@ class WebViewController(private val coroutineScope: CoroutineScope) {
      * |----------|---------|----------------|-------|
      * | Android  | ✅ Full | WebView.findAllAsync | Highlights all matches |
      * | iOS      | ❌ Not supported | - | WKWebView lacks find API |
-     * | Desktop  | ❌ Not supported | - | KCEF find API not exposed |
+     * | Desktop  | ❌ Not supported | - | JCEF find API not exposed |
      * | Web      | ❌ Not supported | - | No cross-browser standard |
      *
      * @param find The string to find.
@@ -360,7 +360,7 @@ class WebViewController(private val coroutineScope: CoroutineScope) {
      * |----------|---------|----------------|-------|
      * | Android  | ✅ Full | WebView.findNext | Navigates to next match |
      * | iOS      | ❌ Not supported | - | WKWebView lacks find API |
-     * | Desktop  | ❌ Not supported | - | KCEF find API not exposed |
+     * | Desktop  | ❌ Not supported | - | JCEF find API not exposed |
      * | Web      | ❌ Not supported | - | No cross-browser standard |
      *
      * @param forward Whether to search forward (true) or backward (false).
@@ -377,7 +377,7 @@ class WebViewController(private val coroutineScope: CoroutineScope) {
      * |----------|---------|----------------|-------|
      * | Android  | ✅ Full | WebView.clearMatches | Removes highlighting |
      * | iOS      | ❌ Not supported | - | WKWebView lacks find API |
-     * | Desktop  | ❌ Not supported | - | KCEF find API not exposed |
+     * | Desktop  | ❌ Not supported | - | JCEF find API not exposed |
      * | Web      | ❌ Not supported | - | No cross-browser standard |
      */
     fun clearMatches() {
@@ -392,7 +392,7 @@ class WebViewController(private val coroutineScope: CoroutineScope) {
      * |----------|---------|----------------|-------|
      * | Android  | ✅ Full | WebView.clearCache | Clears disk and memory cache |
      * | iOS      | ❌ Not supported | - | Use WKWebsiteDataStore separately |
-     * | Desktop  | ❌ Not supported | - | KCEF cache management separate |
+     * | Desktop  | ❌ Not supported | - | JCEF cache management separate |
      * | Web      | ❌ Not supported | - | Browser controlled |
      */
     fun clearCache() {
@@ -407,7 +407,7 @@ class WebViewController(private val coroutineScope: CoroutineScope) {
      * |----------|---------|----------------|-------|
      * | Android  | ✅ Full | WebView.clearHistory | Clears navigation history |
      * | iOS      | ❌ Not supported | - | WKWebView history is read-only |
-     * | Desktop  | ❌ Not supported | - | KCEF history not exposed |
+     * | Desktop  | ❌ Not supported | - | JCEF history not exposed |
      * | Web      | ❌ Not supported | - | Browser controlled |
      */
     fun clearHistory() {
@@ -422,7 +422,7 @@ class WebViewController(private val coroutineScope: CoroutineScope) {
      * |----------|---------|----------------|-------|
      * | Android  | ✅ Full | WebView.clearSslPreferences | Clears SSL error exceptions |
      * | iOS      | ❌ Not supported | - | WKWebView doesn't store SSL preferences |
-     * | Desktop  | ❌ Not supported | - | KCEF SSL handling different |
+     * | Desktop  | ❌ Not supported | - | JCEF SSL handling different |
      * | Web      | ❌ Not supported | - | Browser controlled |
      */
     fun clearSslPreferences() {
@@ -437,7 +437,7 @@ class WebViewController(private val coroutineScope: CoroutineScope) {
      * |----------|---------|----------------|-------|
      * | Android  | ✅ Full | WebView.clearFormData | Clears autofill data |
      * | iOS      | ❌ Not supported | - | WKWebView form data separate |
-     * | Desktop  | ❌ Not supported | - | KCEF form data separate |
+     * | Desktop  | ❌ Not supported | - | JCEF form data separate |
      * | Web      | ❌ Not supported | - | Browser controlled |
      */
     fun clearFormData() {
@@ -452,7 +452,7 @@ class WebViewController(private val coroutineScope: CoroutineScope) {
      * |----------|---------|----------------|-------|
      * | Android  | ✅ Full | WebView.pageUp | Scrolls up by viewport height |
      * | iOS      | ⚠️ Partial | scrollBy(viewportHeight) | Implemented via scrollBy |
-     * | Desktop  | ❌ Not supported | - | KCEF scroll API not exposed |
+     * | Desktop  | ❌ Not supported | - | JCEF scroll API not exposed |
      * | Web      | ⚠️ Partial | scrollBy(viewportHeight) | Implemented via scrollBy |
      *
      * @param top If true, scrolls to the top of the page.
@@ -469,7 +469,7 @@ class WebViewController(private val coroutineScope: CoroutineScope) {
      * |----------|---------|----------------|-------|
      * | Android  | ✅ Full | WebView.pageDown | Scrolls down by viewport height |
      * | iOS      | ⚠️ Partial | scrollBy(viewportHeight) | Implemented via scrollBy |
-     * | Desktop  | ❌ Not supported | - | KCEF scroll API not exposed |
+     * | Desktop  | ❌ Not supported | - | JCEF scroll API not exposed |
      * | Web      | ⚠️ Partial | scrollBy(viewportHeight) | Implemented via scrollBy |
      *
      * @param bottom If true, scrolls to the bottom of the page.
@@ -486,7 +486,7 @@ class WebViewController(private val coroutineScope: CoroutineScope) {
      * |----------|---------|----------------|-------|
      * | Android  | ✅ Full | WebView.scrollTo | Scrolls to absolute position |
      * | iOS      | ✅ Full | scrollView.setContentOffset | Scrolls to absolute position |
-     * | Desktop  | ❌ Not supported | - | KCEF scroll API not exposed |
+     * | Desktop  | ❌ Not supported | - | JCEF scroll API not exposed |
      * | Web      | ✅ Full | scrollTo() | Scrolls to absolute position |
      *
      * @param x The x-coordinate in pixels.
@@ -507,7 +507,7 @@ class WebViewController(private val coroutineScope: CoroutineScope) {
      * |----------|---------|----------------|-------|
      * | Android  | ✅ Full | WebView.scrollBy | Scrolls relative to current position |
      * | iOS      | ✅ Full | scrollView.contentOffset | Scrolls relative to current position |
-     * | Desktop  | ❌ Not supported | - | KCEF scroll API not exposed |
+     * | Desktop  | ❌ Not supported | - | JCEF scroll API not exposed |
      * | Web      | ✅ Full | scrollBy() | Scrolls relative to current position |
      *
      * @param x The x-offset in pixels.
@@ -528,7 +528,7 @@ class WebViewController(private val coroutineScope: CoroutineScope) {
      * |----------|---------|----------------|-------|
      * | Android  | ✅ Full | WebView.saveWebArchive | Saves as .mht file |
      * | iOS      | ❌ Not supported | - | WKWebView doesn't support web archives |
-     * | Desktop  | ❌ Not supported | - | KCEF archive API not exposed |
+     * | Desktop  | ❌ Not supported | - | JCEF archive API not exposed |
      * | Web      | ❌ Not supported | - | Browser controlled |
      *
      * @param filename The filename to save the archive to (Android only).

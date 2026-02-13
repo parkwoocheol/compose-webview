@@ -120,5 +120,5 @@ ComposeWebView(state = state)
 
 * **Android**: Scroll position updates in real-time via `setOnScrollChangeListener`
 * **iOS**: Scroll position updates every 100ms via polling of `scrollView.contentOffset`
-* **Desktop**: Not supported (KCEF API limitations)
+* **Desktop**: Not supported (current JCEF integration limitations)
 * **Web**: Only works for same-origin iframes; cross-origin iframes always report (0, 0) due to CORS

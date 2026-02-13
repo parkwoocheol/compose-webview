@@ -92,7 +92,7 @@ kotlin {
         getByName("desktopMain") {
             dependencies {
                 implementation(compose.desktop.currentOs)
-                implementation(libs.kcef)
+                implementation(libs.jcef)
             }
         }
 
