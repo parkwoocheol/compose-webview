@@ -106,7 +106,7 @@ interface WebViewController {
 @Composable
 fun WebViewWithControls() {
     val state = rememberWebViewState("https://example.com")
-    val controller = rememberWebViewController(state)
+    val controller = rememberWebViewController()
 
     Column {
         ComposeWebView(state = state, modifier = Modifier.weight(1f))
@@ -246,7 +246,7 @@ sealed class WebViewError {
     data class HttpError(
         val code: Int,
         val description: String,
-        val failingUrl: String?
+        val requestUrl: String?
     ) : WebViewError()
 
     data class SslError(
@@ -354,7 +354,7 @@ sealed class WebContent {
 @Composable
 fun WebViewWithContent(content: WebContent) {
     val state = rememberWebViewState()
-    val controller = rememberWebViewController(state)
+    val controller = rememberWebViewController()
 
     LaunchedEffect(content) {
         when (content) {

@@ -118,7 +118,7 @@ compose.desktop {
 | `zoomIn/Out/By()` | ✅ | ❌ | ✅ | ❌ | iOS: Pinch-to-zoom only |
 | `scrollTo/By()` | ✅ | ✅ | ❌ | ✅ | Desktop not supported |
 | `pageUp/Down()` | ✅ | ⚠️ | ❌ | ⚠️ | Via scrollBy on iOS/Web |
-| `findAllAsync()` | ✅ | ✅ | ❌ | ❌ | Now supported on iOS |
+| `findAllAsync()` | ✅ | ❌ | ❌ | ❌ | iOS/Web/Desktop not supported |
 | `clearCache/History()` | ✅ | ❌ | ❌ | ❌ | Android only |
 
 #### State Management
@@ -925,6 +925,7 @@ fun ComposeWebView(
     url: String,
     modifier: Modifier = Modifier,
     settings: WebViewSettings = WebViewSettings.Default,
+    releaseStrategy: WebViewReleaseStrategy = WebViewReleaseStrategy.DestroyOnRelease,
     controller: WebViewController = rememberWebViewController(),
     javaScriptInterfaces: Map<String, Any> = emptyMap(),
     onCreated: (WebView) -> Unit = {},
@@ -949,6 +950,7 @@ fun ComposeWebView(
     state: WebViewState,
     modifier: Modifier = Modifier,
     settings: WebViewSettings = WebViewSettings.Default,
+    releaseStrategy: WebViewReleaseStrategy = WebViewReleaseStrategy.DestroyOnRelease,
     controller: WebViewController = rememberWebViewController(),
     javaScriptInterfaces: Map<String, Any> = emptyMap(),
     jsBridge: WebViewJsBridge? = null,
@@ -1003,17 +1005,17 @@ class WebViewController {
     fun reload()
     fun stopLoading()
     fun zoomBy(zoomFactor: Float)
-    fun zoomIn(): Boolean
-    fun zoomOut(): Boolean
+    fun zoomIn()
+    fun zoomOut()
     fun findAllAsync(find: String)
     fun findNext(forward: Boolean)
     fun clearMatches()
-    fun clearCache(includeDiskFiles: Boolean)
+    fun clearCache()
     fun clearHistory()
     fun clearSslPreferences()
     fun clearFormData()
-    fun pageUp(top: Boolean): Boolean
-    fun pageDown(bottom: Boolean): Boolean
+    fun pageUp(top: Boolean)
+    fun pageDown(bottom: Boolean)
     fun scrollTo(x: Int, y: Int)
     fun scrollBy(x: Int, y: Int)
     fun saveWebArchive(filename: String)

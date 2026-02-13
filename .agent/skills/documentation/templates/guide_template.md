@@ -62,7 +62,7 @@ Explain the second step.
 
 ```kotlin
 // Code example for step 2
-val controller = rememberWebViewController(state)
+val controller = rememberWebViewController()
 
 LaunchedEffect(someCondition) {
     controller.loadUrl("https://newurl.com")
@@ -83,7 +83,7 @@ Show more sophisticated usage:
 @Composable
 fun AdvancedExample() {
     val state = rememberWebViewState("https://example.com")
-    val controller = rememberWebViewController(state)
+    val controller = rememberWebViewController()
 
     // Advanced configuration
     ComposeWebView(
@@ -178,7 +178,7 @@ Provide a comprehensive, real-world example:
 fun CompleteWebViewExample() {
     // State
     val state = rememberWebViewState("https://example.com")
-    val controller = rememberWebViewController(state)
+    val controller = rememberWebViewController()
 
     // UI
     Column(modifier = Modifier.fillMaxSize()) {

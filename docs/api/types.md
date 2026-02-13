@@ -68,18 +68,18 @@ Controls the navigation and execution of the WebView.
 
 | Method | Platform Support | Notes |
 | :--- | :--- | :--- |
-| `findAllAsync(find: String)` | Android, iOS | Highlight all matches |
-| `findNext(forward: Boolean)` | Android, iOS | Navigate through matches |
-| `clearMatches()` | Android, iOS | Clear search highlights |
+| `findAllAsync(find: String)` | Android | Highlight all matches |
+| `findNext(forward: Boolean)` | Android | Navigate through matches |
+| `clearMatches()` | Android | Clear search highlights |
 
 ### Scroll Control
 
 | Method | Platform Support | Notes |
 | :--- | :--- | :--- |
-| `scrollTo(x: Int, y: Int)` | Android, iOS, Desktop | Absolute scroll position |
-| `scrollBy(x: Int, y: Int)` | Android, iOS, Desktop | Relative scroll offset |
-| `pageUp(top: Boolean)` | Android | Scroll up one page |
-| `pageDown(bottom: Boolean)` | Android | Scroll down one page |
+| `scrollTo(x: Int, y: Int)` | Android, iOS, Web | Absolute scroll position |
+| `scrollBy(x: Int, y: Int)` | Android, iOS, Web | Relative scroll offset |
+| `pageUp(top: Boolean)` | Android, iOS (partial), Web (partial) | Scroll up one page |
+| `pageDown(bottom: Boolean)` | Android, iOS (partial), Web (partial) | Scroll down one page |
 
 ### Cache & History Management
 
@@ -141,7 +141,7 @@ Configuration settings for WebView behavior across all platforms.
 
 | Setting | Type | Default | Platform Support | Notes |
 | :--- | :--- | :--- | :--- | :--- |
-| `interceptedSchemes` | `Set<String>` | `emptySet()` | Android, iOS | URL schemes to intercept (iOS registration required) |
+| `interceptedSchemes` | `List<String>` | `emptyList()` | Android, iOS | URL schemes to intercept (iOS registration required) |
 | `darkMode` | `DarkMode` | `AUTO` | Android, iOS | Theme mode (AUTO, LIGHT, DARK) |
 | `userAgent` | `String?` | `null` | Android, iOS, Desktop | Custom user agent string |
 | `javaScriptEnabled` | `Boolean` | `true` | Android, iOS*, Desktop | *iOS: Always enabled |
@@ -221,9 +221,11 @@ Represents an error that occurred during page loading.
 
 ```kotlin
 data class WebViewError(
-    val errorCode: Int,           // Platform-specific error code
-    val description: String,      // Human-readable description
-    val failingUrl: String? = null // The URL that failed to load
+    val type: WebViewErrorType = WebViewErrorType.UNKNOWN,
+    val errorCode: Int = 0,        // Platform-specific error code
+    val description: String = "Unknown error",
+    val request: PlatformWebResourceRequest? = null,
+    val platformError: PlatformWebResourceError? = null
 )
 ```
 

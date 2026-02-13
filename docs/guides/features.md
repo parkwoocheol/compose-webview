@@ -308,7 +308,7 @@ On iOS, you must explicitly register the schemes you want to intercept in `WebVi
 
 ```kotlin
 val settings = WebViewSettings(
-    interceptedSchemes = setOf("https", "myapp") // Schemes to intercept
+    interceptedSchemes = listOf("https", "myapp") // Schemes to intercept
 )
 ```
 
