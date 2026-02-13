@@ -14,7 +14,7 @@ appcompat = "1.7.1"
 material = "1.12.0"
 kotlinxSerializationJson = "1.9.0"
 composeMultiplatform = "1.9.3"
-kcef = "2025.03.23"
+jcef = "141.0.10"
 materialIconsExtended = "1.7.7"
 spotless = "6.25.0"
 kotlinxCoroutines = "1.10.1"
@@ -41,7 +41,7 @@ androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 kotlinx-coroutines-swing = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-swing", version.ref = "kotlinxCoroutines" }
-kcef = { group = "dev.datlag", name = "kcef", version.ref = "kcef" }
+jcef = { group = "me.friwi", name = "jcefmaven", version.ref = "jcef" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
 androidx-compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "materialIconsExtended" }
 
@@ -74,5 +74,3 @@ compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "composeMu
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "mavenPublish" }
-
-

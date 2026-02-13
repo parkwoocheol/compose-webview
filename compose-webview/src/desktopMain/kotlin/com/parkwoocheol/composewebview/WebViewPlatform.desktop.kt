@@ -1,6 +1,5 @@
 package com.parkwoocheol.composewebview
 
-import dev.datlag.kcef.KCEFBrowser
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -9,10 +8,14 @@ import org.cef.browser.CefFrame
 import org.cef.callback.CefQueryCallback
 import org.cef.handler.CefMessageRouterHandlerAdapter
 import java.awt.BorderLayout
-import java.awt.image.BufferedImage
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import javax.swing.JPanel
 
-class DesktopWebView(val browser: KCEFBrowser) : JPanel(BorderLayout()) {
+class DesktopWebView(
+    val browser: CefBrowser,
+    val client: org.cef.CefClient,
+) : JPanel(BorderLayout()) {
     init {
         add(browser.uiComponent, BorderLayout.CENTER)
     }
@@ -120,7 +123,10 @@ actual fun WebView.platformLoadDataWithBaseURL(
     encoding: String?,
     historyUrl: String?,
 ) {
-    browser.loadHtml(data, baseUrl ?: "about:blank")
+    val charset = encoding ?: StandardCharsets.UTF_8.name()
+    val encoded = URLEncoder.encode(data, charset)
+    val type = mimeType ?: "text/html"
+    browser.loadURL("data:$type;charset=$charset,$encoded")
 }
 
 actual fun WebView.platformPostUrl(
@@ -132,7 +138,7 @@ actual fun WebView.platformEvaluateJavascript(
     script: String,
     callback: ((String) -> Unit)?,
 ) {
-    browser.executeJavaScript(script, browser.url, 0)
+    browser.executeJavaScript(script, browser.url ?: "about:blank", 0)
 }
 
 actual fun WebView.platformZoomBy(zoomFactor: Float) {
@@ -229,7 +235,7 @@ actual fun WebView.platformAddJavascriptInterface(
             true,
         )
 
-        this.browser.client.addMessageRouter(router)
+        this.client.addMessageRouter(router)
 
         // 2. Inject Polyfill Script
         // This script adapts window.AppBridgeNative.call(...) to window.cefQuery(...)
@@ -257,7 +263,7 @@ actual fun WebView.platformAddJavascriptInterface(
 
         // To ensure it persists across navigations, we should ideally use a CefLoadHandler
         // But for now, we rely on the fact that WebViewJsBridge might re-inject or we need to hook into load events.
-        // KCEF doesn't easily expose "inject on load" without a LoadHandler.
+        // Re-injection across navigations is handled via page-finished hooks in ComposeWebView.desktop.kt.
         // We will handle re-injection in ComposeWebView.desktop.kt via onPageFinished or similar if possible.
         // Actually, WebViewJsBridge.jsScript checks `if (window.AppBridge) return;`.
         // Our polyfill needs to be there before AppBridge uses it.

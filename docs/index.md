@@ -44,9 +44,28 @@ It provides a unified API to control WebViews across **Android**, **iOS**, **Des
 | :--- | :--- | :--- | :--- |
 | **Android** | `AndroidView` (WebView) | :white_check_mark: Stable | Full feature support |
 | **iOS** | `UIKitView` (WKWebView) | :white_check_mark: Stable | Full feature support (Seamless JS Bridge) |
-| **Desktop** | `SwingPanel` (CEF via KCEF) | :construction: Experimental | **WIP**: Basic browsing works. KCEF integration in progress. |
+| **Desktop** | `SwingPanel` (CEF via JCEF) | :construction: Experimental | **WIP**: Basic browsing works. JCEF integration in progress. |
 | **Web (JS)** | `Iframe` (DOM) | :construction: Experimental | **WIP**: Basic navigation and `postMessage` bridge. |
 | **Web (WASM)** | `Iframe` (DOM) | :construction: Experimental | **WIP**: Uses iframe with dynamic positioning. Same-origin policy restrictions. |
+
+## Desktop (macOS) Troubleshooting
+
+If JCEF fails with `IllegalAccessError` mentioning `sun.awt`, `sun.lwawt`, or `sun.lwawt.macosx`, add JVM module options to your Compose Desktop app:
+
+```kotlin
+compose.desktop {
+    application {
+        jvmArgs += listOf(
+            "--add-exports=java.desktop/sun.awt=ALL-UNNAMED",
+            "--add-opens=java.desktop/sun.awt=ALL-UNNAMED",
+            "--add-exports=java.desktop/sun.lwawt=ALL-UNNAMED",
+            "--add-opens=java.desktop/sun.lwawt=ALL-UNNAMED",
+            "--add-exports=java.desktop/sun.lwawt.macosx=ALL-UNNAMED",
+            "--add-opens=java.desktop/sun.lwawt.macosx=ALL-UNNAMED",
+        )
+    }
+}
+```
 
 !!! note "Project Focus: Mobile Productivity"
     This library is optimized for **Mobile (Android & iOS)** development. While Desktop and Web are supported, they are currently experimental. If you need a battle-tested solution primarily for Desktop/Web, other libraries might be a better fit.

@@ -182,7 +182,7 @@ data class ScrollPosition(
 !!! warning "Platform Limitations"
     - **iOS**: Uses polling (100ms intervals) instead of real-time updates due to Kotlin/Native KVO complexity.
     - **Web**: Only works for same-origin iframes. Cross-origin iframes will always report (0, 0) due to CORS restrictions.
-    - **Desktop**: Not supported due to KCEF API limitations.
+    - **Desktop**: Not supported due to current JCEF API limitations.
 
 ---
 

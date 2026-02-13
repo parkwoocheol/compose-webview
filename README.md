@@ -72,9 +72,28 @@ Visit the documentation site for comprehensive guides, API references, and advan
  |----------|----------------|--------|------|
  | **Android** | `AndroidView` (WebView) | ✅ Stable | Full feature support |
  | **iOS** | `UIKitView` (WKWebView) | ✅ Stable | Full feature support (Seamless JS Bridge) |
- | **Desktop** | `SwingPanel` (CEF via KCEF) | 🚧 Experimental | **WIP**: KCEF integration is in progress. Basic browsing works, but advanced features are still being tested. |
+| **Desktop** | `SwingPanel` (CEF via JCEF) | 🚧 Experimental | **WIP**: JCEF integration is in progress. Basic browsing works, but advanced features are still being tested. |
  | **Web (JS)** | `Iframe` (DOM) | 🚧 Experimental | **WIP**: Basic navigation and JSBridge (via postMessage) are implemented but may have limitations. |
  | **Web (WASM)** | `Iframe` (DOM) | 🚧 Experimental | **WIP**: Uses iframe with dynamic positioning. Same-origin policy restrictions apply. |
+
+### Desktop (macOS) Troubleshooting
+
+If you see `IllegalAccessError` with `sun.awt`, `sun.lwawt`, or `sun.lwawt.macosx` while running JCEF on macOS, add JVM module options:
+
+```kotlin
+compose.desktop {
+    application {
+        jvmArgs += listOf(
+            "--add-exports=java.desktop/sun.awt=ALL-UNNAMED",
+            "--add-opens=java.desktop/sun.awt=ALL-UNNAMED",
+            "--add-exports=java.desktop/sun.lwawt=ALL-UNNAMED",
+            "--add-opens=java.desktop/sun.lwawt=ALL-UNNAMED",
+            "--add-exports=java.desktop/sun.lwawt.macosx=ALL-UNNAMED",
+            "--add-opens=java.desktop/sun.lwawt.macosx=ALL-UNNAMED",
+        )
+    }
+}
+```
 
 ### API Support Matrix
 

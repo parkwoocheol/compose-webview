@@ -69,7 +69,7 @@ actual open class ComposeWebViewClient {
         request: PlatformWebResourceRequest?,
         error: PlatformWebResourceError?,
     ) {
-        // TODO: Map KCEF errors to WebViewError
+        // TODO: Map JCEF errors to WebViewError
         onReceivedErrorCallback(view, request, error)
     }
 

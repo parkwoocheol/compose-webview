@@ -10,7 +10,7 @@ actual object DownloadUtils {
         description: String?,
         title: String?,
     ) {
-        // Desktop can use java.awt.Desktop or KCEF download handler.
+        // Desktop can use java.awt.Desktop or a JCEF download handler.
         // For now, stub or print.
         println("Download requested: $url (Not implemented for Desktop)")
     }

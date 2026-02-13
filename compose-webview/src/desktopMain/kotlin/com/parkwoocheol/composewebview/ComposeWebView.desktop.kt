@@ -7,17 +7,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.SwingPanel
 import com.parkwoocheol.composewebview.client.ComposeWebChromeClient
 import com.parkwoocheol.composewebview.client.ComposeWebViewClient
-import dev.datlag.kcef.KCEF
-import dev.datlag.kcef.KCEFBrowser
+import kotlinx.coroutines.flow.collectLatest
 import org.cef.browser.CefBrowser
 import org.cef.browser.CefFrame
-import org.cef.browser.CefRendering
 import org.cef.handler.CefDisplayHandlerAdapter
 import org.cef.handler.CefLoadHandlerAdapter
+import org.cef.handler.CefRequestHandlerAdapter
 import java.awt.BorderLayout
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -96,145 +96,184 @@ internal actual fun ComposeWebViewImpl(
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
     onStartActionMode: ((WebView, PlatformActionModeCallback?) -> PlatformActionModeCallback?)?,
 ) {
+    client.webViewState = state
+    client.webViewController = controller
+
     var initialized by remember { mutableStateOf(false) }
-    var browser: KCEFBrowser? by remember { mutableStateOf(null) }
+    var initializationError by remember { mutableStateOf<Throwable?>(null) }
+    var webView: DesktopWebView? by remember { mutableStateOf(null) }
 
     LaunchedEffect(Unit) {
-        // Initialize KCEF (downloads binaries if needed)
-        KCEF.init(builder = {
-            // Apply WebView settings to CEF
-            // Note: CEF has limited runtime configuration
-            // Most settings need to be applied at builder time
-            if (!settings.javaScriptEnabled) {
-                addArgs("--disable-javascript")
-            }
-
-            settings.userAgent?.let { ua ->
-                addArgs("--user-agent=$ua")
-            }
-
-            // Apply other settings as CEF arguments if possible
-        }, onError = {
-            it?.printStackTrace()
-        }, onRestartRequired = {
-            // Handle restart
-        })
-        initialized = true
+        runCatching {
+            DesktopCefRuntime.initialize(settings)
+        }.onSuccess {
+            initialized = true
+        }.onFailure { throwable ->
+            initializationError = throwable
+        }
     }
 
     if (initialized) {
         DisposableEffect(Unit) {
-            val kcefClient = KCEF.newClientOrNullBlocking()
+            val cefClient = DesktopCefRuntime.createClient()
 
-            // Add Load Handler
-            kcefClient?.addLoadHandler(
-                object : CefLoadHandlerAdapter() {
-                    override fun onLoadingStateChange(
-                        browser: CefBrowser?,
-                        isLoading: Boolean,
-                        canGoBack: Boolean,
-                        canGoForward: Boolean,
-                    ) {
-                        if (isLoading) {
-                            state.loadingState = LoadingState.Loading(0f)
-                            // We don't have a direct "onPageStarted" equivalent with URL here easily without CefDisplayHandler
-                            // But we can approximate.
-                        } else {
-                            state.loadingState = LoadingState.Finished
-                            // Trigger onPageFinished
-                            browser?.let {
-                                // We need a way to get the WebView instance here, but it's created inside the factory.
-                                // For now, we update state directly which is what the default client does.
-                                // To support custom clients, we should ideally call client.onPageFinished.
-                                // However, we don't have the WebView instance yet or it's hard to access.
-                                // We will rely on state updates for now.
+            if (cefClient == null) {
+                initializationError = IllegalStateException("Failed to create JCEF client.")
+                onDispose { }
+            } else {
+                var activeView: DesktopWebView? = null
+
+                var lastLoadingState = false
+
+                // Add Load Handler
+                cefClient.addLoadHandler(
+                    object : CefLoadHandlerAdapter() {
+                        override fun onLoadingStateChange(
+                            browser: CefBrowser?,
+                            isLoading: Boolean,
+                            canGoBack: Boolean,
+                            canGoForward: Boolean,
+                        ) {
+                            if (isLoading && !lastLoadingState) {
+                                state.loadingState = LoadingState.Loading(0f)
+                                state.lastLoadedUrl = browser?.url
+                                client.onPageStarted(activeView, browser?.url, null)
+                            } else {
+                                state.loadingState = LoadingState.Finished
+                                if (lastLoadingState) {
+                                    client.onPageFinished(activeView, browser?.url)
+                                }
                             }
+                            lastLoadingState = isLoading
+                            controller.canGoBack = canGoBack
+                            controller.canGoForward = canGoForward
                         }
-                        controller.canGoBack = canGoBack
-                        controller.canGoForward = canGoForward
-                    }
-                },
-            )
+                    },
+                )
 
-            // Add Request Handler for shouldOverrideUrlLoading
-            kcefClient?.addRequestHandler(
-                object : org.cef.handler.CefRequestHandlerAdapter() {
-                    override fun onBeforeBrowse(
-                        browser: CefBrowser?,
-                        frame: CefFrame?,
-                        request: org.cef.network.CefRequest?,
-                        user_gesture: Boolean,
-                        is_redirect: Boolean,
-                    ): Boolean {
-                        if (request == null) return false
-                        val platformRequest =
-                            PlatformWebResourceRequest(
-                                url = request.url,
-                                method = request.method,
-                                // Headers not easily accessible here in this signature
-                                headers = emptyMap(),
-                                // Simplified
-                                isForMainFrame = true,
-                            )
-                        // If client returns true, cancel navigation (return true)
-                        // We need to pass a WebView instance. Since we don't have the wrapper easily, pass null for now
-                        // or refactor to hold reference.
-                        // For the sample app's CustomClient, it just checks the URL.
-                        return client.shouldOverrideUrlLoading(null, platformRequest)
-                    }
-                },
-            )
+                // Add Request Handler for shouldOverrideUrlLoading
+                cefClient.addRequestHandler(
+                    object : CefRequestHandlerAdapter() {
+                        override fun onBeforeBrowse(
+                            browser: CefBrowser?,
+                            frame: CefFrame?,
+                            request: org.cef.network.CefRequest?,
+                            user_gesture: Boolean,
+                            is_redirect: Boolean,
+                        ): Boolean {
+                            if (request == null) return false
+                            val platformRequest =
+                                PlatformWebResourceRequest(
+                                    url = request.url,
+                                    method = request.method,
+                                    headers = emptyMap(),
+                                    isForMainFrame = true,
+                                )
+                            return client.shouldOverrideUrlLoading(activeView, platformRequest)
+                        }
+                    },
+                )
 
-            // Add Display Handler
-            kcefClient?.addDisplayHandler(
-                object : CefDisplayHandlerAdapter() {
-                    override fun onAddressChange(
-                        browser: CefBrowser?,
-                        frame: CefFrame?,
-                        url: String?,
-                    ) {
-                        state.lastLoadedUrl = url
+                // Add Display Handler
+                cefClient.addDisplayHandler(
+                    object : CefDisplayHandlerAdapter() {
+                        override fun onAddressChange(
+                            browser: CefBrowser?,
+                            frame: CefFrame?,
+                            url: String?,
+                        ) {
+                            state.lastLoadedUrl = url
+                        }
+
+                        override fun onTitleChange(
+                            browser: CefBrowser?,
+                            title: String?,
+                        ) {
+                            state.pageTitle = title
+                        }
+                    },
+                )
+
+                // Determine initial URL from state
+                val initialUrl =
+                    when (val content = state.content) {
+                        is WebContent.Url -> content.url
+                        is WebContent.Data -> "about:blank"
+                        is WebContent.Post -> content.url
+                        is WebContent.NavigatorOnly -> "about:blank"
                     }
 
-                    override fun onTitleChange(
-                        browser: CefBrowser?,
-                        title: String?,
-                    ) {
-                        state.pageTitle = title
-                    }
-                },
-            )
-
-            // Determine initial URL from state
-            val initialUrl =
-                when (val content = state.content) {
-                    is WebContent.Url -> content.url
-                    is WebContent.Data -> "about:blank" // TODO: Handle data loading
-                    is WebContent.Post -> content.url
-                    is WebContent.NavigatorOnly -> "about:blank"
+                val browser = cefClient.createBrowser(initialUrl, false, false)
+                browser.createImmediately()
+                if (initialUrl.isNotBlank()) {
+                    browser.loadURL(initialUrl)
                 }
+                val createdView = DesktopWebView(browser, cefClient)
+                createdView.platformJavaScriptEnabled = settings.javaScriptEnabled
+                createdView.platformDomStorageEnabled = settings.domStorageEnabled
+                createdView.platformSupportZoom = settings.supportZoom
+                createdView.platformBuiltInZoomControls = settings.supportZoom
+                createdView.platformDisplayZoomControls = false
+                activeView = createdView
+                webView = createdView
+                state.webView = createdView
 
-            val newBrowser = kcefClient?.createBrowser(initialUrl, CefRendering.DEFAULT, false)
-            browser = newBrowser
+                javaScriptInterfaces.forEach { (name, obj) ->
+                    createdView.platformAddJavascriptInterface(obj, name)
+                }
+                onCreated(createdView)
+                jsBridge?.attach(createdView)
 
-            onDispose {
-                browser?.dispose()
+                onDispose {
+                    activeView?.let(onDispose)
+                    if (state.webView === activeView) {
+                        state.webView = null
+                    }
+                    webView = null
+                    browser.close(true)
+                    cefClient.dispose()
+                }
             }
         }
 
-        if (browser != null) {
+        if (webView != null) {
+            LaunchedEffect(webView, controller) {
+                controller.handleNavigationEvents(webView!!)
+            }
+
+            LaunchedEffect(webView) {
+                snapshotFlow { state.content }.collectLatest { content ->
+                    val activeWebView = webView ?: return@collectLatest
+                    when (content) {
+                        is WebContent.Url -> {
+                            if (content.url.isNotEmpty() && state.lastLoadedUrl != content.url) {
+                                activeWebView.platformLoadUrl(content.url, content.additionalHttpHeaders)
+                            }
+                        }
+
+                        is WebContent.Data -> {
+                            activeWebView.platformLoadDataWithBaseURL(
+                                content.baseUrl,
+                                content.data,
+                                content.mimeType,
+                                content.encoding,
+                                content.historyUrl,
+                            )
+                        }
+
+                        is WebContent.Post -> {
+                            activeWebView.platformPostUrl(content.url, content.postData)
+                        }
+
+                        is WebContent.NavigatorOnly -> Unit
+                    }
+                }
+            }
+
             SwingPanel(
                 modifier = modifier,
-                factory = {
-                    val webView = DesktopWebView(browser!!)
-                    onCreated(webView)
-                    jsBridge?.attach(webView)
-                    webView
-                },
-                update = {
-                    // Handle state updates if needed, e.g. loading new URL from state
-                    // For now, we rely on controller for navigation
-                },
+                factory = { webView!! },
+                update = { },
             )
 
             // Inject JS Bridge script when page finishes loading
@@ -246,7 +285,7 @@ internal actual fun ComposeWebViewImpl(
                 }
             }
         } else {
-            // Fallback to JEditorPane if CEF fails
+            // Fallback if browser creation fails
             SwingPanel(
                 modifier = modifier,
                 factory = {
@@ -254,7 +293,7 @@ internal actual fun ComposeWebViewImpl(
                         javax.swing.JEditorPane().apply {
                             isEditable = false
                             contentType = "text/html"
-                            text = "<html><body><h1>CEF Initialization Failed</h1><p>Could not create CEF browser.</p></body></html>"
+                            text = "<html><body><h1>JCEF Initialization Failed</h1><p>Could not create JCEF browser.</p></body></html>"
                         }
                     val scrollPane = javax.swing.JScrollPane(jEditorPane)
                     val panel = JPanel(BorderLayout())
@@ -263,14 +302,21 @@ internal actual fun ComposeWebViewImpl(
                 },
             )
         }
+    } else if (initializationError != null) {
+        errorContent(
+            listOf(
+                WebViewError(
+                    description = initializationError?.message ?: "Desktop WebView initialization failed",
+                ),
+            ),
+        )
     } else {
-        // Show loading content while initializing CEF (downloading binaries)
+        // Show loading content while initializing JCEF runtime.
         loadingContent()
-        // Optional: Show a SwingPanel with "Initializing..." text if loadingContent is empty
         SwingPanel(
             modifier = modifier,
             factory = {
-                val label = JLabel("Initializing WebView (Downloading CEF)...")
+                val label = JLabel("Initializing WebView (JCEF)...")
                 label.horizontalAlignment = JLabel.CENTER
                 val panel = JPanel(BorderLayout())
                 panel.add(label, BorderLayout.CENTER)

@@ -20,5 +20,14 @@ kotlin {
 compose.desktop {
     application {
         mainClass = "com.parkwoocheol.sample.composewebview.MainKt"
+        jvmArgs +=
+            listOf(
+                "--add-exports=java.desktop/sun.awt=ALL-UNNAMED",
+                "--add-opens=java.desktop/sun.awt=ALL-UNNAMED",
+                "--add-exports=java.desktop/sun.lwawt=ALL-UNNAMED",
+                "--add-opens=java.desktop/sun.lwawt=ALL-UNNAMED",
+                "--add-exports=java.desktop/sun.lwawt.macosx=ALL-UNNAMED",
+                "--add-opens=java.desktop/sun.lwawt.macosx=ALL-UNNAMED",
+            )
     }
 }
