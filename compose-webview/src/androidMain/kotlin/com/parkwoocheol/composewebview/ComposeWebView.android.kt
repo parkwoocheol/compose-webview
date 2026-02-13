@@ -3,6 +3,7 @@ package com.parkwoocheol.composewebview
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.net.Uri
+import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams
 import android.webkit.DownloadListener
 import android.webkit.ValueCallback
@@ -63,6 +64,7 @@ internal actual fun ComposeWebViewImpl(
     url: String,
     modifier: Modifier,
     settings: WebViewSettings,
+    releaseStrategy: WebViewReleaseStrategy,
     controller: WebViewController,
     javaScriptInterfaces: Map<String, Any>,
     onCreated: (WebView) -> Unit,
@@ -86,6 +88,7 @@ internal actual fun ComposeWebViewImpl(
         state = state,
         modifier = modifier,
         settings = settings,
+        releaseStrategy = releaseStrategy,
         controller = controller,
         javaScriptInterfaces = javaScriptInterfaces,
         onCreated = onCreated,
@@ -110,6 +113,7 @@ internal actual fun ComposeWebViewImpl(
     state: WebViewState,
     modifier: Modifier,
     settings: WebViewSettings,
+    releaseStrategy: WebViewReleaseStrategy,
     controller: WebViewController,
     javaScriptInterfaces: Map<String, Any>,
     onCreated: (WebView) -> Unit,
@@ -223,23 +227,31 @@ internal actual fun ComposeWebViewImpl(
     WebViewContainer(modifier = modifier) { layoutParams ->
         AndroidView(
             factory = { context ->
+                val existingWebView = if (releaseStrategy == WebViewReleaseStrategy.KeepAlive) state.webView else null
+                val isNewWebView = existingWebView == null
                 val wv =
-                    factory?.invoke(context) ?: object : WebView(context) {
-                        override fun startActionMode(callback: android.view.ActionMode.Callback?): android.view.ActionMode? {
-                            val wrappedCallback = onStartActionMode?.invoke(this, callback) ?: callback
-                            return super.startActionMode(wrappedCallback)
-                        }
+                    (
+                        existingWebView
+                            ?: factory?.invoke(context)
+                            ?: object : WebView(context) {
+                                override fun startActionMode(callback: android.view.ActionMode.Callback?): android.view.ActionMode? {
+                                    val wrappedCallback = onStartActionMode?.invoke(this, callback) ?: callback
+                                    return super.startActionMode(wrappedCallback)
+                                }
 
-                        override fun startActionMode(
-                            callback: android.view.ActionMode.Callback?,
-                            type: Int,
-                        ): android.view.ActionMode? {
-                            val wrappedCallback = onStartActionMode?.invoke(this, callback) ?: callback
-                            return super.startActionMode(wrappedCallback, type)
-                        }
-                    }.apply {
+                                override fun startActionMode(
+                                    callback: android.view.ActionMode.Callback?,
+                                    type: Int,
+                                ): android.view.ActionMode? {
+                                    val wrappedCallback = onStartActionMode?.invoke(this, callback) ?: callback
+                                    return super.startActionMode(wrappedCallback, type)
+                                }
+                            }
+                    ).apply {
                         this.layoutParams = layoutParams
                     }
+
+                (wv.parent as? ViewGroup)?.removeView(wv)
 
                 wv.apply {
                     // Inject context for DownloadUtils
@@ -271,48 +283,55 @@ internal actual fun ComposeWebViewImpl(
                         state.scrollPosition = ScrollPosition(scrollX, scrollY)
                     }
                 }.also {
-                    // Restore state if available
-                    state.bundle?.let { bundle ->
-                        it.restoreState(bundle)
-                    } ?: run {
-                        // Initial load logic if no bundle
-                        when (val content = state.content) {
-                            is WebContent.Url -> {
-                                if (content.url.isNotEmpty()) {
-                                    it.loadUrl(content.url, content.additionalHttpHeaders)
+                    if (isNewWebView) {
+                        // Restore state if available
+                        state.bundle?.let { bundle ->
+                            it.restoreState(bundle)
+                        } ?: run {
+                            // Initial load logic if no bundle
+                            when (val content = state.content) {
+                                is WebContent.Url -> {
+                                    if (content.url.isNotEmpty()) {
+                                        it.loadUrl(content.url, content.additionalHttpHeaders)
+                                    }
+                                }
+
+                                is WebContent.Data -> {
+                                    it.loadDataWithBaseURL(
+                                        content.baseUrl,
+                                        content.data,
+                                        content.mimeType,
+                                        content.encoding,
+                                        content.historyUrl,
+                                    )
+                                }
+
+                                is WebContent.Post -> {
+                                    it.postUrl(content.url, content.postData)
+                                }
+
+                                is WebContent.NavigatorOnly -> {
+                                    // Do nothing
                                 }
                             }
-
-                            is WebContent.Data -> {
-                                it.loadDataWithBaseURL(
-                                    content.baseUrl,
-                                    content.data,
-                                    content.mimeType,
-                                    content.encoding,
-                                    content.historyUrl,
-                                )
-                            }
-
-                            is WebContent.Post -> {
-                                it.postUrl(content.url, content.postData)
-                            }
-
-                            is WebContent.NavigatorOnly -> {
-                                // Do nothing
-                            }
                         }
+
+                        onCreated(it)
                     }
 
                     state.webView = it
-                    onCreated(it)
                 }
             },
             modifier = Modifier,
             update = { _ -> },
             onRelease = {
                 onDispose(it)
-                state.webView = null
-                it.destroy() // Explicitly destroy to prevent leaks
+                if (releaseStrategy == WebViewReleaseStrategy.DestroyOnRelease) {
+                    state.webView = null
+                    it.destroy() // Explicitly destroy to prevent leaks
+                } else {
+                    (it.parent as? ViewGroup)?.removeView(it)
+                }
             },
         )
 
@@ -359,7 +378,7 @@ internal actual fun ComposeWebViewImpl(
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
-            // WebView destroy is handled by AndroidView onRelease
+            // WebView release is handled by AndroidView onRelease based on releaseStrategy
         }
     }
 }
@@ -492,6 +511,7 @@ fun ComposeWebView(
     state: WebViewState,
     modifier: Modifier = Modifier,
     settings: WebViewSettings = WebViewSettings.Default,
+    releaseStrategy: WebViewReleaseStrategy = WebViewReleaseStrategy.DestroyOnRelease,
     controller: WebViewController = rememberWebViewController(),
     javaScriptInterfaces: Map<String, Any> = emptyMap(),
     onCreated: (WebView) -> Unit = {},
@@ -527,6 +547,7 @@ fun ComposeWebView(
         state = state,
         modifier = modifier,
         settings = settings,
+        releaseStrategy = releaseStrategy,
         controller = controller,
         javaScriptInterfaces = javaScriptInterfaces,
         onCreated = onCreated,

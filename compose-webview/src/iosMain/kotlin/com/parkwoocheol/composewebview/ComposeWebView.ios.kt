@@ -36,6 +36,7 @@ internal actual fun ComposeWebViewImpl(
     url: String,
     modifier: Modifier,
     settings: WebViewSettings,
+    releaseStrategy: WebViewReleaseStrategy,
     controller: WebViewController,
     javaScriptInterfaces: Map<String, Any>,
     onCreated: (WebView) -> Unit,
@@ -59,6 +60,7 @@ internal actual fun ComposeWebViewImpl(
         state = state,
         modifier = modifier,
         settings = settings,
+        releaseStrategy = releaseStrategy,
         controller = controller,
         javaScriptInterfaces = javaScriptInterfaces,
         onCreated = onCreated,
@@ -84,6 +86,7 @@ internal actual fun ComposeWebViewImpl(
     state: WebViewState,
     modifier: Modifier,
     settings: WebViewSettings,
+    releaseStrategy: WebViewReleaseStrategy,
     controller: WebViewController,
     javaScriptInterfaces: Map<String, Any>,
     onCreated: (WebView) -> Unit,
@@ -266,7 +269,7 @@ internal actual fun ComposeWebViewImpl(
             },
             onRelease = {
                 onDispose(webView)
-                if (state.webView === webView) {
+                if (releaseStrategy == WebViewReleaseStrategy.DestroyOnRelease && state.webView === webView) {
                     state.webView = null
                 }
             },

@@ -17,8 +17,9 @@ Managing the lifecycle of a `WebView` is critical for performance and preventing
 
 ### 2. Destruction (Dispose)
 
-* **On Dispose**: When the `ComposeWebView` leaves the composition tree (e.g., navigating to another screen), `webView.destroy()` is called.
-* **Cleanup**: DOM storage and other resources are cleaned up to prevent memory leaks.
+* **Default (`DestroyOnRelease`)**: When the `ComposeWebView` leaves the composition tree, `webView.destroy()` is called.
+* **Optional (`KeepAlive`)**: Keep the native WebView instance alive across composition exits/re-entries (Android/iOS only).
+* **Cleanup**: Resources are still cleaned up according to your selected release strategy.
 
 !!! success "Zero Boilerplate"
     You do NOT need to manually handle lifecycle events in your Activity or Fragment.
@@ -32,12 +33,13 @@ If you need to manually dispose of the WebView or clear its state before the Com
 ```kotlin
 ComposeWebView(
     // ...
+    releaseStrategy = WebViewReleaseStrategy.KeepAlive,
     onDispose = { webView ->
         // Additional cleanup if needed
         webView.clearCache(true)
         webView.clearHistory()
-        
-        // Note: webView.destroy() is called automatically after this block
     }
 )
 ```
+
+When using `KeepAlive`, call `destroy()` at your actual ownership boundary (for example `ViewModel.onCleared()` on Android) to avoid leaks.

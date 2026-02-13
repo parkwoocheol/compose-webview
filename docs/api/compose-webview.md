@@ -16,6 +16,7 @@ fun ComposeWebView(
     url: String,
     modifier: Modifier = Modifier,
     settings: WebViewSettings = WebViewSettings.Default,
+    releaseStrategy: WebViewReleaseStrategy = WebViewReleaseStrategy.DestroyOnRelease,
     controller: WebViewController = rememberWebViewController(),
     javaScriptInterfaces: Map<String, Any> = emptyMap(),
     onCreated: (WebView) -> Unit = {},
@@ -44,6 +45,7 @@ Use this when you are providing a `WebViewState` (e.g., from `rememberSaveableWe
 fun ComposeWebView(
     state: WebViewState,
     modifier: Modifier = Modifier,
+    releaseStrategy: WebViewReleaseStrategy = WebViewReleaseStrategy.DestroyOnRelease,
     controller: WebViewController = rememberWebViewController(),
     // ... all other parameters are identical
 )
@@ -59,11 +61,12 @@ fun ComposeWebView(
 | `state` | `WebViewState` | The `WebViewState` object holding the content and status of the WebView. | All platforms |
 | `modifier` | `Modifier` | The modifier to be applied to the layout. | All platforms |
 | `settings` | `WebViewSettings` | Configuration settings for WebView behavior (user agent, JavaScript, cache, zoom, etc.). | Android (full), iOS (partial), Desktop (partial), Web (none) |
+| `releaseStrategy` | `WebViewReleaseStrategy` | Controls whether the native WebView is destroyed on composition release or kept alive for reuse. | KeepAlive: Android, iOS only |
 | `controller` | `WebViewController` | The `WebViewController` for programmatic control (load, back, forward, zoom, etc.). | All platforms* |
 | `javaScriptInterfaces` | `Map<String, Any>` | Map of native objects to inject into JavaScript. Key is the JS object name. | Android, Desktop |
 | `jsBridge` | `WebViewJsBridge?` | The `WebViewJsBridge` instance for type-safe, promise-based communication. | All platforms |
 | `onCreated` | `(WebView) -> Unit` | Callback invoked when the native `WebView` instance is created. | All platforms |
-| `onDispose` | `(WebView) -> Unit` | Callback invoked when the WebView is about to be destroyed. | All platforms |
+| `onDispose` | `(WebView) -> Unit` | Callback invoked when the WebView leaves composition (before release strategy is applied). | All platforms |
 | `client` | `ComposeWebViewClient` | Custom `ComposeWebViewClient` (wraps `WebViewClient`). | All platforms |
 | `chromeClient` | `ComposeWebChromeClient` | Custom `ComposeWebChromeClient` (wraps `WebChromeClient`). | All platforms |
 | `factory` | `((PlatformContext) -> WebView)?` | Optional factory to provide a custom `WebView` instance. | Android, iOS |
@@ -78,6 +81,11 @@ fun ComposeWebView(
 | `onStartActionMode` | `((WebView, PlatformActionModeCallback?) -> PlatformActionModeCallback?)?` | Callback for Android action mode (context menu). Return a custom callback or null. | Android |
 
 \* **Controller**: All platforms support basic navigation, but some features (like zoom) are platform-specific. See `WebViewController` documentation for details.
+
+`releaseStrategy` notes:
+- `DestroyOnRelease` (default): existing behavior, WebView is disposed when it leaves composition.
+- `KeepAlive`: keeps the instance for reuse across composition exits/re-entries.
+- `KeepAlive` is currently supported on Android and iOS. Desktop/Web/WASM currently behave as `DestroyOnRelease`.
 
 ---
 
