@@ -98,6 +98,19 @@ Controls the navigation and execution of the WebView.
 
 ---
 
+## `WebViewReleaseStrategy`
+
+Controls what happens to the native WebView when the Composable leaves composition.
+
+| Value | Description | Platform Support |
+| :--- | :--- | :--- |
+| `DestroyOnRelease` | Default behavior. Release and destroy the WebView on composition exit. | All platforms |
+| `KeepAlive` | Keep the WebView instance for reuse after re-entry. | Android, iOS |
+
+Desktop/Web/WASM currently follow destroy-on-release behavior.
+
+---
+
 ## `WebViewJsBridge`
 
 Helper class for managing the connection between Kotlin and JavaScript.
