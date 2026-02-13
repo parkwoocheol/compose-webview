@@ -107,8 +107,16 @@ Helper class for managing the connection between Kotlin and JavaScript.
 | Method | Description | Platform Support |
 | :--- | :--- | :--- |
 | `register<T, R>(name: String, handler: (T) -> R)` | Registers a handler that receives type `T` from JS and returns type `R`. | All platforms |
+| `register<R>(name: String, handler: () -> R)` | Registers a handler with no input argument and returns type `R`. | All platforms |
+| `registerNullable<T, R>(name: String, handler: (T?) -> R)` | Registers a handler that accepts nullable payload input from JS and returns type `R`. | All platforms |
 | `emit(eventName: String, data: Any)` | Emits an event to JavaScript. The data object is automatically serialized to JSON. | All platforms |
-| `call<T>(functionName: String, args: Any, callback: (T) -> Unit)` | Calls a JavaScript function and receives the result. | All platforms |
+| `unregister(name: String)` | Unregisters a previously registered native handler. | All platforms |
+
+`register<T, R>` null input rules:
+- `T` is `Unit`: `null` input is accepted.
+- Other non-null input types: `null` input throws an error.
+
+Use `registerNullable<T, R>` when you want `null` payloads for non-Unit types.
 
 ---
 

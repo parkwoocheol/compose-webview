@@ -75,6 +75,45 @@ bridge.register<String, Unit>("log") { message ->
 }
 ```
 
+### No-Argument Handler
+
+For no-argument calls, you can use either `register<Unit, R>` or `register<R>`.
+
+```kotlin
+bridge.register<Unit, Unit>("refreshSession") {
+    Log.d("WebView", "Refreshing session...")
+}
+
+bridge.register<Unit>("refreshSessionAlt") {
+    Log.d("WebView", "Refreshing session...")
+}
+```
+
+Both JavaScript forms are valid:
+
+```javascript
+await window.AppBridge.call('refreshSession');
+await window.AppBridge.call('refreshSession', null);
+```
+
+`register<T, R>` null input rules:
+- `T` is `Unit`: `null` is accepted.
+- Other non-null input types: `null` throws an input type error.
+
+### Nullable Payload Handler
+
+Use `registerNullable<T, R>` when JavaScript may send `null` for a typed payload.
+
+```kotlin
+bridge.registerNullable<UserRequest, User>("getUserMaybe") { requestOrNull ->
+    if (requestOrNull == null) {
+        User(id = "0", name = "Guest")
+    } else {
+        userRepository.findById(requestOrNull.id)
+    }
+}
+```
+
 ---
 
 ## Calling JavaScript from Kotlin
@@ -133,12 +172,14 @@ try {
 Subscribes to an event emitted from Kotlin.
 
 ```javascript
-const unsubscribe = window.AppBridge.on('eventName', (data) => {
+const onEvent = (data) => {
     // Handle event
-});
+};
 
-// Later...
-unsubscribe();
+window.AppBridge.on('eventName', onEvent);
+
+// Later
+window.AppBridge.off('eventName', onEvent);
 ```
 
 ---
@@ -148,11 +189,16 @@ unsubscribe();
 By default, the library uses `kotlinx.serialization`. If you prefer **Gson**, **Moshi**, or **Jackson**, you can implement the `BridgeSerializer` interface.
 
 ```kotlin
-class GsonSerializer(val gson: Gson) : BridgeSerializer {
-    override fun <T> encode(value: T, clazz: Class<T>): String = gson.toJson(value)
-    override fun <T> decode(json: String, clazz: Class<T>): T = gson.fromJson(json, clazz)
+import kotlin.reflect.KType
+
+class CustomSerializer : BridgeSerializer {
+    override fun encode(data: Any?, type: KType): String =
+        TODO("Serialize data using your JSON library and KType")
+
+    override fun <T> decode(json: String, type: KType): T =
+        TODO("Deserialize json using your JSON library and KType")
 }
 
 // Usage
-val bridge = rememberWebViewJsBridge(serializer = GsonSerializer(Gson()))
+val bridge = rememberWebViewJsBridge(serializer = CustomSerializer())
 ```

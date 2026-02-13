@@ -511,6 +511,15 @@ fun WebViewWithJsBridge() {
         bridge.register<String, Unit>("log") { message ->
             println("JavaScript log: $message")
         }
+
+        // Handle nullable input payloads
+        bridge.registerNullable<User, UserResponse>("updateUserMaybe") { userOrNull ->
+            if (userOrNull == null) {
+                UserResponse(success = false, message = "Missing user payload")
+            } else {
+                UserResponse(success = true, message = "Updated ${userOrNull.name}")
+            }
+        }
     }
 
     ComposeWebView(
@@ -542,6 +551,8 @@ async function updateUser() {
 // Call without parameters
 async function getLocation() {
     try {
+        // You can also omit the second argument:
+        // const location = await window.AppBridge.call('getLocation');
         const location = await window.AppBridge.call('getLocation', null);
         console.log(`Lat: ${location.latitude}, Lng: ${location.longitude}`);
     } catch (error) {
@@ -558,6 +569,12 @@ async function logMessage() {
     }
 }
 ```
+
+`register<T, R>` null input rules:
+- `T` is `Unit`: `call("method")` and `call("method", null)` are both accepted.
+- Other non-null input types: `null` throws an input type error.
+
+Use `registerNullable<T, R>` when a payload type may be `null` from JavaScript.
 
 #### Customizing Bridge Name
 
@@ -994,23 +1011,30 @@ class WebViewJsBridge(
     val jsObjectName: String = "AppBridge",
     private val nativeInterfaceName: String = "AppBridgeNative"
 ) {
-    // Register a handler for calls from JavaScript
-    inline fun <reified T, reified R> register(
+    // Register a typed handler for calls from JavaScript.
+    // Null input is only accepted when T is Unit.
+    inline fun <reified T : Any, reified R : Any> register(
         method: String,
         noinline handler: (T) -> R
     )
 
-    // Register a handler with custom serializer
-    fun register(
-        name: String,
-        handler: suspend (String) -> String
+    // Register a no-argument handler
+    inline fun <reified R : Any> register(
+        method: String,
+        noinline handler: () -> R
+    )
+
+    // Register a handler for nullable payload input
+    inline fun <reified T : Any, reified R : Any> registerNullable(
+        method: String,
+        noinline handler: (T?) -> R
     )
 
     // Emit an event to JavaScript
-    fun emit(eventName: String, data: Any)
+    inline fun <reified T> emit(eventName: String, data: T)
 
     // Unregister a handler
-    fun unregister(name: String)
+    fun unregister(method: String)
 }
 ```
 
@@ -1138,25 +1162,27 @@ fun rememberWebViewJsBridge(
 Implement `BridgeSerializer` to use custom JSON libraries like Gson or Moshi:
 
 ```kotlin
+import kotlin.reflect.KType
+
 interface BridgeSerializer {
-    fun <T> encode(value: T, clazz: Class<T>): String
-    fun <T> decode(json: String, clazz: Class<T>): T
+    fun encode(data: Any?, type: KType): String
+    fun <T> decode(json: String, type: KType): T
 }
 
-// Example with Gson
-class GsonBridgeSerializer(private val gson: Gson) : BridgeSerializer {
-    override fun <T> encode(value: T, clazz: Class<T>): String {
-        return gson.toJson(value, clazz)
+// Example skeleton for a custom serializer
+class CustomBridgeSerializer : BridgeSerializer {
+    override fun encode(data: Any?, type: KType): String {
+        TODO("Serialize data with your JSON library using type")
     }
 
-    override fun <T> decode(json: String, clazz: Class<T>): T {
-        return gson.fromJson(json, clazz)
+    override fun <T> decode(json: String, type: KType): T {
+        TODO("Deserialize json with your JSON library using type")
     }
 }
 
 // Usage
 val bridge = rememberWebViewJsBridge(
-    serializer = GsonBridgeSerializer(Gson())
+    serializer = CustomBridgeSerializer()
 )
 ```
 
