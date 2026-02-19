@@ -96,12 +96,6 @@ kotlin {
             }
         }
 
-        getByName("jsMain") {
-            dependencies {
-                implementation(compose.html.core)
-            }
-        }
-
         if (enableWasm) {
             getByName("wasmJsMain") {
                 dependencies {

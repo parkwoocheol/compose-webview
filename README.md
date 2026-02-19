@@ -73,8 +73,10 @@ Visit the documentation site for comprehensive guides, API references, and advan
  | **Android** | `AndroidView` (WebView) | ✅ Stable | Full feature support |
  | **iOS** | `UIKitView` (WKWebView) | ✅ Stable | Full feature support (Seamless JS Bridge) |
 | **Desktop** | `SwingPanel` (CEF via JCEF) | 🚧 Experimental | **WIP**: JCEF integration is in progress. Basic browsing works, but advanced features are still being tested. |
- | **Web (JS)** | `Iframe` (DOM) | 🚧 Experimental | **WIP**: Basic navigation and JSBridge (via postMessage) are implemented but may have limitations. |
+ | **Web (JS)** | `Iframe` (DOM overlay) | 🚧 Experimental | **WIP**: Uses DOM overlay to stay compatible with Compose UI (Canvas). CORS/browser policy limitations apply. |
  | **Web (WASM)** | `Iframe` (DOM) | 🚧 Experimental | **WIP**: Uses iframe with dynamic positioning. Same-origin policy restrictions apply. |
+
+> Web(JS) uses imperative DOM overlay instead of Compose HTML DOM nodes to avoid runtime Applier conflicts in Compose UI(Canvas) apps.
 
 ### Desktop (macOS) Troubleshooting
 

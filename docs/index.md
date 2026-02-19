@@ -45,8 +45,11 @@ It provides a unified API to control WebViews across **Android**, **iOS**, **Des
 | **Android** | `AndroidView` (WebView) | :white_check_mark: Stable | Full feature support |
 | **iOS** | `UIKitView` (WKWebView) | :white_check_mark: Stable | Full feature support (Seamless JS Bridge) |
 | **Desktop** | `SwingPanel` (CEF via JCEF) | :construction: Experimental | **WIP**: Basic browsing works. JCEF integration in progress. |
-| **Web (JS)** | `Iframe` (DOM) | :construction: Experimental | **WIP**: Basic navigation and `postMessage` bridge. |
+| **Web (JS)** | `Iframe` (DOM overlay) | :construction: Experimental | **WIP**: Uses DOM overlay to stay compatible with Compose UI (Canvas). CORS/browser policy limitations apply. |
 | **Web (WASM)** | `Iframe` (DOM) | :construction: Experimental | **WIP**: Uses iframe with dynamic positioning. Same-origin policy restrictions. |
+
+!!! note "Web(JS) Runtime Model"
+    Web(JS) uses imperative DOM overlay instead of Compose HTML DOM nodes to avoid runtime Applier conflicts in Compose UI(Canvas) apps.
 
 ## Desktop (macOS) Troubleshooting
 
