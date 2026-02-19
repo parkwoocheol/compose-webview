@@ -71,6 +71,11 @@ Cool! Open an issue first so we can discuss it.
 
 4. Push and open a PR
 
+### Release History
+
+- The canonical release history is maintained in `CHANGELOG.md`.
+- GitHub Releases should reference the matching version section in `CHANGELOG.md`.
+
 ## Code Style
 
 Just follow standard Kotlin conventions:

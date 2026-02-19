@@ -1267,6 +1267,10 @@ We welcome contributions from the community! Whether it's reporting bugs, sugges
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for more details.
 
+### Release History
+
+Release history is maintained in [CHANGELOG.md](CHANGELOG.md).
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
