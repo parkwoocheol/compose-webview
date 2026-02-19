@@ -1,17 +1,23 @@
 package com.parkwoocheol.composewebview
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.round
 import com.parkwoocheol.composewebview.client.ComposeWebChromeClient
 import com.parkwoocheol.composewebview.client.ComposeWebViewClient
-import org.jetbrains.compose.web.css.border
-import org.jetbrains.compose.web.css.height
-import org.jetbrains.compose.web.css.percent
-import org.jetbrains.compose.web.css.px
-import org.jetbrains.compose.web.css.width
-import org.jetbrains.compose.web.dom.Iframe
+import kotlinx.browser.document
+import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLIFrameElement
 
 @Composable
@@ -37,30 +43,66 @@ internal actual fun ComposeWebViewImpl(
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
     onStartActionMode: ((WebView, PlatformActionModeCallback?) -> PlatformActionModeCallback?)?,
 ) {
-    // Use Iframe from org.jetbrains.compose.web.dom
-    // Note: This works best when using Compose HTML (DOM).
-    // If using Compose Multiplatform (Canvas), this might not render correctly without an overlay.
-    // But this is the standard way to access DOM elements in KMP Web.
+    val density = LocalDensity.current.density
+    val componentReady = remember { mutableStateOf(false) }
 
-    // Note: Web platform (iframe) has very limited configuration options
-    // Most WebViewSettings cannot be applied as iframe is controlled by the browser
+    val container =
+        remember {
+            (document.createElement("div") as HTMLDivElement).apply {
+                className = "webview-container"
+                style.position = "absolute"
+            }
+        }
 
-    org.jetbrains.compose.web.dom.Iframe(
-        attrs = {
-            attr("src", url)
-            style {
-                width(100.percent)
-                height(100.percent)
-                border(0.px)
+    val iframe =
+        remember {
+            (document.createElement("iframe") as HTMLIFrameElement).apply {
+                src = url
+                style.apply {
+                    width = "100%"
+                    height = "100%"
+                    border = "none"
+                }
+                setAttribute("allow", "fullscreen")
             }
-            ref {
-                val iframe = it as HTMLIFrameElement
-                val webView = WebView(iframe)
-                onCreated(webView)
-                onDispose { onDispose(webView) }
-            }
-        },
+        }
+
+    Box(
+        modifier =
+            modifier
+                .fillMaxSize()
+                .onGloballyPositioned { coordinates ->
+                    val location = coordinates.positionInWindow().round()
+                    val size = coordinates.size
+
+                    if (componentReady.value) {
+                        container.style.apply {
+                            left = "${location.x / density}px"
+                            top = "${location.y / density}px"
+                            width = "${size.width / density}px"
+                            height = "${size.height / density}px"
+                        }
+                    }
+                },
     )
+
+    DisposableEffect(container, iframe) {
+        container.appendChild(iframe)
+        document.body?.appendChild(container)
+        componentReady.value = true
+
+        val webView = WebView(iframe)
+        onCreated(webView)
+
+        onDispose {
+            try {
+                document.body?.removeChild(container)
+            } catch (_: Throwable) {
+            }
+            componentReady.value = false
+            onDispose(webView)
+        }
+    }
 }
 
 @Composable
@@ -87,6 +129,10 @@ internal actual fun ComposeWebViewImpl(
     onFindResultReceived: ((Int, Int, Boolean) -> Unit)?,
     onStartActionMode: ((WebView, PlatformActionModeCallback?) -> PlatformActionModeCallback?)?,
 ) {
+    val density = LocalDensity.current.density
+    val componentReady = remember { mutableStateOf(false) }
+    val iframeElement = remember { mutableStateOf<HTMLIFrameElement?>(null) }
+
     LaunchedEffect(state) {
         snapshotFlow { state.content }.collect { content ->
             if (content is WebContent.Url) {
@@ -102,58 +148,96 @@ internal actual fun ComposeWebViewImpl(
         }
     }
 
-    // Note: Web platform (iframe) has very limited configuration options
-    // Most WebViewSettings cannot be applied as iframe is controlled by the browser
-    // Settings like JavaScript, cache mode, user agent, etc. are browser-controlled
-
     val url = state.lastLoadedUrl ?: ""
-    Iframe(
-        attrs = {
-            attr("src", url)
-            style {
-                width(100.percent)
-                height(100.percent)
-                border(0.px)
+
+    val container =
+        remember {
+            (document.createElement("div") as HTMLDivElement).apply {
+                className = "webview-container"
+                style.position = "absolute"
             }
-            ref {
-                val iframe = it as HTMLIFrameElement
-                val webView = WebView(iframe)
-                state.webView = webView
+        }
 
-                // Attach JSBridge
-                jsBridge?.attach(webView)
+    val iframe =
+        remember {
+            (document.createElement("iframe") as HTMLIFrameElement).apply {
+                style.apply {
+                    width = "100%"
+                    height = "100%"
+                    border = "none"
+                }
+                setAttribute("allow", "fullscreen")
+            }
+        }
 
-                // Try to set up scroll tracking (only works for same-origin iframes)
-                try {
-                    iframe.contentWindow?.addEventListener("scroll", { _ ->
-                        try {
-                            val scrollX = iframe.contentWindow?.scrollX?.toInt() ?: 0
-                            val scrollY = iframe.contentWindow?.scrollY?.toInt() ?: 0
-                            state.scrollPosition = ScrollPosition(scrollX, scrollY)
-                        } catch (e: dynamic) {
-                            // CORS restriction - cannot access scroll position
+    Box(
+        modifier =
+            modifier
+                .fillMaxSize()
+                .onGloballyPositioned { coordinates ->
+                    val location = coordinates.positionInWindow().round()
+                    val size = coordinates.size
+
+                    if (componentReady.value) {
+                        container.style.apply {
+                            left = "${location.x / density}px"
+                            top = "${location.y / density}px"
+                            width = "${size.width / density}px"
+                            height = "${size.height / density}px"
                         }
-                    })
-                } catch (e: dynamic) {
-                    // CORS restriction - cannot add event listener
-                }
-
-                onCreated(webView)
-
-                // Handle Load Events
-                iframe.onload = { _ ->
-                    state.loadingState = LoadingState.Finished
-                    // Inject JS Bridge script
-                    jsBridge?.let { bridge ->
-                        webView.platformEvaluateJavascript(bridge.jsScript, null)
                     }
-                }
-
-                onDispose {
-                    onDispose(webView)
-                    state.webView = null
-                }
-            }
-        },
+                },
     )
+
+    DisposableEffect(container, iframe) {
+        container.appendChild(iframe)
+        document.body?.appendChild(container)
+        componentReady.value = true
+        iframeElement.value = iframe
+
+        val webView = WebView(iframe)
+        state.webView = webView
+        jsBridge?.attach(webView)
+
+        try {
+            iframe.contentWindow?.addEventListener("scroll", { _ ->
+                try {
+                    val scrollX = iframe.contentWindow?.scrollX?.toInt() ?: 0
+                    val scrollY = iframe.contentWindow?.scrollY?.toInt() ?: 0
+                    state.scrollPosition = ScrollPosition(scrollX, scrollY)
+                } catch (_: dynamic) {
+                }
+            })
+        } catch (_: dynamic) {
+        }
+
+        iframe.onload = { _ ->
+            state.loadingState = LoadingState.Finished
+            jsBridge?.let { bridge ->
+                webView.platformEvaluateJavascript(bridge.jsScript, null)
+            }
+            null
+        }
+
+        onCreated(webView)
+
+        onDispose {
+            try {
+                document.body?.removeChild(container)
+            } catch (_: Throwable) {
+            }
+            componentReady.value = false
+            iframeElement.value = null
+            onDispose(webView)
+            state.webView = null
+        }
+    }
+
+    SideEffect {
+        iframeElement.value?.let { frame ->
+            if (url.isNotEmpty() && frame.src != url) {
+                frame.src = url
+            }
+        }
+    }
 }
