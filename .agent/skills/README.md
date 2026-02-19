@@ -109,10 +109,9 @@ This project uses a unified `.agent/` directory structure:
 
 ```
 .agent/
-├── knowledge/    # Static documentation (existing)
-├── rules/        # Knowledge symlinks (existing)
-├── tools/        # Reserved for future use (existing)
-└── skills/       # Executable workflows (NEW)
+├── knowledge/    # Static documentation and canonical guidance
+├── tools/        # Reserved for future use
+└── skills/       # Executable workflows
 ```
 
 **Claude Code Compatibility**: `.claude/skills/` is a symlink to `.agent/skills/`
@@ -140,7 +139,6 @@ To create a new skill:
 ## Related Resources
 
 - **Knowledge Base**: `.agent/knowledge/` - Project documentation
-- **Project Rules**: `.agent/rules/` - Agent configuration
 - **MkDocs**: `docs/` - User-facing documentation
 
 ## License
