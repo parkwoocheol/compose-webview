@@ -541,6 +541,12 @@ fun WebViewWithJsBridge() {
                 UserResponse(success = true, message = "Updated ${userOrNull.name}")
             }
         }
+
+        // Suspend handlers — async operations before returning to JS
+        bridge.register<SearchQuery, SearchResult>("search") { query ->
+            val results = api.search(query.term) // suspend call
+            SearchResult(items = results)
+        }
     }
 
     ComposeWebView(
@@ -1035,22 +1041,23 @@ class WebViewJsBridge(
     private val nativeInterfaceName: String = "AppBridgeNative"
 ) {
     // Register a typed handler for calls from JavaScript.
+    // Accepts both regular and suspend lambdas.
     // Null input is only accepted when T is Unit.
     inline fun <reified T : Any, reified R : Any> register(
         method: String,
-        noinline handler: (T) -> R
+        noinline handler: suspend (T) -> R
     )
 
     // Register a no-argument handler
     inline fun <reified R : Any> register(
         method: String,
-        noinline handler: () -> R
+        noinline handler: suspend () -> R
     )
 
     // Register a handler for nullable payload input
     inline fun <reified T : Any, reified R : Any> registerNullable(
         method: String,
-        noinline handler: (T?) -> R
+        noinline handler: suspend (T?) -> R
     )
 
     // Emit an event to JavaScript

@@ -36,6 +36,7 @@ import com.parkwoocheol.composewebview.platformJavaScriptEnabled
 import com.parkwoocheol.composewebview.rememberSaveableWebViewStateWithData
 import com.parkwoocheol.composewebview.rememberWebViewJsBridge
 import com.parkwoocheol.sample.composewebview.ui.components.AppTopBar
+import kotlinx.coroutines.delay
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -105,6 +106,7 @@ fun HtmlJsScreen(onBack: () -> Unit) {
                 <p>This is HTML content.</p>
                 <button onclick="callNative()">Call Native (User)</button>
                 <button onclick="callNativeNoReturn()">Call Native (Log)</button>
+                <button onclick="callNativeAsync()">Call Native (Async)</button>
                 <div id="message">Waiting for events...</div>
             </div>
 
@@ -121,6 +123,17 @@ fun HtmlJsScreen(onBack: () -> Unit) {
                 
                 function callNativeNoReturn() {
                      window.AppBridge.call('log', 'Hello from Web!');
+                }
+
+                function callNativeAsync() {
+                    document.getElementById('message').innerText = 'Waiting for async result...';
+                    window.AppBridge.call('slowOperation', { name: 'Web User', age: 25 })
+                        .then(response => {
+                            document.getElementById('message').innerText = 'Async response: ' + response.message;
+                        })
+                        .catch(error => {
+                            document.getElementById('message').innerText = 'Error: ' + error;
+                        });
                 }
 
                 window.AppBridge.on('nativeEvent', (data) => {
@@ -145,6 +158,14 @@ fun HtmlJsScreen(onBack: () -> Unit) {
 
         bridge.register<String, Unit>("log") { message ->
             logs.add("JS called 'log': $message")
+        }
+
+        // Suspend handler — simulates async work before returning to JS
+        bridge.register<User, UserResponse>("slowOperation") { user ->
+            logs.add("JS called 'slowOperation': starting async work...")
+            delay(2000) // Simulate network call or dialog wait
+            logs.add("JS called 'slowOperation': async work done!")
+            UserResponse(true, "Async result for ${user.name} after 2s delay")
         }
     }
 

@@ -90,6 +90,7 @@ Controller separation pattern for command handling:
 ### Key Features
 
 - **Type-Safe Registration**: `bridge.register<Input, Output>`
+- **Suspend Handler Support**: `register` and `registerNullable` accept both regular and `suspend` lambdas, enabling async operations (network calls, dialogs) before returning results to JS
 - **Promise-based JS API**: `window.AppBridge.call`
 - **Event Emission**: `bridge.emit`
 - **Kotlinx Serialization**: Automatic JSON conversion

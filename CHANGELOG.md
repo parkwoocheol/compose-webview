@@ -7,8 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
-- No changes yet.
+## [1.8.0] - 2026-03-05
+
+### Added
+- JSBridge `register` and `registerNullable` now accept `suspend` lambdas, enabling asynchronous handlers (e.g., showing dialogs, making network calls) that return results to JavaScript after completion. Both regular and suspend lambdas work transparently. (#47, #49)
+
+### Fixed
+- iOS: replaced deprecated `UIApplication.openURL(_:)` with `UIApplication.open(_:options:completionHandler:)`, fixing `mailto:`, `tel:`, and other external scheme links failing silently on iOS 10+. (#48)
 
 ## [1.7.1] - 2026-02-19
 
@@ -45,7 +50,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - iOS find API integration issues (`WKFindResult` property access alignment).
 - Cross-platform build issues across JS, WasmJs, Desktop, iOS, and shared API synchronization.
 
-[Unreleased]: https://github.com/parkwoocheol/compose-webview/compare/1.7.1...main
+[Unreleased]: https://github.com/parkwoocheol/compose-webview/compare/1.8.0...main
+[1.8.0]: https://github.com/parkwoocheol/compose-webview/compare/1.7.1...1.8.0
 [1.7.1]: https://github.com/parkwoocheol/compose-webview/compare/1.7.0...1.7.1
 [1.7.0]: https://github.com/parkwoocheol/compose-webview/compare/1.6.0...1.7.0
 [1.6.0]: https://github.com/parkwoocheol/compose-webview/compare/1.5.0...1.6.0

@@ -15,7 +15,11 @@ actual object DownloadUtils {
     ) {
         val nsUrl = NSURL.URLWithString(url) ?: return
         if (UIApplication.sharedApplication.canOpenURL(nsUrl)) {
-            UIApplication.sharedApplication.openURL(nsUrl)
+            UIApplication.sharedApplication.openURL(
+                nsUrl,
+                options = emptyMap<Any?, Any>(),
+                completionHandler = null,
+            )
         }
     }
 }
