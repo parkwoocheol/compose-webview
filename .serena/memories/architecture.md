@@ -1,1 +1,1 @@
-../../.agent/knowledge/architecture.md
+../../.agents/knowledge/architecture.md
