@@ -23,9 +23,9 @@ class WebViewJsBridge(
 ) : NativeWebBridge {
     @PublishedApi internal val serializer: BridgeSerializer = serializer ?: defaultSerializer()
 
-    // Handler stores a function that takes a JSON string and returns a JSON string (or null)
+    // Handler stores a suspend function that takes a JSON string and returns a JSON string (or null)
     @PublishedApi
-    internal val handlers = mutableMapOf<String, (String?) -> String?>()
+    internal val handlers = mutableMapOf<String, suspend (String?) -> String?>()
 
     @PublishedApi
     internal var webView: WebView? = null
@@ -97,6 +97,8 @@ class WebViewJsBridge(
     /**
      * Registers a handler for the given method name.
      * The handler receives the data as type [T] and returns a result of type [R].
+     * Both regular and suspend lambdas are accepted, enabling asynchronous operations
+     * (e.g., showing a dialog, making a network call) before returning a result to JavaScript.
      * For null input from JavaScript, only [Unit] is accepted in this overload.
      * For nullable payloads, use [registerNullable].
      *
@@ -105,7 +107,7 @@ class WebViewJsBridge(
      */
     inline fun <reified T : Any, reified R : Any> register(
         method: String,
-        noinline handler: (T) -> R,
+        noinline handler: suspend (T) -> R,
     ) {
         handlers[method] = { jsonStr ->
             val inputType = typeOf<T>()
@@ -131,13 +133,14 @@ class WebViewJsBridge(
 
     /**
      * Registers a handler that takes no arguments.
+     * Both regular and suspend lambdas are accepted.
      *
      * @param method The name of the method to register.
      * @param handler The function to handle the method call.
      */
     inline fun <reified R : Any> register(
         method: String,
-        noinline handler: () -> R,
+        noinline handler: suspend () -> R,
     ) {
         handlers[method] = { _ ->
             val result = handler()
@@ -148,13 +151,14 @@ class WebViewJsBridge(
     /**
      * Registers a handler that accepts nullable input.
      * Use this overload when JavaScript may pass `null` for payloads.
+     * Both regular and suspend lambdas are accepted.
      *
      * @param method The name of the method to register.
      * @param handler The function to handle the method call.
      */
     inline fun <reified T : Any, reified R : Any> registerNullable(
         method: String,
-        noinline handler: (T?) -> R,
+        noinline handler: suspend (T?) -> R,
     ) {
         handlers[method] = { jsonStr ->
             val inputType = typeOf<T>()

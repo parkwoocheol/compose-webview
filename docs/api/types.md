@@ -119,9 +119,9 @@ Helper class for managing the connection between Kotlin and JavaScript.
 
 | Method | Description | Platform Support |
 | :--- | :--- | :--- |
-| `register<T, R>(name: String, handler: (T) -> R)` | Registers a handler that receives type `T` from JS and returns type `R`. | All platforms |
-| `register<R>(name: String, handler: () -> R)` | Registers a handler with no input argument and returns type `R`. | All platforms |
-| `registerNullable<T, R>(name: String, handler: (T?) -> R)` | Registers a handler that accepts nullable payload input from JS and returns type `R`. | All platforms |
+| `register<T, R>(name: String, handler: suspend (T) -> R)` | Registers a handler that receives type `T` from JS and returns type `R`. Accepts both regular and `suspend` lambdas. | All platforms |
+| `register<R>(name: String, handler: suspend () -> R)` | Registers a handler with no input argument and returns type `R`. Accepts both regular and `suspend` lambdas. | All platforms |
+| `registerNullable<T, R>(name: String, handler: suspend (T?) -> R)` | Registers a handler that accepts nullable payload input from JS and returns type `R`. Accepts both regular and `suspend` lambdas. | All platforms |
 | `emit(eventName: String, data: Any)` | Emits an event to JavaScript. The data object is automatically serialized to JSON. | All platforms |
 | `unregister(name: String)` | Unregisters a previously registered native handler. | All platforms |
 
@@ -130,6 +130,8 @@ Helper class for managing the connection between Kotlin and JavaScript.
 - Other non-null input types: `null` input throws an error.
 
 Use `registerNullable<T, R>` when you want `null` payloads for non-Unit types.
+
+All handlers support `suspend` lambdas, enabling asynchronous operations (e.g., network calls, dialog interactions) before returning a result to JavaScript. Regular (non-suspend) lambdas continue to work as before.
 
 ---
 

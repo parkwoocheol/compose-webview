@@ -155,7 +155,11 @@ internal class ComposeWebViewDelegate(
 
         if (scheme != null && !scheme.startsWith("http") && !scheme.startsWith("file")) {
             if (platform.UIKit.UIApplication.sharedApplication.canOpenURL(requestUrl)) {
-                platform.UIKit.UIApplication.sharedApplication.openURL(requestUrl)
+                platform.UIKit.UIApplication.sharedApplication.openURL(
+                    requestUrl,
+                    options = emptyMap<Any?, Any>(),
+                    completionHandler = null,
+                )
                 decisionHandler(WKNavigationActionPolicy.WKNavigationActionPolicyCancel)
                 return
             }

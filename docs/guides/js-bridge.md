@@ -114,6 +114,32 @@ bridge.registerNullable<UserRequest, User>("getUserMaybe") { requestOrNull ->
 }
 ```
 
+### Suspend / Async Handlers
+
+All `register` and `registerNullable` methods accept **both regular and `suspend` lambdas**. This enables handlers that perform asynchronous operations (e.g., showing a dialog and waiting for user input, making a network call) before returning a result to JavaScript.
+
+```kotlin
+// Suspend lambda — the JS Promise resolves only after the async work completes
+bridge.register<Unit, UserChoice>("showConfirmDialog") {
+    // Show a dialog and suspend until user responds
+    val result = dialogManager.showConfirm("Are you sure?")
+    UserChoice(confirmed = result)
+}
+
+// Network call
+bridge.register<SearchQuery, SearchResult>("search") { query ->
+    val results = api.search(query.term)   // suspend call
+    SearchResult(items = results)
+}
+```
+
+JavaScript callers don't need any changes — calls already return Promises:
+
+```javascript
+const choice = await window.AppBridge.call('showConfirmDialog');
+console.log("User confirmed:", choice.confirmed);
+```
+
 ---
 
 ## Calling JavaScript from Kotlin
