@@ -129,5 +129,5 @@ actual class YourFeature actual constructor(private val parameterName: String) {
 // [ ] Tests written in commonTest
 // [ ] Platform-specific tests if needed
 // [ ] Run: ./gradlew spotlessApply
-// [ ] Run: bash .agent/skills/development/scripts/platform_status.sh
-// [ ] Run: bash .agent/skills/development/scripts/test_all.sh
+// [ ] Run: bash .agents/skills/development/scripts/platform_status.sh
+// [ ] Run: bash .agents/skills/development/scripts/test_all.sh

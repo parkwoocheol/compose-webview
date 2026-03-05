@@ -86,7 +86,7 @@ Comprehensive guide for reviewing code changes in the ComposeWebView project.
 
 Check with:
 ```bash
-bash .agent/skills/code-review/scripts/check_expect_actual.sh
+bash .agents/skills/code-review/scripts/check_expect_actual.sh
 ```
 
 **Review checklist**:
@@ -154,7 +154,7 @@ actual fun loadUrl(url: String) { }
 
 Check with:
 ```bash
-bash .agent/skills/code-review/scripts/verify_kdoc.sh
+bash .agents/skills/code-review/scripts/verify_kdoc.sh
 ```
 
 **Minimum KDoc**:

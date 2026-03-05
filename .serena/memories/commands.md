@@ -1,1 +1,1 @@
-../../.agent/knowledge/commands.md
+../../.agents/knowledge/commands.md

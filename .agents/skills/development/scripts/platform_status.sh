@@ -66,6 +66,6 @@ else
     echo "may be correctly implemented even if counts differ (e.g., internal classes)."
     echo ""
     echo "Run platform-specific builds to verify:"
-    echo "  bash .agent/skills/development/scripts/build_all.sh"
+    echo "  bash .agents/skills/development/scripts/build_all.sh"
     exit 0
 fi

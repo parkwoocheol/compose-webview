@@ -143,7 +143,7 @@ compose-webview/
 │   └── build.gradle.kts
 ├── app/                      # Sample app (Multiplatform)
 ├── docs/                     # MkDocs documentation
-├── .agent/                   # AI agent configuration
+├── .agents/                   # AI agent configuration
 ├── README.md
 └── build.gradle.kts          # Root build script
 ```

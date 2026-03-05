@@ -24,13 +24,13 @@ This skill automates building, testing, and formatting for the ComposeWebView mu
 ### Build All Platforms
 
 ```bash
-bash .agent/skills/development/scripts/build_all.sh
+bash .agents/skills/development/scripts/build_all.sh
 ```
 
 ### Check Implementation Status
 
 ```bash
-bash .agent/skills/development/scripts/platform_status.sh
+bash .agents/skills/development/scripts/platform_status.sh
 ```
 
 ## Platform-Specific Workflows
@@ -110,13 +110,13 @@ ComposeWebView uses the **expect/actual pattern** for multiplatform code. Follow
 3. **Verify Completeness**: Run platform status check
 
    ```bash
-   bash .agent/skills/development/scripts/platform_status.sh
+   bash .agents/skills/development/scripts/platform_status.sh
    ```
 
 4. **Test**: Run platform-specific tests
 
    ```bash
-   bash .agent/skills/development/scripts/test_all.sh
+   bash .agents/skills/development/scripts/test_all.sh
    ```
 
 5. **Format**: MUST run Spotless before committing
@@ -152,13 +152,13 @@ For a complete list of available Gradle tasks, see [reference/gradle_tasks.md](r
 ### Build and Test Everything
 
 ```bash
-bash .agent/skills/development/scripts/test_all.sh
+bash .agents/skills/development/scripts/test_all.sh
 ```
 
 ### Check Code Formatting (without applying)
 
 ```bash
-bash .agent/skills/development/scripts/format_check.sh
+bash .agents/skills/development/scripts/format_check.sh
 ```
 
 ## Platform Constraints
@@ -214,6 +214,6 @@ Run `./gradlew spotlessApply` to auto-fix formatting issues.
 
 ## Related Resources
 
-- **Architecture**: See `.agent/knowledge/architecture.md` for design patterns
-- **Commands**: See `.agent/knowledge/commands.md` for workflow reference
-- **Code Style**: See `.agent/knowledge/code_style.md` for coding conventions
+- **Architecture**: See `.agents/knowledge/architecture.md` for design patterns
+- **Commands**: See `.agents/knowledge/commands.md` for workflow reference
+- **Code Style**: See `.agents/knowledge/code_style.md` for coding conventions

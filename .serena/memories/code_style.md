@@ -1,1 +1,1 @@
-../../.agent/knowledge/code_style.md
+../../.agents/knowledge/code_style.md

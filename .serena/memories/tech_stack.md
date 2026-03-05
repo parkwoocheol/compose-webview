@@ -1,1 +1,1 @@
-../../.agent/knowledge/tech_stack.md
+../../.agents/knowledge/tech_stack.md

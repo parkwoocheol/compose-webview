@@ -1,1 +1,1 @@
-../../.agent/knowledge/overview.md
+../../.agents/knowledge/overview.md

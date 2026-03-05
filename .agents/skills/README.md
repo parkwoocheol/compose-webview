@@ -22,13 +22,13 @@ Agent Skills are modular capabilities that extend AI agents' functionality. Each
 **Quick Start**:
 ```bash
 # Build all platforms
-bash .agent/skills/development/scripts/build_all.sh
+bash .agents/skills/development/scripts/build_all.sh
 
 # Run all tests
-bash .agent/skills/development/scripts/test_all.sh
+bash .agents/skills/development/scripts/test_all.sh
 
 # Check formatting
-bash .agent/skills/development/scripts/format_check.sh
+bash .agents/skills/development/scripts/format_check.sh
 ```
 
 ---
@@ -47,10 +47,10 @@ bash .agent/skills/development/scripts/format_check.sh
 **Quick Start**:
 ```bash
 # Serve docs locally at http://127.0.0.1:8000
-bash .agent/skills/documentation/scripts/mkdocs_serve.sh
+bash .agents/skills/documentation/scripts/mkdocs_serve.sh
 
 # Build documentation
-bash .agent/skills/documentation/scripts/mkdocs_build.sh
+bash .agents/skills/documentation/scripts/mkdocs_build.sh
 ```
 
 ---
@@ -69,10 +69,10 @@ bash .agent/skills/documentation/scripts/mkdocs_build.sh
 **Quick Start**:
 ```bash
 # Run complete review workflow
-bash .agent/skills/code-review/scripts/review_checklist.sh
+bash .agents/skills/code-review/scripts/review_checklist.sh
 
 # Check expect/actual pairs
-bash .agent/skills/code-review/scripts/check_expect_actual.sh
+bash .agents/skills/code-review/scripts/check_expect_actual.sh
 ```
 
 ---
@@ -105,16 +105,16 @@ Skills use progressive loading for efficiency:
 
 ## Architecture
 
-This project uses a unified `.agent/` directory structure:
+This project uses a unified `.agents/` directory structure:
 
 ```
-.agent/
+.agents/
 ├── knowledge/    # Static documentation and canonical guidance
 ├── tools/        # Reserved for future use
 └── skills/       # Executable workflows
 ```
 
-**Claude Code Compatibility**: `.claude/skills/` is a symlink to `.agent/skills/`
+**Claude Code Compatibility**: `.claude/skills/` is a symlink to `.agents/skills/`
 
 ## Dependencies
 
@@ -124,7 +124,7 @@ See [DEPENDENCIES.md](DEPENDENCIES.md) for required tools and installation instr
 
 To create a new skill:
 
-1. Create directory under `.agent/skills/[skill-name]/`
+1. Create directory under `.agents/skills/[skill-name]/`
 2. Add `SKILL.md` with proper YAML frontmatter:
    ```yaml
    ---
@@ -138,7 +138,7 @@ To create a new skill:
 
 ## Related Resources
 
-- **Knowledge Base**: `.agent/knowledge/` - Project documentation
+- **Knowledge Base**: `.agents/knowledge/` - Project documentation
 - **MkDocs**: `docs/` - User-facing documentation
 
 ## License

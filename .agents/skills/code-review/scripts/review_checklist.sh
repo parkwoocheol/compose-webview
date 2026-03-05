@@ -20,22 +20,22 @@ fi
 # 2. Expect/Actual completeness
 echo ""
 echo "2️⃣  Checking expect/actual implementations..."
-if bash .agent/skills/code-review/scripts/check_expect_actual.sh > /dev/null 2>&1; then
+if bash .agents/skills/code-review/scripts/check_expect_actual.sh > /dev/null 2>&1; then
     echo "   ✅ Expect/actual pairs complete"
 else
     echo "   ❌ Missing platform implementations"
-    echo "      Run: bash .agent/skills/code-review/scripts/check_expect_actual.sh"
+    echo "      Run: bash .agents/skills/code-review/scripts/check_expect_actual.sh"
     ERRORS=$((ERRORS + 1))
 fi
 
 # 3. KDoc coverage (warning only)
 echo ""
 echo "3️⃣  Checking KDoc coverage..."
-if bash .agent/skills/code-review/scripts/verify_kdoc.sh > /dev/null 2>&1; then
+if bash .agents/skills/code-review/scripts/verify_kdoc.sh > /dev/null 2>&1; then
     echo "   ✅ KDoc coverage adequate"
 else
     echo "   ⚠️  Some public APIs lack KDoc (warning)"
-    echo "      Run: bash .agent/skills/code-review/scripts/verify_kdoc.sh"
+    echo "      Run: bash .agents/skills/code-review/scripts/verify_kdoc.sh"
     # Don't increment ERRORS - this is a warning
 fi
 

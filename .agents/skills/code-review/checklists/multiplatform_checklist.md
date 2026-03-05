@@ -250,12 +250,12 @@ expect fun feature()
 
 Quick check:
 ```bash
-bash .agent/skills/development/scripts/build_all.sh
+bash .agents/skills/development/scripts/build_all.sh
 ```
 
 ### Testing
 
-- [ ] All tests pass: `bash .agent/skills/development/scripts/test_all.sh`
+- [ ] All tests pass: `bash .agents/skills/development/scripts/test_all.sh`
 - [ ] Platform-specific tests run separately without errors
 
 ## Common Multiplatform Pitfalls
@@ -309,11 +309,11 @@ bash .agent/skills/development/scripts/build_all.sh
 ## Pre-Merge Checklist
 
 - [ ] All 4 platforms implemented and tested
-- [ ] Expect/actual check passes: `bash .agent/skills/code-review/scripts/check_expect_actual.sh`
-- [ ] All platforms build: `bash .agent/skills/development/scripts/build_all.sh`
-- [ ] All tests pass: `bash .agent/skills/development/scripts/test_all.sh`
+- [ ] Expect/actual check passes: `bash .agents/skills/code-review/scripts/check_expect_actual.sh`
+- [ ] All platforms build: `bash .agents/skills/development/scripts/build_all.sh`
+- [ ] All tests pass: `bash .agents/skills/development/scripts/test_all.sh`
 - [ ] Platform differences documented
-- [ ] Full review passes: `bash .agent/skills/code-review/scripts/review_checklist.sh`
+- [ ] Full review passes: `bash .agents/skills/code-review/scripts/review_checklist.sh`
 
 ---
 
@@ -321,16 +321,16 @@ bash .agent/skills/development/scripts/build_all.sh
 
 ```bash
 # Check expect/actual completeness
-bash .agent/skills/code-review/scripts/check_expect_actual.sh
+bash .agents/skills/code-review/scripts/check_expect_actual.sh
 
 # Platform implementation status
-bash .agent/skills/development/scripts/platform_status.sh
+bash .agents/skills/development/scripts/platform_status.sh
 
 # Build all platforms
-bash .agent/skills/development/scripts/build_all.sh
+bash .agents/skills/development/scripts/build_all.sh
 
 # Run all tests
-bash .agent/skills/development/scripts/test_all.sh
+bash .agents/skills/development/scripts/test_all.sh
 ```
 
 ---

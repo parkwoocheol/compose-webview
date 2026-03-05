@@ -148,15 +148,15 @@ Use this checklist when implementing new features in ComposeWebView.
 ## Pre-Commit Checks
 
 - [ ] Run Spotless: `./gradlew spotlessApply`
-- [ ] Run tests: `bash .agent/skills/development/scripts/test_all.sh`
-- [ ] Check expect/actual: `bash .agent/skills/code-review/scripts/check_expect_actual.sh`
-- [ ] Verify KDoc: `bash .agent/skills/code-review/scripts/verify_kdoc.sh`
-- [ ] Run full review: `bash .agent/skills/code-review/scripts/review_checklist.sh`
+- [ ] Run tests: `bash .agents/skills/development/scripts/test_all.sh`
+- [ ] Check expect/actual: `bash .agents/skills/code-review/scripts/check_expect_actual.sh`
+- [ ] Verify KDoc: `bash .agents/skills/code-review/scripts/verify_kdoc.sh`
+- [ ] Run full review: `bash .agents/skills/code-review/scripts/review_checklist.sh`
 
 ## Build Verification
 
 - [ ] Clean build succeeds: `./gradlew clean build`
-- [ ] All platforms compile: `bash .agent/skills/development/scripts/build_all.sh`
+- [ ] All platforms compile: `bash .agents/skills/development/scripts/build_all.sh`
 - [ ] No new lint warnings: `./gradlew lint`
 - [ ] Sample app builds and runs
 
@@ -186,16 +186,16 @@ Use this checklist when implementing new features in ComposeWebView.
 ./gradlew spotlessApply
 
 # Run all tests
-bash .agent/skills/development/scripts/test_all.sh
+bash .agents/skills/development/scripts/test_all.sh
 
 # Check expect/actual
-bash .agent/skills/code-review/scripts/check_expect_actual.sh
+bash .agents/skills/code-review/scripts/check_expect_actual.sh
 
 # Full review
-bash .agent/skills/code-review/scripts/review_checklist.sh
+bash .agents/skills/code-review/scripts/review_checklist.sh
 
 # Build all platforms
-bash .agent/skills/development/scripts/build_all.sh
+bash .agents/skills/development/scripts/build_all.sh
 ```
 
 ---
