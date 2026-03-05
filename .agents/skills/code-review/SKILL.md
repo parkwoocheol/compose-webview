@@ -12,7 +12,7 @@ This skill automates code quality checks and assists with pull request reviews f
 Run complete review workflow:
 
 ```bash
-bash .agent/skills/code-review/scripts/review_checklist.sh
+bash .agents/skills/code-review/scripts/review_checklist.sh
 ```
 
 This executes all quality checks: formatting, expect/actual validation, KDoc coverage, and tests.
@@ -40,7 +40,7 @@ Spotless enforces ktlint rules. **REQUIRED** before all commits.
 **Check expect/actual pairs**:
 
 ```bash
-bash .agent/skills/code-review/scripts/check_expect_actual.sh
+bash .agents/skills/code-review/scripts/check_expect_actual.sh
 ```
 
 Verifies:
@@ -54,7 +54,7 @@ Verifies:
 **Verify KDoc**:
 
 ```bash
-bash .agent/skills/code-review/scripts/verify_kdoc.sh
+bash .agents/skills/code-review/scripts/verify_kdoc.sh
 ```
 
 Checks:
@@ -74,14 +74,14 @@ Ensure tests exist for:
 **Run tests**:
 
 ```bash
-bash .agent/skills/development/scripts/test_all.sh
+bash .agents/skills/development/scripts/test_all.sh
 ```
 
 ### 5. Architecture Compliance
 
 Verify adherence to project patterns:
 
-- State management via `WebViewState` (see `.agent/knowledge/architecture.md`)
+- State management via `WebViewState` (see `.agents/knowledge/architecture.md`)
 - Controller separation via `WebViewController`
 - Proper platform abstraction (expect/actual)
 
@@ -138,7 +138,7 @@ Platform-specific considerations:
 ### Complete Review Script
 
 ```bash
-bash .agent/skills/code-review/scripts/review_checklist.sh
+bash .agents/skills/code-review/scripts/review_checklist.sh
 ```
 
 **Checks performed**:
@@ -158,19 +158,19 @@ bash .agent/skills/code-review/scripts/review_checklist.sh
 **Expect/Actual**:
 
 ```bash
-bash .agent/skills/code-review/scripts/check_expect_actual.sh
+bash .agents/skills/code-review/scripts/check_expect_actual.sh
 ```
 
 **KDoc Coverage**:
 
 ```bash
-bash .agent/skills/code-review/scripts/verify_kdoc.sh
+bash .agents/skills/code-review/scripts/verify_kdoc.sh
 ```
 
 **Formatting**:
 
 ```bash
-bash .agent/skills/development/scripts/format_check.sh
+bash .agents/skills/development/scripts/format_check.sh
 ```
 
 ## Common Issues & Solutions
@@ -194,7 +194,7 @@ See [reference/review_guidelines.md](reference/review_guidelines.md) for:
 
 1. Identify the `expect` declaration
 2. Add `actual` to all platform source sets
-3. Verify: `bash .agent/skills/code-review/scripts/check_expect_actual.sh`
+3. Verify: `bash .agents/skills/code-review/scripts/check_expect_actual.sh`
 
 **Missing KDoc**:
 
@@ -221,7 +221,7 @@ fun publicFunction(param: String): Result
 2. **Run full review**:
 
    ```bash
-   bash .agent/skills/code-review/scripts/review_checklist.sh
+   bash .agents/skills/code-review/scripts/review_checklist.sh
    ```
 
 3. **Fix any issues** reported
@@ -229,7 +229,7 @@ fun publicFunction(param: String): Result
 4. **Run tests**:
 
    ```bash
-   bash .agent/skills/development/scripts/test_all.sh
+   bash .agents/skills/development/scripts/test_all.sh
    ```
 
 5. **Commit and push**
@@ -242,18 +242,18 @@ fun publicFunction(param: String): Result
 2. **Verify multiplatform completeness**:
 
    ```bash
-   bash .agent/skills/code-review/scripts/check_expect_actual.sh
+   bash .agents/skills/code-review/scripts/check_expect_actual.sh
    ```
 
 3. **Review architectural patterns**:
    - Refer to [common_patterns.md](reference/common_patterns.md)
-   - Check `.agent/knowledge/architecture.md`
+   - Check `.agents/knowledge/architecture.md`
 
 4. **Test locally**:
 
    ```bash
    git checkout pr-branch
-   bash .agent/skills/development/scripts/test_all.sh
+   bash .agents/skills/development/scripts/test_all.sh
    ```
 
 ## Best Practices
@@ -294,7 +294,7 @@ These checks can be integrated into GitHub Actions:
 
 ```yaml
 - name: Code Review Checks
-  run: bash .agent/skills/code-review/scripts/review_checklist.sh
+  run: bash .agents/skills/code-review/scripts/review_checklist.sh
 ```
 
 ## Scripts Reference
@@ -314,9 +314,9 @@ Checks KDoc coverage for public APIs. Warning-level (doesn't fail build).
 ## Related Resources
 
 - **Development**: [Development Skill](../development/SKILL.md)
-- **Architecture**: `.agent/knowledge/architecture.md`
-- **Code Style**: `.agent/knowledge/code_style.md`
-- **Workflows**: `.agent/knowledge/commands.md`
+- **Architecture**: `.agents/knowledge/architecture.md`
+- **Code Style**: `.agents/knowledge/code_style.md`
+- **Workflows**: `.agents/knowledge/commands.md`
 
 ## Troubleshooting
 

@@ -128,7 +128,7 @@ debug.log
 
 # MkDocs
 site/
-!.agent/
+!.agents/
 
 # Work plans (local only)
 .plan/

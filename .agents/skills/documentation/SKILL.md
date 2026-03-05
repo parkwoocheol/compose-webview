@@ -11,21 +11,21 @@ This skill manages the MkDocs documentation site and API references for ComposeW
 
 ### Serve Documentation Locally
 ```bash
-bash .agent/skills/documentation/scripts/mkdocs_serve.sh
+bash .agents/skills/documentation/scripts/mkdocs_serve.sh
 ```
 
 Opens documentation at http://127.0.0.1:8000
 
 ### Build Documentation
 ```bash
-bash .agent/skills/documentation/scripts/mkdocs_build.sh
+bash .agents/skills/documentation/scripts/mkdocs_build.sh
 ```
 
 Builds static site to `site/` directory.
 
 ### Validate Documentation
 ```bash
-bash .agent/skills/documentation/scripts/validate_docs.sh
+bash .agents/skills/documentation/scripts/validate_docs.sh
 ```
 
 Checks for broken links and missing files.
@@ -63,7 +63,7 @@ See [reference/mkdocs_structure.md](reference/mkdocs_structure.md) for complete 
      - Guides:
        - Your Guide: guides/your-guide.md
    ```
-4. **Validate**: `bash .agent/skills/documentation/scripts/validate_docs.sh`
+4. **Validate**: `bash .agents/skills/documentation/scripts/validate_docs.sh`
 5. **Preview**: `mkdocs serve`
 
 ### Creating API Documentation
@@ -88,8 +88,8 @@ See [reference/mkdocs_structure.md](reference/mkdocs_structure.md) for complete 
 
 1. **Edit** the `.md` file in `docs/`
 2. **Preview changes**: `mkdocs serve`
-3. **Validate**: `bash .agent/skills/documentation/scripts/validate_docs.sh`
-4. **Build**: `bash .agent/skills/documentation/scripts/mkdocs_build.sh`
+3. **Validate**: `bash .agents/skills/documentation/scripts/validate_docs.sh`
+4. **Build**: `bash .agents/skills/documentation/scripts/mkdocs_build.sh`
 
 ## Documentation Standards
 
@@ -198,12 +198,12 @@ See [DEPENDENCIES.md](../DEPENDENCIES.md) for installation instructions.
 
 ### Local Preview
 ```bash
-bash .agent/skills/documentation/scripts/mkdocs_serve.sh
+bash .agents/skills/documentation/scripts/mkdocs_serve.sh
 ```
 
 ### Build for Production
 ```bash
-bash .agent/skills/documentation/scripts/mkdocs_build.sh
+bash .agents/skills/documentation/scripts/mkdocs_build.sh
 ```
 
 ### Add New Page
@@ -237,4 +237,4 @@ pip install mkdocs-material
 
 - **MkDocs Documentation**: https://www.mkdocs.org/
 - **Material Theme**: https://squidfunk.github.io/mkdocs-material/
-- **Project Knowledge**: `.agent/knowledge/`
+- **Project Knowledge**: `.agents/knowledge/`

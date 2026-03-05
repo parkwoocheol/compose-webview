@@ -20,7 +20,7 @@ Use this checklist when reviewing pull requests for ComposeWebView.
 
 Run locally:
 ```bash
-bash .agent/skills/code-review/scripts/review_checklist.sh
+bash .agents/skills/code-review/scripts/review_checklist.sh
 ```
 
 ## Code Quality
@@ -56,7 +56,7 @@ bash .agent/skills/code-review/scripts/review_checklist.sh
 
 Verify:
 ```bash
-bash .agent/skills/code-review/scripts/check_expect_actual.sh
+bash .agents/skills/code-review/scripts/check_expect_actual.sh
 ```
 
 ### Platform Consistency
@@ -108,7 +108,7 @@ bash .agent/skills/code-review/scripts/check_expect_actual.sh
 
 Verify:
 ```bash
-bash .agent/skills/code-review/scripts/verify_kdoc.sh
+bash .agents/skills/code-review/scripts/verify_kdoc.sh
 ```
 
 ### User Documentation
@@ -189,7 +189,7 @@ If this PR contains breaking changes:
 Local verification:
 ```bash
 ./gradlew clean build
-bash .agent/skills/development/scripts/build_all.sh
+bash .agents/skills/development/scripts/build_all.sh
 ```
 
 ## Git Hygiene
@@ -278,19 +278,19 @@ Use these labels for clarity:
 
 ```bash
 # Full review check
-bash .agent/skills/code-review/scripts/review_checklist.sh
+bash .agents/skills/code-review/scripts/review_checklist.sh
 
 # Check expect/actual
-bash .agent/skills/code-review/scripts/check_expect_actual.sh
+bash .agents/skills/code-review/scripts/check_expect_actual.sh
 
 # Verify KDoc
-bash .agent/skills/code-review/scripts/verify_kdoc.sh
+bash .agents/skills/code-review/scripts/verify_kdoc.sh
 
 # Build all platforms
-bash .agent/skills/development/scripts/build_all.sh
+bash .agents/skills/development/scripts/build_all.sh
 
 # Run all tests
-bash .agent/skills/development/scripts/test_all.sh
+bash .agents/skills/development/scripts/test_all.sh
 ```
 
 ---

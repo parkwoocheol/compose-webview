@@ -75,8 +75,8 @@ if [ $ERRORS -eq 0 ]; then
     echo "✅ Validation passed!"
     echo ""
     echo "Next steps:"
-    echo "  - Serve locally: bash .agent/skills/documentation/scripts/mkdocs_serve.sh"
-    echo "  - Build: bash .agent/skills/documentation/scripts/mkdocs_build.sh"
+    echo "  - Serve locally: bash .agents/skills/documentation/scripts/mkdocs_serve.sh"
+    echo "  - Build: bash .agents/skills/documentation/scripts/mkdocs_build.sh"
     exit 0
 else
     echo "❌ Found $ERRORS error(s)"

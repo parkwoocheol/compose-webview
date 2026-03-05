@@ -89,7 +89,7 @@ if [ $MISSING_COUNT -eq 0 ]; then
     echo ""
     echo "Note: This is a simplified check based on naming."
     echo "Compile all platforms to verify actual implementation:"
-    echo "  bash .agent/skills/development/scripts/build_all.sh"
+    echo "  bash .agents/skills/development/scripts/build_all.sh"
     exit 0
 else
     echo "❌ Found $MISSING_COUNT incomplete implementation(s)"

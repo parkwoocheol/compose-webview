@@ -323,7 +323,7 @@ When adding a new feature:
 - [ ] Write platform-specific tests
 - [ ] Update API documentation
 - [ ] Run `./gradlew spotlessApply`
-- [ ] Verify with `bash .agent/skills/development/scripts/platform_status.sh`
+- [ ] Verify with `bash .agents/skills/development/scripts/platform_status.sh`
 
 ## Troubleshooting
 
@@ -360,9 +360,9 @@ Actual declaration has different parameter types
 
 ## References
 
-- **Architecture**: `.agent/knowledge/architecture.md`
+- **Architecture**: `.agents/knowledge/architecture.md`
 - **Gradle Tasks**: `gradle_tasks.md`
-- **Code Style**: `.agent/knowledge/code_style.md`
+- **Code Style**: `.agents/knowledge/code_style.md`
 - **KMP Documentation**: [Kotlin Multiplatform Docs](https://kotlinlang.org/docs/multiplatform.html)
 
 ---

@@ -152,7 +152,7 @@ pip3 install mkdocs-material
 1. Use WSL instead of native Windows
 2. Enable Developer Mode in Windows Settings
 3. Run Git Bash as Administrator
-4. Alternatively, copy `.agent/skills/` to `.claude/skills/` (not recommended - creates duplication)
+4. Alternatively, copy `.agents/skills/` to `.claude/skills/` (not recommended - creates duplication)
 
 ### Script Permission Denied
 **Problem**: `bash: permission denied` when running scripts
@@ -160,9 +160,9 @@ pip3 install mkdocs-material
 **Solution**:
 ```bash
 # Make all scripts executable
-chmod +x .agent/skills/development/scripts/*.sh
-chmod +x .agent/skills/documentation/scripts/*.sh
-chmod +x .agent/skills/code-review/scripts/*.sh
+chmod +x .agents/skills/development/scripts/*.sh
+chmod +x .agents/skills/documentation/scripts/*.sh
+chmod +x .agents/skills/code-review/scripts/*.sh
 ```
 
 ### MkDocs Module Not Found
