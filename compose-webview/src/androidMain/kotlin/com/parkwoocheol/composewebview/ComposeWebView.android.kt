@@ -149,7 +149,7 @@ internal actual fun ComposeWebViewImpl(
             fileChooserCallback = null
         }
 
-    chromeClient.onShowFileChooserCallback = { _, callback, params ->
+    chromeClient.defaultOnShowFileChooserCallback = { _, callback, params ->
         fileChooserCallback = callback
         try {
             launcher.launch(params.createIntent())
@@ -538,9 +538,7 @@ fun ComposeWebView(
     onStartActionMode: ((WebView, PlatformActionModeCallback?) -> PlatformActionModeCallback?)? = null,
 ) {
     // Set the custom file chooser callback if provided
-    if (onShowFileChooser != null) {
-        chromeClient.onShowFileChooserCallback = onShowFileChooser
-    }
+    chromeClient.customOnShowFileChooserCallback = onShowFileChooser
 
     // Call the base implementation
     ComposeWebView(
