@@ -287,10 +287,13 @@ actual fun WebView.platformAddJavascriptInterface(
     obj: Any,
     name: String,
 ) {
+    val contentController = configuration.userContentController
+
     // This is a simplified implementation.
     // In a real-world scenario, you'd need a more robust way to map Kotlin objects to JS.
     // For now, we'll just register a message handler.
-    configuration.userContentController.addScriptMessageHandler(
+    contentController.removeScriptMessageHandlerForName(name)
+    contentController.addScriptMessageHandler(
         scriptMessageHandler =
             object : NSObject(), WKScriptMessageHandlerProtocol {
                 override fun userContentController(
@@ -337,7 +340,7 @@ actual fun WebView.platformAddJavascriptInterface(
                 injectionTime = WKUserScriptInjectionTime.WKUserScriptInjectionTimeAtDocumentStart,
                 forMainFrameOnly = false,
             )
-        configuration.userContentController.addUserScript(userScript)
+        contentController.addUserScript(userScript)
     }
 }
 

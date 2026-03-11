@@ -224,18 +224,21 @@ internal actual fun ComposeWebViewImpl(
         }
     }
 
-    DisposableEffect(webView) {
+    DisposableEffect(webView, jsBridge) {
         onDispose {
             webView.runOnMainThread {
                 val controller = webView.configuration.userContentController
                 registeredInterfaceNames.forEach { controller.removeScriptMessageHandlerForName(it) }
                 registeredInterfaceNames.clear()
+                jsBridge?.let { controller.removeScriptMessageHandlerForName(it.nativeInterfaceName) }
             }
         }
     }
 
     LaunchedEffect(webView, jsBridge) {
-        jsBridge?.attach(webView)
+        webView.runOnMainThread {
+            jsBridge?.attach(webView)
+        }
     }
 
     jsBridge?.let { bridge ->

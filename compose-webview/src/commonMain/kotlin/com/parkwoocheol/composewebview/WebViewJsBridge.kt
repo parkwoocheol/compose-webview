@@ -19,7 +19,7 @@ import kotlin.reflect.typeOf
 class WebViewJsBridge(
     serializer: BridgeSerializer? = null,
     @PublishedApi internal val jsObjectName: String = "AppBridge",
-    private val nativeInterfaceName: String = "AppBridgeNative",
+    @PublishedApi internal val nativeInterfaceName: String = "AppBridgeNative",
 ) : NativeWebBridge {
     @PublishedApi internal val serializer: BridgeSerializer = serializer ?: defaultSerializer()
 
