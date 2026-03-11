@@ -9,7 +9,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -104,7 +103,7 @@ class WebViewController(private val coroutineScope: CoroutineScope) {
         data class SaveWebArchive(val filename: String) : NavigationEvent
     }
 
-    private val navigationEvents = MutableSharedFlow<NavigationEvent>(replay = 1)
+    private val navigationEvents = ReplayOnceEventFlow<NavigationEvent>()
 
     /**
      * Whether the WebView can navigate back.
