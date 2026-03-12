@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.1] - 2026-03-12
+
+### Fixed
+- Android: custom `onShowFileChooser` handlers can now fall back to the built-in file chooser flow by returning `false`, restoring default file picker behavior when custom handling is skipped. (#52)
+- iOS: JSBridge script message handlers are now cleaned up before reattachment, preventing stale or duplicate bridge handlers after WebView reuse. (#53)
+- State: navigation commands now use replay-once delivery so stale buffered events are not replayed to later collectors after reattachment. (#54)
+
 ## [1.8.0] - 2026-03-05
 
 ### Added
@@ -50,7 +57,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - iOS find API integration issues (`WKFindResult` property access alignment).
 - Cross-platform build issues across JS, WasmJs, Desktop, iOS, and shared API synchronization.
 
-[Unreleased]: https://github.com/parkwoocheol/compose-webview/compare/1.8.0...main
+[Unreleased]: https://github.com/parkwoocheol/compose-webview/compare/1.8.1...main
+[1.8.1]: https://github.com/parkwoocheol/compose-webview/compare/1.8.0...1.8.1
 [1.8.0]: https://github.com/parkwoocheol/compose-webview/compare/1.7.1...1.8.0
 [1.7.1]: https://github.com/parkwoocheol/compose-webview/compare/1.7.0...1.7.1
 [1.7.0]: https://github.com/parkwoocheol/compose-webview/compare/1.6.0...1.7.0
