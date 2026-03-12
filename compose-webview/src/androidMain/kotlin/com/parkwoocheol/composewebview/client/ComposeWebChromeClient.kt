@@ -19,9 +19,8 @@ actual open class ComposeWebChromeClient : WebChromeClient() {
     var state: WebViewState? = null
     internal var onProgressChangedCallback: (WebView?, Int) -> Unit = { _, _ -> }
     internal var onConsoleMessageCallback: ((WebView?, ConsoleMessage) -> Boolean)? = null
-    internal var onShowFileChooserCallback: (
-        (WebView, android.webkit.ValueCallback<Array<android.net.Uri>>, android.webkit.WebChromeClient.FileChooserParams) -> Boolean
-    )? = null
+    internal var defaultOnShowFileChooserCallback: FileChooserCallback? = null
+    internal var customOnShowFileChooserCallback: FileChooserCallback? = null
     internal var onPermissionRequestCallback: ((android.webkit.PermissionRequest) -> Unit)? = null
 
     internal actual fun setOnProgressChangedHandler(handler: (com.parkwoocheol.composewebview.WebView?, Int) -> Unit) {
@@ -178,12 +177,25 @@ actual open class ComposeWebChromeClient : WebChromeClient() {
         filePathCallback: android.webkit.ValueCallback<Array<android.net.Uri>>,
         fileChooserParams: FileChooserParams,
     ): Boolean {
-        return onShowFileChooserCallback?.invoke(
-            webView,
-            filePathCallback,
-            fileChooserParams,
-        ) ?: super.onShowFileChooser(webView, filePathCallback, fileChooserParams)
+        customOnShowFileChooserCallback?.let { callback ->
+            if (callback(webView, filePathCallback, fileChooserParams)) {
+                return true
+            }
+        }
+
+        defaultOnShowFileChooserCallback?.let { callback ->
+            if (callback(webView, filePathCallback, fileChooserParams)) {
+                return true
+            }
+        }
+
+        return super.onShowFileChooser(webView, filePathCallback, fileChooserParams)
     }
 }
 
-private typealias UriArray = Array<android.net.Uri>
+private typealias FileChooserCallback =
+    (
+        WebView,
+        android.webkit.ValueCallback<Array<android.net.Uri>>,
+        android.webkit.WebChromeClient.FileChooserParams,
+    ) -> Boolean
