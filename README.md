@@ -393,13 +393,15 @@ The library provides two ways to create and remember the `WebViewState`:
 
 ### 1. Persistent State (Recommended)
 
-Uses `rememberSaveable` to preserve the WebView state (URL, scroll position, history, etc.) across configuration changes (e.g., screen rotation).
+Uses `rememberSaveable` to preserve the latest top-level WebView request across configuration changes (e.g., screen rotation). On Android, native `WebView` state is also restored when available. Other platforms restore the latest top-level `loadUrl()` or `loadHtml()` request rather than the full browser session.
 
 ```kotlin
 val state = rememberSaveableWebViewState(url = "https://google.com")
 // or for HTML data
 val state = rememberSaveableWebViewStateWithData(data = htmlContent)
 ```
+
+`WebViewController.loadUrl()` and `loadHtml()` participate in this restoration flow. `postUrl()` still runs on Android/iOS, but it is intentionally not auto-replayed after recreation because resubmitting POST requests can cause side effects.
 
 ### 2. Transient State (Lightweight)
 

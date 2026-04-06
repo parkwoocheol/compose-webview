@@ -204,6 +204,7 @@ internal actual fun ComposeWebViewImpl(
 
                     is WebContent.Post -> {
                         wv.postUrl(content.url, content.postData)
+                        state.consumePostRequest()
                     }
 
                     is WebContent.NavigatorOnly -> {

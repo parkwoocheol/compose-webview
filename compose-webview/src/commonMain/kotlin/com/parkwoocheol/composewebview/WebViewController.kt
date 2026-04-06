@@ -155,6 +155,10 @@ class WebViewController(private val coroutineScope: CoroutineScope) {
      * | Desktop  | ❌ Not supported | - | No-op, logs warning |
      * | Web      | ❌ Not supported | - | No-op, logs warning |
      *
+     * This request is executed immediately, but it is not automatically replayed after recreation
+     * because repeating a POST can cause duplicate side effects. Android native WebView restore may
+     * still preserve the session when available.
+     *
      * @param url The URL to post to.
      * @param postData The data to post.
      */

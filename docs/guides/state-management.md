@@ -14,7 +14,7 @@ Use `rememberSaveableWebViewState` when you want the WebView to **survive config
 
 * **Persistence**: Saves the latest top-level content request and restores it when the WebView is recreated.
 * **Android Native Restore**: Android also restores native `WebView` state when available, so history/session state can survive `DestroyOnRelease`.
-* **Other Platforms**: iOS/Desktop/Web restore the last top-level `loadUrl`/`loadHtml`/`postUrl` request, not the full browser session.
+* **Other Platforms**: iOS/Desktop/Web restore the last top-level `loadUrl`/`loadHtml` request, not the full browser session.
 * **Safety**: Handles lifecycle cleanup to prevent memory leaks.
 
 ### Usage
@@ -29,7 +29,9 @@ val state = rememberSaveableWebViewState(
 ComposeWebView(state = state)
 ```
 
-If you navigate with `WebViewController.loadUrl()` instead of directly changing `state.content`, the latest top-level request is still stored in `WebViewState`. This means re-entering the screen will restore the latest requested page instead of falling back to the original URL.
+If you navigate with `WebViewController.loadUrl()` or `loadHtml()` instead of directly changing `state.content`, the latest top-level request is still stored in `WebViewState`. This means re-entering the screen will restore the latest requested page instead of falling back to the original URL.
+
+`postUrl()` is intentionally treated differently. It executes normally on Android/iOS, but it is not auto-replayed after recreation because resubmitting a POST request can cause duplicate side effects. Android native `WebView` restore may still preserve the session when available.
 
 ### Loading HTML Data
 

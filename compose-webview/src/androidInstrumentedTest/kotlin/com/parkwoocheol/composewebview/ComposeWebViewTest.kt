@@ -179,9 +179,55 @@ class ComposeWebViewTest {
         }
     }
 
+    @Test
+    fun controllerPostUrl_doesNotReplayAfterReentryWithoutNativeRestore() {
+        var show by mutableStateOf(true)
+        var testController: WebViewController? = null
+        val createdWebViews = mutableListOf<TrackingWebView>()
+
+        composeTestRule.setContent {
+            val state = rememberWebViewState(url = "about:blank")
+            val controller = rememberWebViewController()
+            testController = controller
+            val context = LocalContext.current
+
+            if (show) {
+                ComposeWebView(
+                    state = state,
+                    controller = controller,
+                    releaseStrategy = WebViewReleaseStrategy.DestroyOnRelease,
+                    factory = { _: PlatformContext ->
+                        TrackingWebView(context).also { createdWebViews += it }
+                    },
+                )
+            }
+        }
+
+        composeTestRule.waitForIdle()
+        composeTestRule.runOnIdle {
+            testController?.postUrl("https://post.example", byteArrayOf(1, 2, 3))
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.runOnIdle {
+            assertEquals(listOf("https://post.example"), createdWebViews.first().postedUrls)
+        }
+
+        composeTestRule.runOnIdle { show = false }
+        composeTestRule.waitForIdle()
+        composeTestRule.runOnIdle { show = true }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.runOnIdle {
+            assertTrue(createdWebViews.size == 2)
+            assertTrue(createdWebViews[1].postedUrls.isEmpty())
+        }
+    }
+
     private class TrackingWebView(context: Context) : WebView(context) {
         var destroyCalled: Boolean = false
         val loadedUrls = mutableListOf<String>()
+        val postedUrls = mutableListOf<String>()
         var savedStateCalled: Boolean = false
 
         override fun loadUrl(
@@ -189,6 +235,13 @@ class ComposeWebViewTest {
             additionalHttpHeaders: MutableMap<String, String>,
         ) {
             loadedUrls += url
+        }
+
+        override fun postUrl(
+            url: String,
+            postData: ByteArray,
+        ) {
+            postedUrls += url
         }
 
         override fun saveState(outState: Bundle): WebBackForwardList? {

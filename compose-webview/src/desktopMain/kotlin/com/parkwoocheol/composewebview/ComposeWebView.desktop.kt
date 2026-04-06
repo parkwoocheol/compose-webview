@@ -270,6 +270,7 @@ internal actual fun ComposeWebViewImpl(
 
                         is WebContent.Post -> {
                             activeWebView.platformPostUrl(content.url, content.postData)
+                            state.consumePostRequest()
                         }
 
                         is WebContent.NavigatorOnly -> Unit

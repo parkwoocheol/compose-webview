@@ -44,4 +44,4 @@ ComposeWebView(
 
 When using `KeepAlive`, call `destroy()` at your actual ownership boundary (for example `ViewModel.onCleared()` on Android) to avoid leaks.
 
-With `DestroyOnRelease`, Android can restore the native `WebView` session when the same `WebViewState` instance survives re-entry. Other platforms restore only the last top-level content request.
+With `DestroyOnRelease`, Android can restore the native `WebView` session when the same `WebViewState` instance survives re-entry. Other platforms restore only the last top-level `loadUrl()` or `loadHtml()` request. `postUrl()` is not auto-replayed after recreation.

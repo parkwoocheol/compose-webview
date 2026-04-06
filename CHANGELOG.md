@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- State: controller-driven top-level navigation now restores the latest requested URL or HTML content consistently across re-entry, while avoiding stale replayed commands after recreation.
+- State: `postUrl()` requests are no longer automatically replayed after recreation. Android native `WebView` restore remains supported when available.
+
 ## [1.8.1] - 2026-03-12
 
 ### Fixed

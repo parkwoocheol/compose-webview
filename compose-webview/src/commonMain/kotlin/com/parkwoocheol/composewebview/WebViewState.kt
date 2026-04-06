@@ -91,6 +91,7 @@ class WebViewState(webContent: WebContent) {
     private var contentRequest by mutableStateOf(WebContentRequest(webContent, 0L))
 
     internal var restoredTopLevelLoadVersion: Long? = null
+    internal var suppressLastLoadedUrlFallback: Boolean by mutableStateOf(false)
 
     /**
      * The last URL that was loaded by the WebView.
@@ -218,6 +219,18 @@ class WebViewState(webContent: WebContent) {
             )
         bundle = null
         restoredTopLevelLoadVersion = null
+        suppressLastLoadedUrlFallback = false
+    }
+
+    internal fun consumePostRequest() {
+        if (contentRequest.content !is WebContent.Post) return
+
+        contentRequest =
+            WebContentRequest(
+                content = WebContent.NavigatorOnly,
+                version = contentRequest.version,
+            )
+        suppressLastLoadedUrlFallback = true
     }
 
     internal fun markTopLevelLoadHandledByRestore() {
@@ -367,34 +380,69 @@ val WebViewStateSaver: Saver<WebViewState, Any> =
         val lastLoadedUrlKey = "lastloaded"
         val stateBundleKey = "bundle"
         val contentKey = "content"
+        val suppressLastLoadedUrlFallbackKey = "suppresslastloadedurlfallback"
 
         mapSaver(
             save = { state ->
-                val bundle = state.bundle ?: createPlatformBundle()
-                state.webView?.platformSaveState(bundle)
-
-                mapOf(
-                    pageTitleKey to state.pageTitle,
-                    lastLoadedUrlKey to state.lastLoadedUrl,
-                    stateBundleKey to bundle,
-                    contentKey to state.content.toSaveableContent(),
+                state.toSaveableStateMap(
+                    pageTitleKey,
+                    lastLoadedUrlKey,
+                    stateBundleKey,
+                    contentKey,
+                    suppressLastLoadedUrlFallbackKey,
                 )
             },
             restore = { map ->
-                val restoredContent = map[contentKey].toRestoredWebContent() ?: WebContent.NavigatorOnly
-                val webViewState = WebViewState(restoredContent)
-                webViewState.pageTitle = map[pageTitleKey] as String?
-                webViewState.lastLoadedUrl = map[lastLoadedUrlKey] as String?
-                webViewState.bundle = map[stateBundleKey] as PlatformBundle?
-                if (webViewState.bundle != null) {
-                    webViewState.markTopLevelLoadHandledByRestore()
-                }
-                webViewState
+                map.toRestoredWebViewState(
+                    pageTitleKey,
+                    lastLoadedUrlKey,
+                    stateBundleKey,
+                    contentKey,
+                    suppressLastLoadedUrlFallbackKey,
+                )
             },
         )
     }
 
-private fun WebContent.toSaveableContent(): Map<String, Any?> =
+internal fun WebViewState.toSaveableStateMap(
+    pageTitleKey: String = "pagetitle",
+    lastLoadedUrlKey: String = "lastloaded",
+    stateBundleKey: String = "bundle",
+    contentKey: String = "content",
+    suppressLastLoadedUrlFallbackKey: String = "suppresslastloadedurlfallback",
+): Map<String, Any?> {
+    val bundle = bundle ?: createPlatformBundle()
+    webView?.platformSaveState(bundle)
+
+    return mapOf(
+        pageTitleKey to pageTitle,
+        lastLoadedUrlKey to lastLoadedUrl,
+        stateBundleKey to bundle,
+        contentKey to content.toSaveableContent(),
+        suppressLastLoadedUrlFallbackKey to (suppressLastLoadedUrlFallback || content is WebContent.Post),
+    )
+}
+
+internal fun Map<String, Any?>.toRestoredWebViewState(
+    pageTitleKey: String = "pagetitle",
+    lastLoadedUrlKey: String = "lastloaded",
+    stateBundleKey: String = "bundle",
+    contentKey: String = "content",
+    suppressLastLoadedUrlFallbackKey: String = "suppresslastloadedurlfallback",
+): WebViewState {
+    val restoredContent = this[contentKey].toRestoredWebContent() ?: WebContent.NavigatorOnly
+    return WebViewState(restoredContent).also { webViewState ->
+        webViewState.pageTitle = this[pageTitleKey] as String?
+        webViewState.lastLoadedUrl = this[lastLoadedUrlKey] as String?
+        webViewState.bundle = this[stateBundleKey] as PlatformBundle?
+        webViewState.suppressLastLoadedUrlFallback = this[suppressLastLoadedUrlFallbackKey] as? Boolean ?: false
+        if (webViewState.suppressLastLoadedUrlFallback) {
+            webViewState.loadingState = LoadingState.Finished
+        }
+    }
+}
+
+internal fun WebContent.toSaveableContent(): Map<String, Any?> =
     when (this) {
         is WebContent.Url ->
             mapOf(
@@ -412,17 +460,13 @@ private fun WebContent.toSaveableContent(): Map<String, Any?> =
                 "historyUrl" to historyUrl,
             )
         is WebContent.Post ->
-            mapOf(
-                "type" to "post",
-                "url" to url,
-                "postData" to postData,
-            )
+            mapOf("type" to "navigator")
         WebContent.NavigatorOnly ->
             mapOf("type" to "navigator")
     }
 
 @Suppress("UNCHECKED_CAST")
-private fun Any?.toRestoredWebContent(): WebContent? {
+internal fun Any?.toRestoredWebContent(): WebContent? {
     val contentMap = this as? Map<String, Any?> ?: return null
     return when (contentMap["type"] as? String) {
         "url" ->
@@ -437,11 +481,6 @@ private fun Any?.toRestoredWebContent(): WebContent? {
                 encoding = contentMap["encoding"] as? String ?: "utf-8",
                 mimeType = contentMap["mimeType"] as? String?,
                 historyUrl = contentMap["historyUrl"] as? String?,
-            )
-        "post" ->
-            WebContent.Post(
-                url = contentMap["url"] as? String ?: "",
-                postData = (contentMap["postData"] as? ByteArray) ?: ByteArray(0),
             )
         "navigator" -> WebContent.NavigatorOnly
         else -> null
