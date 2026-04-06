@@ -73,6 +73,11 @@ data class ScrollPosition(
     val y: Int = 0,
 )
 
+internal data class WebContentRequest(
+    val content: WebContent,
+    val version: Long,
+)
+
 /**
  * State holder for the [ComposeWebView].
  *
@@ -83,6 +88,10 @@ data class ScrollPosition(
  */
 @Stable
 class WebViewState(webContent: WebContent) {
+    private var contentRequest by mutableStateOf(WebContentRequest(webContent, 0L))
+
+    internal var restoredTopLevelLoadVersion: Long? = null
+
     /**
      * The last URL that was loaded by the WebView.
      */
@@ -92,7 +101,14 @@ class WebViewState(webContent: WebContent) {
     /**
      * The content currently being displayed or to be displayed.
      */
-    var content: WebContent by mutableStateOf(webContent)
+    var content: WebContent
+        get() = contentRequest.content
+        set(value) {
+            updateContentRequest(value)
+        }
+
+    internal val currentContentRequest: WebContentRequest
+        get() = contentRequest
 
     /**
      * The current loading state of the WebView.
@@ -193,6 +209,23 @@ class WebViewState(webContent: WebContent) {
     var bundle: PlatformBundle? = null
 
         internal set
+
+    internal fun updateContentRequest(content: WebContent) {
+        contentRequest =
+            WebContentRequest(
+                content = content,
+                version = contentRequest.version + 1,
+            )
+        bundle = null
+        restoredTopLevelLoadVersion = null
+    }
+
+    internal fun markTopLevelLoadHandledByRestore() {
+        restoredTopLevelLoadVersion = contentRequest.version
+    }
+
+    internal fun shouldSkipTopLevelLoadForCurrentRequest(): Boolean =
+        bundle != null && restoredTopLevelLoadVersion == contentRequest.version
 }
 
 /**
@@ -337,7 +370,7 @@ val WebViewStateSaver: Saver<WebViewState, Any> =
 
         mapSaver(
             save = { state ->
-                val bundle = createPlatformBundle()
+                val bundle = state.bundle ?: createPlatformBundle()
                 state.webView?.platformSaveState(bundle)
 
                 mapOf(
@@ -353,6 +386,9 @@ val WebViewStateSaver: Saver<WebViewState, Any> =
                 webViewState.pageTitle = map[pageTitleKey] as String?
                 webViewState.lastLoadedUrl = map[lastLoadedUrlKey] as String?
                 webViewState.bundle = map[stateBundleKey] as PlatformBundle?
+                if (webViewState.bundle != null) {
+                    webViewState.markTopLevelLoadHandledByRestore()
+                }
                 webViewState
             },
         )

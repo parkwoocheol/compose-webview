@@ -17,7 +17,7 @@ Managing the lifecycle of a `WebView` is critical for performance and preventing
 
 ### 2. Destruction (Dispose)
 
-* **Default (`DestroyOnRelease`)**: When the `ComposeWebView` leaves the composition tree, `webView.destroy()` is called.
+* **Default (`DestroyOnRelease`)**: When the `ComposeWebView` leaves the composition tree, the current Android `WebView` state is captured first and then `webView.destroy()` is called.
 * **Optional (`KeepAlive`)**: Keep the native WebView instance alive across composition exits/re-entries (Android/iOS only).
 * **Cleanup**: Resources are still cleaned up according to your selected release strategy.
 
@@ -43,3 +43,5 @@ ComposeWebView(
 ```
 
 When using `KeepAlive`, call `destroy()` at your actual ownership boundary (for example `ViewModel.onCleared()` on Android) to avoid leaks.
+
+With `DestroyOnRelease`, Android can restore the native `WebView` session when the same `WebViewState` instance survives re-entry. Other platforms restore only the last top-level content request.

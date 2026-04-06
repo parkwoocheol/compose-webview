@@ -122,6 +122,14 @@ internal actual fun ComposeWebViewImpl(
     val uiDelegate = remember(state) { ComposeWebViewUIDelegate(state) }
     val fullscreenObserver = remember(state) { IosFullscreenVideoObserver(state) }
     val registeredInterfaceNames = remember(webView) { mutableSetOf<String>() }
+    val currentContentRequest = state.currentContentRequest
+
+    DisposableEffect(controller, state) {
+        controller.bindState(state)
+        onDispose {
+            controller.unbindState(state)
+        }
+    }
 
     DisposableEffect(fullscreenObserver, customViewContent != null) {
         if (customViewContent != null) {
@@ -175,12 +183,11 @@ internal actual fun ComposeWebViewImpl(
         controller.handleNavigationEvents(webView)
     }
 
-    val currentContent = state.content
-    LaunchedEffect(webView, currentContent) {
+    LaunchedEffect(webView, currentContentRequest.version) {
         webView.runOnMainThread {
-            when (currentContent) {
+            when (val currentContent = currentContentRequest.content) {
                 is WebContent.Url -> {
-                    if (currentContent.url.isNotEmpty() && webView.URL?.absoluteString != currentContent.url) {
+                    if (currentContent.url.isNotEmpty()) {
                         webView.loadUrlWithHeaders(currentContent.url, currentContent.additionalHttpHeaders)
                     }
                 }

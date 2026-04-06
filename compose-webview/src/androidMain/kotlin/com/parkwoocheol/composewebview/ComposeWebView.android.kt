@@ -165,6 +165,13 @@ internal actual fun ComposeWebViewImpl(
         webView?.goBack()
     }
 
+    DisposableEffect(controller, state) {
+        controller.bindState(state)
+        onDispose {
+            controller.unbindState(state)
+        }
+    }
+
     webView?.let { wv ->
         LaunchedEffect(wv, controller) {
             withContext(Dispatchers.Main) {
@@ -173,12 +180,15 @@ internal actual fun ComposeWebViewImpl(
         }
 
         LaunchedEffect(wv, state) {
-            snapshotFlow { state.content }.collect { content ->
-                when (content) {
+            snapshotFlow { state.currentContentRequest }.collect { request ->
+                if (state.shouldSkipTopLevelLoadForCurrentRequest()) {
+                    return@collect
+                }
+
+                when (val content = request.content) {
                     is WebContent.Url -> {
-                        val url = content.url
-                        if (url.isNotEmpty() && url != wv.url) {
-                            wv.loadUrl(url, content.additionalHttpHeaders)
+                        if (content.url.isNotEmpty()) {
+                            wv.loadUrl(content.url, content.additionalHttpHeaders)
                         }
                     }
 
@@ -285,35 +295,12 @@ internal actual fun ComposeWebViewImpl(
                 }.also {
                     if (isNewWebView) {
                         // Restore state if available
-                        state.bundle?.let { bundle ->
-                            it.restoreState(bundle)
-                        } ?: run {
-                            // Initial load logic if no bundle
-                            when (val content = state.content) {
-                                is WebContent.Url -> {
-                                    if (content.url.isNotEmpty()) {
-                                        it.loadUrl(content.url, content.additionalHttpHeaders)
-                                    }
-                                }
-
-                                is WebContent.Data -> {
-                                    it.loadDataWithBaseURL(
-                                        content.baseUrl,
-                                        content.data,
-                                        content.mimeType,
-                                        content.encoding,
-                                        content.historyUrl,
-                                    )
-                                }
-
-                                is WebContent.Post -> {
-                                    it.postUrl(content.url, content.postData)
-                                }
-
-                                is WebContent.NavigatorOnly -> {
-                                    // Do nothing
-                                }
+                        val restoredState =
+                            state.bundle?.let { bundle ->
+                                it.restoreState(bundle)
                             }
+                        if (restoredState != null) {
+                            state.markTopLevelLoadHandledByRestore()
                         }
 
                         onCreated(it)
@@ -325,6 +312,11 @@ internal actual fun ComposeWebViewImpl(
             modifier = Modifier,
             update = { _ -> },
             onRelease = {
+                if (releaseStrategy == WebViewReleaseStrategy.DestroyOnRelease) {
+                    val bundle = createPlatformBundle()
+                    it.platformSaveState(bundle)
+                    state.bundle = bundle
+                }
                 onDispose(it)
                 if (releaseStrategy == WebViewReleaseStrategy.DestroyOnRelease) {
                     state.webView = null

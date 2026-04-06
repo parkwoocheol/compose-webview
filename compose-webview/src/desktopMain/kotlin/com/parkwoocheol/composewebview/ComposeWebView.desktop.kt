@@ -237,16 +237,23 @@ internal actual fun ComposeWebViewImpl(
         }
 
         if (webView != null) {
+            DisposableEffect(controller, state) {
+                controller.bindState(state)
+                onDispose {
+                    controller.unbindState(state)
+                }
+            }
+
             LaunchedEffect(webView, controller) {
                 controller.handleNavigationEvents(webView!!)
             }
 
             LaunchedEffect(webView) {
-                snapshotFlow { state.content }.collectLatest { content ->
+                snapshotFlow { state.currentContentRequest }.collectLatest { request ->
                     val activeWebView = webView ?: return@collectLatest
-                    when (content) {
+                    when (val content = request.content) {
                         is WebContent.Url -> {
-                            if (content.url.isNotEmpty() && state.lastLoadedUrl != content.url) {
+                            if (content.url.isNotEmpty()) {
                                 activeWebView.platformLoadUrl(content.url, content.additionalHttpHeaders)
                             }
                         }

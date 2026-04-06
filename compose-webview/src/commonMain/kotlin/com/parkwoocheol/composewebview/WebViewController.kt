@@ -31,42 +31,6 @@ class WebViewController(private val coroutineScope: CoroutineScope) {
 
         data object StopLoading : NavigationEvent
 
-        data class LoadUrl(
-            val url: String,
-            val additionalHttpHeaders: Map<String, String> = emptyMap(),
-        ) : NavigationEvent
-
-        data class LoadHtml(
-            val html: String,
-            val baseUrl: String? = null,
-            val mimeType: String? = null,
-            val encoding: String? = "utf-8",
-            val historyUrl: String? = null,
-        ) : NavigationEvent
-
-        data class PostUrl(
-            val url: String,
-            val postData: ByteArray,
-        ) : NavigationEvent {
-            override fun equals(other: Any?): Boolean {
-                if (this === other) return true
-                if (other == null || this::class != other::class) return false
-
-                other as PostUrl
-
-                if (url != other.url) return false
-                if (!postData.contentEquals(other.postData)) return false
-
-                return true
-            }
-
-            override fun hashCode(): Int {
-                var result = url.hashCode()
-                result = 31 * result + postData.contentHashCode()
-                return result
-            }
-        }
-
         data class EvaluateJavascript(
             val script: String,
             val callback: ((String) -> Unit)?,
@@ -104,6 +68,8 @@ class WebViewController(private val coroutineScope: CoroutineScope) {
     }
 
     private val navigationEvents = ReplayOnceEventFlow<NavigationEvent>()
+    private var webViewState: WebViewState? = null
+    private var pendingTopLevelContent: WebContent? = null
 
     /**
      * Whether the WebView can navigate back.
@@ -135,9 +101,12 @@ class WebViewController(private val coroutineScope: CoroutineScope) {
         url: String,
         additionalHttpHeaders: Map<String, String> = emptyMap(),
     ) {
-        coroutineScope.launch {
-            navigationEvents.emit(NavigationEvent.LoadUrl(url, additionalHttpHeaders))
-        }
+        updateTopLevelContent(
+            WebContent.Url(
+                url = url,
+                additionalHttpHeaders = additionalHttpHeaders,
+            ),
+        )
     }
 
     /**
@@ -164,17 +133,15 @@ class WebViewController(private val coroutineScope: CoroutineScope) {
         encoding: String? = "utf-8",
         historyUrl: String? = null,
     ) {
-        coroutineScope.launch {
-            navigationEvents.emit(
-                NavigationEvent.LoadHtml(
-                    html,
-                    baseUrl,
-                    mimeType,
-                    encoding,
-                    historyUrl,
-                ),
-            )
-        }
+        updateTopLevelContent(
+            WebContent.Data(
+                data = html,
+                baseUrl = baseUrl,
+                encoding = encoding ?: "utf-8",
+                mimeType = mimeType,
+                historyUrl = historyUrl,
+            ),
+        )
     }
 
     /**
@@ -195,9 +162,7 @@ class WebViewController(private val coroutineScope: CoroutineScope) {
         url: String,
         postData: ByteArray,
     ) {
-        coroutineScope.launch {
-            navigationEvents.emit(NavigationEvent.PostUrl(url, postData))
-        }
+        updateTopLevelContent(WebContent.Post(url, postData))
     }
 
     /**
@@ -536,6 +501,20 @@ class WebViewController(private val coroutineScope: CoroutineScope) {
         coroutineScope.launch { navigationEvents.emit(NavigationEvent.SaveWebArchive(filename)) }
     }
 
+    internal fun bindState(state: WebViewState) {
+        webViewState = state
+        pendingTopLevelContent?.let { pendingContent ->
+            state.updateContentRequest(pendingContent)
+            pendingTopLevelContent = null
+        }
+    }
+
+    internal fun unbindState(state: WebViewState) {
+        if (webViewState === state) {
+            webViewState = null
+        }
+    }
+
     internal suspend fun handleNavigationEvents(webView: WebView) {
         withContext(Dispatchers.Main) {
             navigationEvents.collect { event ->
@@ -544,16 +523,6 @@ class WebViewController(private val coroutineScope: CoroutineScope) {
                     is NavigationEvent.Forward -> webView.platformGoForward()
                     is NavigationEvent.Reload -> webView.platformReload()
                     is NavigationEvent.StopLoading -> webView.platformStopLoading()
-                    is NavigationEvent.LoadUrl -> webView.platformLoadUrl(event.url, event.additionalHttpHeaders)
-                    is NavigationEvent.LoadHtml ->
-                        webView.platformLoadDataWithBaseURL(
-                            event.baseUrl,
-                            event.html,
-                            event.mimeType,
-                            event.encoding,
-                            event.historyUrl,
-                        )
-                    is NavigationEvent.PostUrl -> webView.platformPostUrl(event.url, event.postData)
                     is NavigationEvent.EvaluateJavascript -> webView.platformEvaluateJavascript(event.script, event.callback)
                     is NavigationEvent.ZoomBy -> webView.platformZoomBy(event.zoomFactor)
                     is NavigationEvent.ZoomIn -> webView.platformZoomIn()
@@ -572,6 +541,12 @@ class WebViewController(private val coroutineScope: CoroutineScope) {
                     is NavigationEvent.SaveWebArchive -> webView.platformSaveWebArchive(event.filename)
                 }
             }
+        }
+    }
+
+    private fun updateTopLevelContent(content: WebContent) {
+        webViewState?.updateContentRequest(content) ?: run {
+            pendingTopLevelContent = content
         }
     }
 }
