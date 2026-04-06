@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.2] - 2026-04-06
+
+### Fixed
+- State: controller-driven top-level navigation now restores the latest requested URL or HTML content consistently across re-entry, while avoiding stale replayed commands after recreation.
+- State: `postUrl()` requests are no longer automatically replayed after recreation. Android native `WebView` restore remains supported when available.
+
 ## [1.8.1] - 2026-03-12
 
 ### Fixed
@@ -57,7 +63,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - iOS find API integration issues (`WKFindResult` property access alignment).
 - Cross-platform build issues across JS, WasmJs, Desktop, iOS, and shared API synchronization.
 
-[Unreleased]: https://github.com/parkwoocheol/compose-webview/compare/1.8.1...main
+[Unreleased]: https://github.com/parkwoocheol/compose-webview/compare/1.8.2...main
+[1.8.2]: https://github.com/parkwoocheol/compose-webview/compare/1.8.1...1.8.2
 [1.8.1]: https://github.com/parkwoocheol/compose-webview/compare/1.8.0...1.8.1
 [1.8.0]: https://github.com/parkwoocheol/compose-webview/compare/1.7.1...1.8.0
 [1.7.1]: https://github.com/parkwoocheol/compose-webview/compare/1.7.0...1.7.1

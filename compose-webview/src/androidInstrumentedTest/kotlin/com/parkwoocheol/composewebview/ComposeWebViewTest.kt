@@ -1,6 +1,8 @@
 package com.parkwoocheol.composewebview
 
 import android.content.Context
+import android.os.Bundle
+import android.webkit.WebBackForwardList
 import android.webkit.WebView
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.getValue
@@ -9,6 +11,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertNull
@@ -131,8 +134,122 @@ class ComposeWebViewTest {
         }
     }
 
+    @Test
+    fun controllerLoadUrl_restoresLatestRequestedContentAfterReentry() {
+        var show by mutableStateOf(true)
+        var testController: WebViewController? = null
+        val createdWebViews = mutableListOf<TrackingWebView>()
+
+        composeTestRule.setContent {
+            val state = rememberWebViewState(url = "about:blank")
+            val controller = rememberWebViewController()
+            testController = controller
+            val context = LocalContext.current
+
+            if (show) {
+                ComposeWebView(
+                    state = state,
+                    controller = controller,
+                    releaseStrategy = WebViewReleaseStrategy.DestroyOnRelease,
+                    factory = { _: PlatformContext ->
+                        TrackingWebView(context).also { createdWebViews += it }
+                    },
+                )
+            }
+        }
+
+        composeTestRule.waitForIdle()
+        composeTestRule.runOnIdle {
+            testController?.loadUrl("https://next.example")
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.runOnIdle {
+            assertTrue(createdWebViews.first().loadedUrls.contains("https://next.example"))
+        }
+
+        composeTestRule.runOnIdle { show = false }
+        composeTestRule.waitForIdle()
+        composeTestRule.runOnIdle { show = true }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.runOnIdle {
+            assertTrue(createdWebViews.size == 2)
+            assertEquals(listOf("https://next.example"), createdWebViews[1].loadedUrls)
+        }
+    }
+
+    @Test
+    fun controllerPostUrl_doesNotReplayAfterReentryWithoutNativeRestore() {
+        var show by mutableStateOf(true)
+        var testController: WebViewController? = null
+        val createdWebViews = mutableListOf<TrackingWebView>()
+
+        composeTestRule.setContent {
+            val state = rememberWebViewState(url = "about:blank")
+            val controller = rememberWebViewController()
+            testController = controller
+            val context = LocalContext.current
+
+            if (show) {
+                ComposeWebView(
+                    state = state,
+                    controller = controller,
+                    releaseStrategy = WebViewReleaseStrategy.DestroyOnRelease,
+                    factory = { _: PlatformContext ->
+                        TrackingWebView(context).also { createdWebViews += it }
+                    },
+                )
+            }
+        }
+
+        composeTestRule.waitForIdle()
+        composeTestRule.runOnIdle {
+            testController?.postUrl("https://post.example", byteArrayOf(1, 2, 3))
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.runOnIdle {
+            assertEquals(listOf("https://post.example"), createdWebViews.first().postedUrls)
+        }
+
+        composeTestRule.runOnIdle { show = false }
+        composeTestRule.waitForIdle()
+        composeTestRule.runOnIdle { show = true }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.runOnIdle {
+            assertTrue(createdWebViews.size == 2)
+            assertTrue(createdWebViews[1].postedUrls.isEmpty())
+        }
+    }
+
     private class TrackingWebView(context: Context) : WebView(context) {
         var destroyCalled: Boolean = false
+        val loadedUrls = mutableListOf<String>()
+        val postedUrls = mutableListOf<String>()
+        var savedStateCalled: Boolean = false
+
+        override fun loadUrl(
+            url: String,
+            additionalHttpHeaders: MutableMap<String, String>,
+        ) {
+            loadedUrls += url
+        }
+
+        override fun postUrl(
+            url: String,
+            postData: ByteArray,
+        ) {
+            postedUrls += url
+        }
+
+        override fun saveState(outState: Bundle): WebBackForwardList? {
+            savedStateCalled = true
+            return null
+        }
+
+        override fun restoreState(inState: Bundle): WebBackForwardList? = null
 
         override fun destroy() {
             destroyCalled = true

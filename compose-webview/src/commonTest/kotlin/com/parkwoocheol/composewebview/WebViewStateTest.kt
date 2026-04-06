@@ -2,6 +2,7 @@ package com.parkwoocheol.composewebview
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class WebViewStateTest {
@@ -24,6 +25,29 @@ class WebViewStateTest {
 
         state.loadingState = LoadingState.Finished
         assertEquals(LoadingState.Finished, state.loadingState)
+    }
+
+    @Test
+    fun postRequestsAreConsumedIntoNavigatorOnly() {
+        val state = WebViewState(WebContent.Post("https://example.com/post", byteArrayOf(1, 2, 3)))
+
+        state.consumePostRequest()
+
+        assertEquals(WebContent.NavigatorOnly, state.content)
+        assertTrue(state.suppressLastLoadedUrlFallback)
+    }
+
+    @Test
+    fun savedPostRequestsRestoreWithoutReplayablePostContent() {
+        val state = WebViewState(WebContent.Post("https://example.com/post", byteArrayOf(1, 2, 3)))
+        state.lastLoadedUrl = "https://example.com/post"
+
+        val restored = state.toSaveableStateMap().toRestoredWebViewState()
+
+        assertEquals(WebContent.NavigatorOnly, restored.content)
+        assertTrue(restored.suppressLastLoadedUrlFallback)
+        assertEquals(LoadingState.Finished, restored.loadingState)
+        assertFalse(restored.shouldSkipTopLevelLoadForCurrentRequest())
     }
 
     // testErrorsForUrl removed as it requires platform-specific types that are hard to instantiate in commonTest

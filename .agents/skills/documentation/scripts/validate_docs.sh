@@ -61,11 +61,22 @@ echo ""
 # Check mkdocs.yml syntax
 echo "⚙️  Checking mkdocs.yml..."
 
-if python3 -c "import yaml; yaml.safe_load(open('mkdocs.yml'))" 2>/dev/null; then
-    echo "  ✅ Valid YAML syntax"
+if python3 -c "import yaml" 2>/dev/null; then
+    if python3 - <<'PY' 2>/dev/null
+from pathlib import Path
+
+import yaml
+
+yaml.load(Path("mkdocs.yml").read_text(encoding="utf-8"), Loader=yaml.Loader)
+PY
+    then
+        echo "  ✅ Valid YAML syntax"
+    else
+        echo "  ❌ Invalid YAML syntax in mkdocs.yml"
+        ERRORS=$((ERRORS + 1))
+    fi
 else
-    echo "  ❌ Invalid YAML syntax in mkdocs.yml"
-    ERRORS=$((ERRORS + 1))
+    echo "  ⚠️  PyYAML not installed; skipping mkdocs.yml syntax check"
 fi
 
 echo ""

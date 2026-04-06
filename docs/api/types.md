@@ -44,7 +44,7 @@ Controls the navigation and execution of the WebView.
 | :--- | :--- | :--- |
 | `loadUrl(url: String, headers: Map<String, String> = emptyMap())` | All platforms | Headers: Android/iOS only |
 | `loadHtml(html: String, baseUrl: String? = null, ...)` | All platforms | Full data loading control |
-| `postUrl(url: String, postData: ByteArray)` | Android, iOS | HTTP POST request |
+| `postUrl(url: String, postData: ByteArray)` | Android, iOS | HTTP POST request. Not auto-replayed after recreation; Android native restore may still preserve session state when available |
 | `navigateBack()` | All platforms | Check `canGoBack` first |
 | `navigateForward()` | All platforms | Check `canGoForward` first |
 | `reload()` | All platforms | Reload current page |
@@ -104,7 +104,7 @@ Controls what happens to the native WebView when the Composable leaves compositi
 
 | Value | Description | Platform Support |
 | :--- | :--- | :--- |
-| `DestroyOnRelease` | Default behavior. Release and destroy the WebView on composition exit. | All platforms |
+| `DestroyOnRelease` | Default behavior. Release and destroy the WebView on composition exit. Android captures native state first when possible. | All platforms |
 | `KeepAlive` | Keep the WebView instance for reuse after re-entry. | Android, iOS |
 
 Desktop/Web/WASM currently follow destroy-on-release behavior.

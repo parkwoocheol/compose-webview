@@ -5,11 +5,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
@@ -48,7 +45,6 @@ internal actual fun ComposeWebViewImpl(
     onStartActionMode: ((WebView, PlatformActionModeCallback?) -> PlatformActionModeCallback?)?,
 ) {
     val density = LocalDensity.current.density
-    val scope = rememberCoroutineScope()
     val componentReady = remember { mutableStateOf(false) }
 
     val container =
@@ -140,15 +136,14 @@ internal actual fun ComposeWebViewImpl(
     onStartActionMode: ((WebView, PlatformActionModeCallback?) -> PlatformActionModeCallback?)?,
 ) {
     val density = LocalDensity.current.density
-    val scope = rememberCoroutineScope()
     val componentReady = remember { mutableStateOf(false) }
     val iframeElement = remember { mutableStateOf<HTMLIFrameElement?>(null) }
+    val currentContentRequest = state.currentContentRequest
 
-    LaunchedEffect(state) {
-        snapshotFlow { state.content }.collect { content ->
-            if (content is WebContent.Url) {
-                state.lastLoadedUrl = content.url
-            }
+    DisposableEffect(controller, state) {
+        controller.bindState(state)
+        onDispose {
+            controller.unbindState(state)
         }
     }
 
@@ -158,8 +153,6 @@ internal actual fun ComposeWebViewImpl(
             controller.handleNavigationEvents(webView)
         }
     }
-
-    val url = state.lastLoadedUrl ?: ""
 
     val container =
         remember {
@@ -241,12 +234,27 @@ internal actual fun ComposeWebViewImpl(
         }
     }
 
-    // Update iframe URL when state changes
-    SideEffect {
+    LaunchedEffect(currentContentRequest.version, iframeElement.value) {
         iframeElement.value?.let { frame ->
-            if (url.isNotEmpty() && frame.src != url) {
-                println("WASM WebView: Updating URL to $url")
-                frame.src = url
+            when (val content = currentContentRequest.content) {
+                is WebContent.Url -> {
+                    state.lastLoadedUrl = content.url
+                    if (content.url.isNotEmpty()) {
+                        println("WASM WebView: Updating URL to ${content.url}")
+                        frame.src = content.url
+                    }
+                }
+
+                is WebContent.Data -> {
+                    frame.srcdoc = content.data
+                }
+
+                is WebContent.Post -> {
+                    state.webView?.platformPostUrl(content.url, content.postData)
+                    state.consumePostRequest()
+                }
+
+                is WebContent.NavigatorOnly -> Unit
             }
         }
     }

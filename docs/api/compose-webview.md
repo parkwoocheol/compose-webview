@@ -83,9 +83,10 @@ fun ComposeWebView(
 \* **Controller**: All platforms support basic navigation, but some features (like zoom) are platform-specific. See `WebViewController` documentation for details.
 
 `releaseStrategy` notes:
-- `DestroyOnRelease` (default): existing behavior, WebView is disposed when it leaves composition.
+- `DestroyOnRelease` (default): WebView is disposed when it leaves composition. Android captures native state first when possible.
 - `KeepAlive`: keeps the instance for reuse across composition exits/re-entries.
 - `KeepAlive` is currently supported on Android and iOS. Desktop/Web/WASM currently behave as `DestroyOnRelease`.
+- `loadUrl()` and `loadHtml()` are restored as the latest top-level request. `postUrl()` is not auto-replayed after recreation.
 
 ---
 
