@@ -16,6 +16,13 @@ data class TestData(val id: Int, val name: String)
 data class TestResponse(val success: Boolean)
 
 class WebViewJsBridgeTest {
+    private val defaultContext =
+        BridgeInvocationContext(
+            sourceOrigin = null,
+            isMainFrame = true,
+            transport = BridgeTransport.Compatibility,
+        )
+
     @Test
     fun testRegisterAndCall() =
         runTest {
@@ -33,7 +40,7 @@ class WebViewJsBridgeTest {
             val handler = bridge.handlers["testMethod"]
             assertNotNull(handler)
 
-            val resultJson = handler(inputJson)
+            val resultJson = handler(defaultContext, inputJson)
             assertTrue(called)
             assertEquals("""{"success":true}""", resultJson)
         }
@@ -52,7 +59,7 @@ class WebViewJsBridgeTest {
             val handler = bridge.handlers["testNoArg"]
             assertNotNull(handler)
 
-            val resultJson = handler(null)
+            val resultJson = handler(defaultContext, null)
             assertTrue(called)
             assertEquals("""{"success":true}""", resultJson)
         }
@@ -71,7 +78,7 @@ class WebViewJsBridgeTest {
             val handler = bridge.handlers["refreshSession"]
             assertNotNull(handler)
 
-            val resultJson = handler(null)
+            val resultJson = handler(defaultContext, null)
             assertTrue(called)
             assertEquals("""{"success":true}""", resultJson)
         }
@@ -90,7 +97,7 @@ class WebViewJsBridgeTest {
 
             val exception =
                 assertFailsWith<IllegalArgumentException> {
-                    handler(null)
+                    handler(defaultContext, null)
                 }
             assertTrue(exception.message?.contains("registerNullable") == true)
         }
@@ -107,7 +114,7 @@ class WebViewJsBridgeTest {
             val handler = bridge.handlers["updateUserMaybe"]
             assertNotNull(handler)
 
-            val resultJson = handler(null)
+            val resultJson = handler(defaultContext, null)
             assertEquals("""{"success":true}""", resultJson)
         }
 
@@ -123,7 +130,7 @@ class WebViewJsBridgeTest {
             val handler = bridge.handlers["updateUserMaybe"]
             assertNotNull(handler)
 
-            val resultJson = handler("""{"id":1,"name":"Test"}""")
+            val resultJson = handler(defaultContext, """{"id":1,"name":"Test"}""")
             assertEquals("""{"success":true}""", resultJson)
         }
 
@@ -142,7 +149,7 @@ class WebViewJsBridgeTest {
             val handler = bridge.handlers["suspendMethod"]
             assertNotNull(handler)
 
-            val resultJson = handler("""{"id":1,"name":"Test"}""")
+            val resultJson = handler(defaultContext, """{"id":1,"name":"Test"}""")
             assertTrue(called)
             assertEquals("""{"success":true}""", resultJson)
         }
@@ -162,7 +169,7 @@ class WebViewJsBridgeTest {
             val handler = bridge.handlers["suspendNoArg"]
             assertNotNull(handler)
 
-            val resultJson = handler(null)
+            val resultJson = handler(defaultContext, null)
             assertTrue(called)
             assertEquals("""{"success":true}""", resultJson)
         }
@@ -180,7 +187,7 @@ class WebViewJsBridgeTest {
             val handler = bridge.handlers["suspendNullable"]
             assertNotNull(handler)
 
-            val resultJson = handler(null)
+            val resultJson = handler(defaultContext, null)
             assertEquals("""{"success":true}""", resultJson)
         }
 
@@ -197,7 +204,7 @@ class WebViewJsBridgeTest {
             val handler = bridge.handlers["suspendNullable"]
             assertNotNull(handler)
 
-            val resultJson = handler("""{"id":1,"name":"Test"}""")
+            val resultJson = handler(defaultContext, """{"id":1,"name":"Test"}""")
             assertEquals("""{"success":true}""", resultJson)
         }
 
@@ -216,7 +223,7 @@ class WebViewJsBridgeTest {
             val handler = bridge.handlers["suspendRefresh"]
             assertNotNull(handler)
 
-            val resultJson = handler(null)
+            val resultJson = handler(defaultContext, null)
             assertTrue(called)
             assertEquals("""{"success":true}""", resultJson)
         }
@@ -235,8 +242,33 @@ class WebViewJsBridgeTest {
 
             val exception =
                 assertFailsWith<IllegalArgumentException> {
-                    handler(null)
+                    handler(defaultContext, null)
                 }
             assertTrue(exception.message?.contains("registerNullable") == true)
+        }
+
+    @Test
+    fun testRegisterWithInvocationContext() =
+        runTest {
+            val bridge = WebViewJsBridge()
+            val invocationContext =
+                BridgeInvocationContext(
+                    sourceOrigin = "https://example.com",
+                    isMainFrame = false,
+                    transport = BridgeTransport.OriginAwareListener,
+                )
+
+            bridge.registerWithContext<TestData, TestResponse>("contextAware") { data ->
+                assertEquals("https://example.com", sourceOrigin)
+                assertEquals(false, isMainFrame)
+                assertEquals(BridgeTransport.OriginAwareListener, transport)
+                TestResponse(success = data.id == 7 && data.name == "Bridge")
+            }
+
+            val handler = bridge.handlers["contextAware"]
+            assertNotNull(handler)
+
+            val resultJson = handler(invocationContext, """{"id":7,"name":"Bridge"}""")
+            assertEquals("""{"success":true}""", resultJson)
         }
 }

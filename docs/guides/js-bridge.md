@@ -43,6 +43,27 @@ val bridge = rememberWebViewJsBridge(
 )
 ```
 
+For Android web content served from origins listed in `allowedOriginRules`, prefer the origin-aware Android bridge:
+
+```kotlin
+val bridge =
+    rememberAndroidWebViewJsBridge(
+        config =
+            AndroidWebViewJsBridgeConfig(
+                allowedOriginRules = setOf("https://example.com"),
+                policy = AndroidJsBridgePolicy.OriginAwareOnly,
+            ),
+    )
+```
+
+Notes:
+- `rememberWebViewJsBridge()` remains the default cross-platform bridge.
+- On Android, the default bridge is compatibility-oriented and preserves the classic `addJavascriptInterface` flow.
+- `rememberAndroidWebViewJsBridge()` adds `allowedOriginRules`-backed listener bootstrap and optional compatibility
+  fallback.
+- `policy = Compatible` is a migration/fallback mode. It intentionally restores `addJavascriptInterface`-style
+  exposure for pages that do not receive the origin-aware bridge.
+
 ---
 
 ## Receiving Calls from JavaScript
@@ -114,6 +135,18 @@ bridge.registerNullable<UserRequest, User>("getUserMaybe") { requestOrNull ->
 }
 ```
 
+### Invocation Metadata
+
+Use `registerWithContext<T, R>` when you need source metadata from the calling frame.
+
+```kotlin
+bridge.registerWithContext<UserRequest, User>("getTrustedUser") { request ->
+    check(isMainFrame)
+    check(sourceOrigin == "https://example.com")
+    userRepository.findById(request.id)
+}
+```
+
 ### Suspend / Async Handlers
 
 All `register` and `registerNullable` methods accept **both regular and `suspend` lambdas**. This enables handlers that perform asynchronous operations (e.g., showing a dialog and waiting for user input, making a network call) before returning a result to JavaScript.
@@ -138,6 +171,51 @@ JavaScript callers don't need any changes — calls already return Promises:
 ```javascript
 const choice = await window.AppBridge.call('showConfirmDialog');
 console.log("User confirmed:", choice.confirmed);
+```
+
+### Android Experimental Message APIs
+
+`rememberAndroidWebViewJsBridge(...)` also unlocks experimental Android-only message APIs for raw string/binary
+messages and main-frame `WebMessageChannel` sessions.
+
+```kotlin
+@OptIn(ExperimentalComposeWebViewApi::class)
+LaunchedEffect(bridge) {
+    bridge.registerMessage("echoText") { message ->
+        when (message) {
+            is AndroidBridgeMessage.Text -> AndroidBridgeMessage.Text("echo:${message.value}")
+            is AndroidBridgeMessage.Binary -> AndroidBridgeMessage.Binary(message.value)
+        }
+    }
+
+    bridge.postMainFrameMessage(
+        targetOrigin = "https://example.com",
+        message = AndroidBridgeMessage.Text("native-ready"),
+    )
+
+    val session = bridge.openMainFrameSession("https://example.com")
+    session?.setMessageHandler { payload ->
+        println("Session payload: $payload")
+    }
+}
+```
+
+These APIs map directly to Android `postWebMessage` and `WebMessageChannel`. They are useful transport primitives,
+but they do not replace the inbound origin metadata and trust model provided by `addWebMessageListener`.
+
+JavaScript helpers added by the origin-aware Android bridge:
+
+```javascript
+window.AppBridge.onMessage((payload) => {
+  console.log('Native message:', payload);
+});
+
+window.AppBridge.onSession((session) => {
+  session.onMessage((payload) => console.log('Session payload:', payload));
+  session.postMessage('hello from JS session');
+});
+
+const echoed = await window.AppBridge.callMessage('echoText', 'hello');
 ```
 
 ---

@@ -14,7 +14,68 @@ permissions:
   contents: read
 
 jobs:
+  verify:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Check Code Style (Spotless)
+        run: ./gradlew spotlessCheck
+
+      - name: Install MkDocs
+        run: pip install mkdocs-material
+
+      - name: Validate Docs
+        run: bash .agents/skills/documentation/scripts/validate_docs.sh
+
+      - name: Build Docs (Strict)
+        run: bash .agents/skills/documentation/scripts/mkdocs_build.sh
+
+      - name: Run Multiplatform Tests
+        run: ./gradlew :compose-webview:allTests
+
+  android-instrumented:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Run Android Instrumentation Tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          script: ./gradlew :compose-webview:connectedDebugAndroidTest
+
   publish:
+    needs:
+      - verify
+      - android-instrumented
     runs-on: macos-latest
 
     steps:
@@ -40,9 +101,6 @@ jobs:
           fi
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
           echo "Publishing version: $VERSION"
-
-      - name: Check Code Style (Spotless)
-        run: ./gradlew spotlessCheck
 
       - name: Publish to Maven Central
         env:
