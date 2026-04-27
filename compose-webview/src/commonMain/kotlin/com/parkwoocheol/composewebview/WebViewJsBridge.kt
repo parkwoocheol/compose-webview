@@ -23,15 +23,23 @@ class WebViewJsBridge(
 ) : NativeWebBridge {
     @PublishedApi internal val serializer: BridgeSerializer = serializer ?: defaultSerializer()
 
-    // Handler stores a suspend function that takes a JSON string and returns a JSON string (or null)
     @PublishedApi
-    internal val handlers = mutableMapOf<String, suspend (String?) -> String?>()
+    internal val handlers = mutableMapOf<String, BridgeRpcHandler>()
 
     @PublishedApi
     internal var webView: WebView? = null
 
     @PublishedApi
     internal val scope = CoroutineScope(Dispatchers.Main)
+
+    @PublishedApi
+    internal var runtime: WebViewJsBridgeRuntime = DefaultWebViewJsBridgeRuntime
+
+    /**
+     * Describes the runtime capabilities exposed by the currently installed transport.
+     */
+    val capabilities: BridgeCapabilities
+        get() = runtime.capabilities
 
     /**
      * The JavaScript code to inject into the WebView.
@@ -109,26 +117,60 @@ class WebViewJsBridge(
         method: String,
         noinline handler: suspend (T) -> R,
     ) {
-        handlers[method] = { jsonStr ->
-            val inputType = typeOf<T>()
-            val input =
-                if (jsonStr != null) {
-                    serializer.decode<T>(jsonStr, inputType)
-                } else {
-                    if (inputType == typeOf<Unit>()) {
-                        @Suppress("UNCHECKED_CAST")
-                        Unit as T
+        handlers[method] =
+            BridgeRpcHandler { _, jsonStr ->
+                val inputType = typeOf<T>()
+                val input =
+                    if (jsonStr != null) {
+                        serializer.decode<T>(jsonStr, inputType)
                     } else {
-                        throw IllegalArgumentException(
-                            "Input data is null but type is not nullable. " +
-                                "Use registerNullable<T, R>(...) for nullable payloads.",
-                        )
+                        if (inputType == typeOf<Unit>()) {
+                            @Suppress("UNCHECKED_CAST")
+                            Unit as T
+                        } else {
+                            throw IllegalArgumentException(
+                                "Input data is null but type is not nullable. " +
+                                    "Use registerNullable<T, R>(...) for nullable payloads.",
+                            )
+                        }
                     }
-                }
 
-            val result = handler(input)
-            serializer.encode(result, typeOf<R>())
-        }
+                val result = handler(input)
+                serializer.encode(result, typeOf<R>())
+            }
+    }
+
+    /**
+     * Registers a handler that receives invocation metadata for the calling frame.
+     *
+     * @param method The method name exposed to JavaScript.
+     * @param handler The handler invoked for that method.
+     */
+    inline fun <reified T : Any, reified R : Any> registerWithContext(
+        method: String,
+        noinline handler: suspend BridgeInvocationContext.(T) -> R,
+    ) {
+        handlers[method] =
+            BridgeRpcHandler { context, jsonStr ->
+                val inputType = typeOf<T>()
+                val input =
+                    if (jsonStr != null) {
+                        serializer.decode<T>(jsonStr, inputType)
+                    } else {
+                        if (inputType == typeOf<Unit>()) {
+                            @Suppress("UNCHECKED_CAST")
+                            Unit as T
+                        } else {
+                            throw IllegalArgumentException(
+                                "Input data is null but type is not nullable. " +
+                                    "Use registerNullable<T, R>(...) for nullable payloads.",
+                            )
+                        }
+                    }
+
+                val result = handler(context, input)
+                serializer.encode(result, typeOf<R>())
+            }
     }
 
     /**
@@ -142,10 +184,11 @@ class WebViewJsBridge(
         method: String,
         noinline handler: suspend () -> R,
     ) {
-        handlers[method] = { _ ->
-            val result = handler()
-            serializer.encode(result, typeOf<R>())
-        }
+        handlers[method] =
+            BridgeRpcHandler { _, _ ->
+                val result = handler()
+                serializer.encode(result, typeOf<R>())
+            }
     }
 
     /**
@@ -160,13 +203,14 @@ class WebViewJsBridge(
         method: String,
         noinline handler: suspend (T?) -> R,
     ) {
-        handlers[method] = { jsonStr ->
-            val inputType = typeOf<T>()
-            val input = if (jsonStr != null) serializer.decode<T>(jsonStr, inputType) else null
+        handlers[method] =
+            BridgeRpcHandler { _, jsonStr ->
+                val inputType = typeOf<T>()
+                val input = if (jsonStr != null) serializer.decode<T>(jsonStr, inputType) else null
 
-            val result = handler(input)
-            serializer.encode(result, typeOf<R>())
-        }
+                val result = handler(input)
+                serializer.encode(result, typeOf<R>())
+            }
     }
 
     /**
@@ -181,10 +225,17 @@ class WebViewJsBridge(
         data: T,
     ) {
         val jsonStr = serializer.encode(data, typeOf<T>())
+        emitSerialized(event, jsonStr)
+    }
+
+    @PublishedApi
+    internal fun emitSerialized(
+        event: String,
+        jsonPayload: String,
+    ) {
         // We need to run this on the main thread because it interacts with WebView
         scope.launch {
-            val script = "window.$jsObjectName.trigger('$event', $jsonStr);"
-            webView?.platformEvaluateJavascript(script, null)
+            runtime.emit(this@WebViewJsBridge, event, jsonPayload)
         }
     }
 
@@ -196,8 +247,26 @@ class WebViewJsBridge(
     }
 
     internal fun attach(webView: WebView) {
-        this.webView = webView
-        webView.platformAddJavascriptInterface(this, nativeInterfaceName)
+        runtime.attach(this, webView)
+    }
+
+    internal fun setRuntime(runtime: WebViewJsBridgeRuntime) {
+        this.runtime = runtime
+    }
+
+    internal fun pageFinishedBootstrapScript(): String? = runtime.pageFinishedBootstrapScript(this)
+
+    internal fun onPageStarted() {
+        runtime.onPageStarted(this)
+    }
+
+    internal suspend fun invokeHandler(
+        methodName: String,
+        data: String?,
+        context: BridgeInvocationContext,
+    ): String? {
+        val handler = handlers[methodName] ?: throw IllegalArgumentException("No handler found for method: $methodName")
+        return handler(context, data)
     }
 
     /**
@@ -205,6 +274,7 @@ class WebViewJsBridge(
      * This should be called when the bridge is no longer needed to prevent memory leaks.
      */
     fun dispose() {
+        runtime.dispose(this)
         scope.cancel()
         webView = null
     }
@@ -222,8 +292,13 @@ class WebViewJsBridge(
         data: String?,
         callbackId: String?,
     ) {
-        val handler = handlers[methodName]
-        if (handler == null) {
+        val context =
+            BridgeInvocationContext(
+                sourceOrigin = null,
+                isMainFrame = true,
+                transport = BridgeTransport.Compatibility,
+            )
+        if (handlers[methodName] == null) {
             if (callbackId != null) {
                 sendError(callbackId, "No handler found for method: $methodName")
             }
@@ -232,7 +307,7 @@ class WebViewJsBridge(
 
         scope.launch {
             try {
-                val resultJson = handler(data)
+                val resultJson = invokeHandler(methodName, data, context)
 
                 if (callbackId != null) {
                     sendSuccess(callbackId, resultJson)
@@ -270,6 +345,13 @@ class WebViewJsBridge(
         val script = "window.$jsObjectName.onError('$callbackId', $escapedError);"
         webView?.platformEvaluateJavascript(script, null)
     }
+}
+
+internal fun interface BridgeRpcHandler {
+    suspend operator fun invoke(
+        context: BridgeInvocationContext,
+        jsonPayload: String?,
+    ): String?
 }
 
 private fun defaultSerializer(): BridgeSerializer {

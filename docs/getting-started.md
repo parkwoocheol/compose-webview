@@ -14,11 +14,11 @@ Before you begin, ensure your project meets the following requirements:
 
 ## Installation
 
-This library is available on **Maven Central** for universal access without authentication starting from **v1.6.0**.
+This library is available on **Maven Central** for universal access without authentication.
 
 !!! warning "Version Availability"
-    - **v1.6.1+ (future)**: Maven Central only (`io.github.parkwoocheol`)
-    - **v1.6.0 (current)**: Available on all repositories but uses different group IDs
+    - **v1.6.1 and later**: Maven Central only (`io.github.parkwoocheol`)
+    - **v1.6.0 (transitional)**: Available on all repositories but uses different group IDs
         - JitPack/GitHub Packages: `com.github.parkwoocheol:compose-webview:1.6.0`
         - Maven Central: `io.github.parkwoocheol:compose-webview:1.6.0` ← **Recommended**
     - **v1.5.x and earlier**: JitPack and GitHub Packages only (`com.github.parkwoocheol`)
@@ -110,9 +110,9 @@ If you previously used this library from JitPack or GitHub Packages:
 | Version | Repository | Group ID | Coordinates |
 |---------|------------|----------|-------------|
 | v1.5.x and earlier | JitPack, GitHub Packages | `com.github.parkwoocheol` | `com.github.parkwoocheol:compose-webview:1.5.x` |
-| **v1.6.0** (current) | JitPack, GitHub Packages | `com.github.parkwoocheol` | `com.github.parkwoocheol:compose-webview:1.6.0` |
-| **v1.6.0** (current) | **Maven Central** | `io.github.parkwoocheol` | `io.github.parkwoocheol:compose-webview:1.6.0` |
-| **v1.6.1+** (future) | **Maven Central only** | `io.github.parkwoocheol` | `io.github.parkwoocheol:compose-webview:1.6.1+` |
+| **v1.6.0** (transitional) | JitPack, GitHub Packages | `com.github.parkwoocheol` | `com.github.parkwoocheol:compose-webview:1.6.0` |
+| **v1.6.0** (transitional) | **Maven Central** | `io.github.parkwoocheol` | `io.github.parkwoocheol:compose-webview:1.6.0` |
+| **v1.6.1 and later** | **Maven Central only** | `io.github.parkwoocheol` | `io.github.parkwoocheol:compose-webview:<version>` |
 
 !!! info "v1.6.0 Group ID Difference"
     v1.6.0 uses different group IDs depending on the repository:
@@ -219,8 +219,8 @@ kotlin {
 
 !!! note "Backward Compatibility"
     - Old versions (v1.5.x and earlier) remain available on JitPack/GitHub Packages with `com.github` group ID
-    - v1.6.0 is the current and last version available on JitPack/GitHub Packages
-    - Future versions (v1.6.1+) will be Maven Central exclusive with `io.github` group ID
+    - `v1.6.0` is the last version available on JitPack/GitHub Packages
+    - `v1.6.1` and later are Maven Central exclusive with the `io.github` group ID
 
 ---
 

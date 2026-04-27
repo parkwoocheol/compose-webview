@@ -222,8 +222,15 @@ internal actual fun ComposeWebViewImpl(
         // Inject JS Bridge script when page finishes loading
         jsBridge?.let { bridge ->
             LaunchedEffect(state.loadingState) {
-                if (state.loadingState is LoadingState.Finished) {
-                    wv.evaluateJavascript(bridge.jsScript, null)
+                when (state.loadingState) {
+                    is LoadingState.Loading -> bridge.onPageStarted()
+                    is LoadingState.Finished -> {
+                        bridge.pageFinishedBootstrapScript()?.let { script ->
+                            wv.evaluateJavascript(script, null)
+                        }
+                    }
+
+                    else -> Unit
                 }
             }
         }

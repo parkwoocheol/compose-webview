@@ -31,8 +31,9 @@ jobs:
           path: .cache
           restore-keys: |
             mkdocs-material-
-      - run: pip install mkdocs-material 
-      - run: mkdocs build
+      - run: pip install mkdocs-material
+      - run: bash .agents/skills/documentation/scripts/validate_docs.sh
+      - run: bash .agents/skills/documentation/scripts/mkdocs_build.sh
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

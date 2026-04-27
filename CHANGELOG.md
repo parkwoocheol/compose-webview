@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-04-27
+
+### Added
+- Android: added `rememberAndroidWebViewJsBridge(...)` with origin-aware configuration and origin-aware/compatibility policy
+  selection, and bridge capability reporting.
+- JSBridge: added `BridgeInvocationContext`, `BridgeCapabilities`, and `registerWithContext(...)` for
+  invocation-aware handler registration.
+- Android: added experimental raw message APIs (`registerMessage`, `postMainFrameMessage`) and
+  `WebMessageChannel` sessions via `openMainFrameSession(...)`.
+
+### Changed
+- Android: `rememberWebViewJsBridge()` continues to use the compatibility bridge path, while the new origin-aware
+  Android bridge uses `addWebMessageListener` plus document-start bootstrap for documents matched by
+  `allowedOriginRules`.
+
 ## [1.8.2] - 2026-04-06
 
 ### Fixed
@@ -63,7 +78,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - iOS find API integration issues (`WKFindResult` property access alignment).
 - Cross-platform build issues across JS, WasmJs, Desktop, iOS, and shared API synchronization.
 
-[Unreleased]: https://github.com/parkwoocheol/compose-webview/compare/1.8.2...main
+[Unreleased]: https://github.com/parkwoocheol/compose-webview/compare/1.9.0...main
+[1.9.0]: https://github.com/parkwoocheol/compose-webview/compare/1.8.2...1.9.0
 [1.8.2]: https://github.com/parkwoocheol/compose-webview/compare/1.8.1...1.8.2
 [1.8.1]: https://github.com/parkwoocheol/compose-webview/compare/1.8.0...1.8.1
 [1.8.0]: https://github.com/parkwoocheol/compose-webview/compare/1.7.1...1.8.0

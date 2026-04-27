@@ -200,11 +200,12 @@ We focused heavily on making the interaction between Kotlin and JavaScript as se
 
 ## 📦 Installation
 
-This library is available on **Maven Central** for universal access without authentication starting from **v1.6.0**.
+This library is available on **Maven Central** for universal access without authentication.
 
-> **Important**: Future versions (v1.6.1+) will be available **only on Maven Central**. The current version v1.6.0 is available on all repositories but uses different group IDs:
-> - JitPack/GitHub Packages: `com.github.parkwoocheol:compose-webview:1.6.0`
-> - Maven Central: `io.github.parkwoocheol:compose-webview:1.6.0` ← **Recommended**
+> **Current coordinates**: `io.github.parkwoocheol:compose-webview:<version>`
+>
+> **Migration Note**: `v1.6.0` was the transitional release that existed on both Maven Central and
+> JitPack/GitHub Packages with different group IDs. `v1.6.1` and later use Maven Central only.
 >
 > **Migration Note**: If you're upgrading from v1.5.x or earlier, see the [Migration Guide](#migration-from-jitpackgithub-packages) below.
 
@@ -296,11 +297,11 @@ If you previously used this library from JitPack or GitHub Packages, here's how 
 | Version | Repository | Group ID | Coordinates |
 |---------|------------|----------|-------------|
 | v1.5.x and earlier | JitPack, GitHub Packages | `com.github.parkwoocheol` | `com.github.parkwoocheol:compose-webview:1.5.x` |
-| **v1.6.0** (current) | JitPack, GitHub Packages | `com.github.parkwoocheol` | `com.github.parkwoocheol:compose-webview:1.6.0` |
-| **v1.6.0** (current) | **Maven Central** | `io.github.parkwoocheol` | `io.github.parkwoocheol:compose-webview:1.6.0` |
-| **v1.6.1+** (future) | **Maven Central only** | `io.github.parkwoocheol` | `io.github.parkwoocheol:compose-webview:1.6.1+` |
+| **v1.6.0** (transitional) | JitPack, GitHub Packages | `com.github.parkwoocheol` | `com.github.parkwoocheol:compose-webview:1.6.0` |
+| **v1.6.0** (transitional) | **Maven Central** | `io.github.parkwoocheol` | `io.github.parkwoocheol:compose-webview:1.6.0` |
+| **v1.6.1 and later** | **Maven Central only** | `io.github.parkwoocheol` | `io.github.parkwoocheol:compose-webview:<version>` |
 
-> **Note**: v1.6.0 uses different group IDs depending on the repository. Same version, different coordinates.
+> **Note**: `v1.6.0` uses different group IDs depending on the repository. `v1.6.1` and later use Maven Central only.
 
 #### Recommended: Three-Step Migration
 
@@ -549,6 +550,11 @@ fun WebViewWithJsBridge() {
             val results = api.search(query.term) // suspend call
             SearchResult(items = results)
         }
+
+        bridge.registerWithContext<User, UserResponse>("updateUserFromTrustedFrame") { user ->
+            println("Called from origin=$sourceOrigin mainFrame=$isMainFrame via $transport")
+            UserResponse(success = true, message = "Handled ${user.name}")
+        }
     }
 
     ComposeWebView(
@@ -604,6 +610,81 @@ async function logMessage() {
 - Other non-null input types: `null` throws an input type error.
 
 Use `registerNullable<T, R>` when a payload type may be `null` from JavaScript.
+
+`registerWithContext<T, R>` exposes `sourceOrigin`, `isMainFrame`, and `transport`. On Android these values are
+most useful with `rememberAndroidWebViewJsBridge(...)`, which uses origin-aware WebView message APIs for documents
+matched by `allowedOriginRules`.
+
+#### Android Origin-Aware Bridge
+
+For Android web content served from origins listed in `allowedOriginRules`, prefer
+`rememberAndroidWebViewJsBridge(...)` over the default bridge:
+
+```kotlin
+val bridge =
+    rememberAndroidWebViewJsBridge(
+        config =
+            AndroidWebViewJsBridgeConfig(
+                allowedOriginRules = setOf("https://example.com"),
+                policy = AndroidJsBridgePolicy.OriginAwareOnly,
+            ),
+    )
+```
+
+Notes:
+- `rememberWebViewJsBridge()` remains the default cross-platform bridge.
+- On Android, `rememberWebViewJsBridge()` is compatibility-oriented and keeps the existing `addJavascriptInterface`
+  flow.
+- `rememberAndroidWebViewJsBridge()` enables `addWebMessageListener` + document-start bootstrap with
+  `allowedOriginRules`, and can fall back to a compatibility bridge when `policy = Compatible`.
+- `policy = Compatible` is a migration/fallback mode. It intentionally restores `addJavascriptInterface`-style
+  exposure for pages that do not receive the origin-aware bridge, so it should not be treated as equivalent to
+  `OriginAwareOnly`.
+
+#### Android Experimental Message APIs
+
+The origin-aware Android bridge also exposes optional experimental APIs for raw string/binary messages and main-frame
+message-channel sessions:
+
+```kotlin
+@OptIn(ExperimentalComposeWebViewApi::class)
+LaunchedEffect(bridge) {
+    bridge.registerMessage("echoText") { message ->
+        when (message) {
+            is AndroidBridgeMessage.Text -> AndroidBridgeMessage.Text("echo:${message.value}")
+            is AndroidBridgeMessage.Binary -> AndroidBridgeMessage.Binary(message.value)
+        }
+    }
+
+    bridge.postMainFrameMessage(
+        targetOrigin = "https://example.com",
+        message = AndroidBridgeMessage.Text("native-ready"),
+    )
+
+    val session = bridge.openMainFrameSession("https://example.com")
+    session?.setMessageHandler { payload ->
+        println("Session payload: $payload")
+    }
+}
+```
+
+These experimental APIs map directly to Android `postWebMessage` and `WebMessageChannel`. Treat them as
+main-frame transport primitives, not as the same trust boundary as inbound `addWebMessageListener`.
+
+JavaScript helpers added by the origin-aware Android bridge:
+
+```javascript
+window.AppBridge.onMessage((payload) => {
+  console.log('Native message:', payload);
+});
+
+window.AppBridge.onSession((session) => {
+  session.onMessage((payload) => console.log('Session payload:', payload));
+  session.postMessage('hello from JS session');
+});
+
+const echoed = await window.AppBridge.callMessage('echoText', 'hello');
+```
 
 #### Customizing Bridge Name
 
@@ -1042,12 +1123,20 @@ class WebViewJsBridge(
     val jsObjectName: String = "AppBridge",
     private val nativeInterfaceName: String = "AppBridgeNative"
 ) {
+    val capabilities: BridgeCapabilities
+
     // Register a typed handler for calls from JavaScript.
     // Accepts both regular and suspend lambdas.
     // Null input is only accepted when T is Unit.
     inline fun <reified T : Any, reified R : Any> register(
         method: String,
         noinline handler: suspend (T) -> R
+    )
+
+    // Register a typed handler with invocation metadata.
+    inline fun <reified T : Any, reified R : Any> registerWithContext(
+        method: String,
+        noinline handler: suspend BridgeInvocationContext.(T) -> R
     )
 
     // Register a no-argument handler
@@ -1186,6 +1275,14 @@ fun rememberWebViewJsBridge(
     serializer: BridgeSerializer? = null,
     jsObjectName: String = "AppBridge",
     nativeInterfaceName: String = "AppBridgeNative"
+): WebViewJsBridge
+
+@Composable
+fun rememberAndroidWebViewJsBridge(
+    serializer: BridgeSerializer? = null,
+    jsObjectName: String = "AppBridge",
+    nativeInterfaceName: String = "AppBridgeNative",
+    config: AndroidWebViewJsBridgeConfig
 ): WebViewJsBridge
 ```
 

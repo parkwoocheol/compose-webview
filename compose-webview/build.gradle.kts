@@ -70,6 +70,7 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.androidx.core.ktx)
             implementation(libs.androidx.appcompat)
+            implementation(libs.androidx.webkit)
             implementation(libs.material)
             implementation(libs.androidx.activity.compose)
             implementation(libs.androidx.lifecycle.runtime.compose)
@@ -130,6 +131,10 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+}
+
+dependencies {
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
 
 mavenPublishing {
