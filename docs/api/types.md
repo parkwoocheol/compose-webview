@@ -122,6 +122,7 @@ Helper class for managing the connection between Kotlin and JavaScript.
 | `register<T, R>(name: String, handler: suspend (T) -> R)` | Registers a handler that receives type `T` from JS and returns type `R`. Accepts both regular and `suspend` lambdas. | All platforms |
 | `register<R>(name: String, handler: suspend () -> R)` | Registers a handler with no input argument and returns type `R`. Accepts both regular and `suspend` lambdas. | All platforms |
 | `registerNullable<T, R>(name: String, handler: suspend (T?) -> R)` | Registers a handler that accepts nullable payload input from JS and returns type `R`. Accepts both regular and `suspend` lambdas. | All platforms |
+| `registerWithContext<T, R>(name: String, handler: suspend BridgeInvocationContext.(T) -> R)` | Registers a typed handler that also receives source origin, frame, and transport metadata when the platform provides it. | All platforms |
 | `emit(eventName: String, data: Any)` | Emits an event to JavaScript. The data object is automatically serialized to JSON. | All platforms |
 | `unregister(name: String)` | Unregisters a previously registered native handler. | All platforms |
 
@@ -132,6 +133,52 @@ Helper class for managing the connection between Kotlin and JavaScript.
 Use `registerNullable<T, R>` when you want `null` payloads for non-Unit types.
 
 All handlers support `suspend` lambdas, enabling asynchronous operations (e.g., network calls, dialog interactions) before returning a result to JavaScript. Regular (non-suspend) lambdas continue to work as before.
+
+### BridgeInvocationContext
+
+| Property | Type | Description |
+| :--- | :--- | :--- |
+| `sourceOrigin` | `String?` | Origin reported by the platform, or `null` when unavailable. |
+| `isMainFrame` | `Boolean` | Whether the call came from the main frame. |
+| `transport` | `BridgeTransport` | Transport that delivered the invocation. |
+
+### BridgeTransport
+
+| Value | Description |
+| :--- | :--- |
+| `Compatibility` | Classic platform bridge path, such as Android `addJavascriptInterface`. |
+| `OriginAwareListener` | Android origin-aware listener path backed by `addWebMessageListener`. |
+| `MessageChannel` | Dedicated message-channel transport backed by transferable ports. |
+
+### BridgeCapabilities
+
+| Property | Description |
+| :--- | :--- |
+| `supportsOriginAwareInbound` | Inbound calls can include origin and frame metadata. |
+| `supportsBinaryMessages` | Binary bridge payloads are available. |
+| `supportsPersistentReplyChannel` | A frame-bound reply channel can stay active after a handler returns. |
+| `supportsMainFrameOutboundMessaging` | The bridge can send main-frame messages without evaluating JavaScript strings. |
+
+### Android Origin-Aware JSBridge
+
+These APIs are Android-only and available from the Android source set. They require
+`rememberAndroidWebViewJsBridge(...)`.
+
+| API | Description |
+| :--- | :--- |
+| `rememberAndroidWebViewJsBridge(config = AndroidWebViewJsBridgeConfig(...))` | Creates an Android bridge backed by WebView message APIs for origins matched by `allowedOriginRules`. |
+| `AndroidWebViewJsBridgeConfig.allowedOriginRules` | Origin rules forwarded to `addWebMessageListener` and document-start script injection. |
+| `AndroidWebViewJsBridgeConfig.policy` | `OriginAwareOnly` requires the origin-aware path; `Compatible` allows the classic fallback when you accept the weaker trust model. |
+| `AndroidWebViewJsBridgeConfig.allowIframes` | Enables or blocks iframe-originated calls on the origin-aware path. |
+| `AndroidWebViewJsBridgeConfig.enableBinaryMessages` | Enables experimental ArrayBuffer payloads when the WebView provider supports them. |
+| `registerMessage(name, handler)` | Registers an experimental raw string/binary message handler. |
+| `unregisterMessage(name)` | Removes a raw message handler. |
+| `postMainFrameMessage(targetOrigin, message)` | Sends a raw string or binary message to the main frame using Android `postWebMessage`. |
+| `openMainFrameSession(targetOrigin)` | Opens a main-frame `WebMessageChannel` session and returns `AndroidBridgeSession?`. |
+
+`postMainFrameMessage(...)` and `openMainFrameSession(...)` require an exact target origin such as
+`https://example.com`. They are main-frame transport primitives and do not replace the inbound origin trust model
+provided by `addWebMessageListener`.
 
 ---
 

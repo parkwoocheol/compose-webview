@@ -203,11 +203,6 @@ We focused heavily on making the interaction between Kotlin and JavaScript as se
 This library is available on **Maven Central** for universal access without authentication.
 
 > **Current coordinates**: `io.github.parkwoocheol:compose-webview:<version>`
->
-> **Migration Note**: `v1.6.0` was the transitional release that existed on both Maven Central and
-> JitPack/GitHub Packages with different group IDs. `v1.6.1` and later use Maven Central only.
->
-> **Migration Note**: If you're upgrading from v1.5.x or earlier, see the [Migration Guide](#migration-from-jitpackgithub-packages) below.
 
 ### Step 1. Configure Repository
 
@@ -288,96 +283,11 @@ The Kotlin Multiplatform Gradle plugin **automatically selects** the correct pla
 
 > **Note**: You don't need to specify platform-specific artifacts manually. Just use `compose-webview` and Gradle resolves the correct artifact automatically.
 
-### Migration from JitPack/GitHub Packages
-
-If you previously used this library from JitPack or GitHub Packages, here's how to migrate:
-
-#### Version History
-
-| Version | Repository | Group ID | Coordinates |
-|---------|------------|----------|-------------|
-| v1.5.x and earlier | JitPack, GitHub Packages | `com.github.parkwoocheol` | `com.github.parkwoocheol:compose-webview:1.5.x` |
-| **v1.6.0** (transitional) | JitPack, GitHub Packages | `com.github.parkwoocheol` | `com.github.parkwoocheol:compose-webview:1.6.0` |
-| **v1.6.0** (transitional) | **Maven Central** | `io.github.parkwoocheol` | `io.github.parkwoocheol:compose-webview:1.6.0` |
-| **v1.6.1 and later** | **Maven Central only** | `io.github.parkwoocheol` | `io.github.parkwoocheol:compose-webview:<version>` |
-
-> **Note**: `v1.6.0` uses different group IDs depending on the repository. `v1.6.1` and later use Maven Central only.
-
-#### Recommended: Three-Step Migration
-
-**Step 1: Upgrade to v1.6.0** (test compatibility, keep existing repository)
-
-```kotlin
-// settings.gradle.kts - Keep existing repository
-repositories {
-    google()
-    mavenCentral()
-    maven { url = uri("https://jitpack.io") }  // or GitHub Packages
-}
-
-// build.gradle.kts - Upgrade version only, keep group ID
-implementation("com.github.parkwoocheol:compose-webview:1.6.0")
-```
-
-Build and test your app.
-
-**Step 2: Switch to Maven Central** (change group ID)
-
-```kotlin
-// settings.gradle.kts - Keep both temporarily
-repositories {
-    google()
-    mavenCentral()
-    maven { url = uri("https://jitpack.io") }  // will remove soon
-}
-
-// build.gradle.kts - Change group ID to io.github
-implementation("io.github.parkwoocheol:compose-webview:1.6.0")
-```
-
-Verify it downloads from Maven Central.
-
-**Step 3: Clean up** (remove old repositories)
-
-```kotlin
-// settings.gradle.kts - Remove old repositories
-repositories {
-    google()
-    mavenCentral()  // All you need!
-}
-
-// build.gradle.kts - Same as Step 2
-implementation("io.github.parkwoocheol:compose-webview:1.6.0")
-```
-
-Remove authentication (GitHub tokens, etc.).
-
-#### Quick Migration
-
-For direct migration:
-
-```kotlin
-// settings.gradle.kts
-repositories {
-    google()
-    mavenCentral()
-}
-
-// build.gradle.kts
-// Before: implementation("com.github.parkwoocheol:compose-webview:1.5.1")
-implementation("io.github.parkwoocheol:compose-webview:1.6.0")
-```
-
-**Note**: Old versions remain available on JitPack/GitHub Packages for backward compatibility.
-
 ## Quick Start
 
 ```kotlin
 @Composable
 fun MyWebViewScreen() {
-    val state = rememberSaveableWebViewState(url = "https://example.com")
-    val controller = rememberWebViewController()
-
     ComposeWebView(
         url = "https://example.com",
         modifier = Modifier.fillMaxSize(),
@@ -615,10 +525,20 @@ Use `registerNullable<T, R>` when a payload type may be `null` from JavaScript.
 most useful with `rememberAndroidWebViewJsBridge(...)`, which uses origin-aware WebView message APIs for documents
 matched by `allowedOriginRules`.
 
+#### Choosing a Bridge
+
+| Use case | API | Notes |
+|----------|-----|-------|
+| Cross-platform typed calls and events | `rememberWebViewJsBridge()` | Default for shared code. On Android it keeps the compatibility bridge path. |
+| Android typed calls with origin and frame metadata | `rememberAndroidWebViewJsBridge(..., policy = OriginAwareOnly)` | Android-only. Uses `addWebMessageListener` with `allowedOriginRules`. |
+| Native-to-JavaScript main-frame messages on Android | `postMainFrameMessage(...)` | Android-only experimental API. Maps to `postWebMessage`. |
+| Long-lived bidirectional main-frame channel on Android | `openMainFrameSession(...)` | Android-only experimental API. Maps to `WebMessageChannel` plus `postWebMessage`. |
+| Provider or page fallback that cannot use the origin-aware path | `policy = Compatible` | Re-enables the classic Android bridge fallback. Use only when you accept the weaker trust model. |
+
 #### Android Origin-Aware Bridge
 
 For Android web content served from origins listed in `allowedOriginRules`, prefer
-`rememberAndroidWebViewJsBridge(...)` over the default bridge:
+`rememberAndroidWebViewJsBridge(...)` from your Android source set over the default bridge:
 
 ```kotlin
 val bridge =
@@ -637,7 +557,7 @@ Notes:
   flow.
 - `rememberAndroidWebViewJsBridge()` enables `addWebMessageListener` + document-start bootstrap with
   `allowedOriginRules`, and can fall back to a compatibility bridge when `policy = Compatible`.
-- `policy = Compatible` is a migration/fallback mode. It intentionally restores `addJavascriptInterface`-style
+- `policy = Compatible` is a fallback mode. It intentionally restores `addJavascriptInterface`-style
   exposure for pages that do not receive the origin-aware bridge, so it should not be treated as equivalent to
   `OriginAwareOnly`.
 
@@ -669,7 +589,8 @@ LaunchedEffect(bridge) {
 ```
 
 These experimental APIs map directly to Android `postWebMessage` and `WebMessageChannel`. Treat them as
-main-frame transport primitives, not as the same trust boundary as inbound `addWebMessageListener`.
+main-frame transport primitives, not as the same trust boundary as inbound `addWebMessageListener`. Use an exact
+`targetOrigin` such as `https://example.com`; wildcard target origins are rejected.
 
 JavaScript helpers added by the origin-aware Android bridge:
 

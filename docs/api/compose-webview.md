@@ -64,7 +64,7 @@ fun ComposeWebView(
 | `releaseStrategy` | `WebViewReleaseStrategy` | Controls whether the native WebView is destroyed on composition release or kept alive for reuse. | KeepAlive: Android, iOS only |
 | `controller` | `WebViewController` | The `WebViewController` for programmatic control (load, back, forward, zoom, etc.). | All platforms* |
 | `javaScriptInterfaces` | `Map<String, Any>` | Map of native objects to inject into JavaScript. Key is the JS object name. | Android, Desktop |
-| `jsBridge` | `WebViewJsBridge?` | The `WebViewJsBridge` instance for type-safe, promise-based communication. | All platforms |
+| `jsBridge` | `WebViewJsBridge?` | The `WebViewJsBridge` instance for type-safe, promise-based communication. Android can use `rememberAndroidWebViewJsBridge(...)` for origin-aware WebView message APIs. | All platforms |
 | `onCreated` | `(WebView) -> Unit` | Callback invoked when the native `WebView` instance is created. | All platforms |
 | `onDispose` | `(WebView) -> Unit` | Callback invoked when the WebView leaves composition (before release strategy is applied). | All platforms |
 | `client` | `ComposeWebViewClient` | Custom `ComposeWebViewClient` (wraps `WebViewClient`). | All platforms |
@@ -87,6 +87,13 @@ fun ComposeWebView(
 - `KeepAlive`: keeps the instance for reuse across composition exits/re-entries.
 - `KeepAlive` is currently supported on Android and iOS. Desktop/Web/WASM currently behave as `DestroyOnRelease`.
 - `loadUrl()` and `loadHtml()` are restored as the latest top-level request. `postUrl()` is not auto-replayed after recreation.
+
+`jsBridge` notes:
+- Use `rememberWebViewJsBridge()` for cross-platform typed calls and events.
+- On Android, use `rememberAndroidWebViewJsBridge(...)` when your WebView loads trusted origins and you need
+  origin/frame metadata from `addWebMessageListener`.
+- Android raw message APIs such as `postMainFrameMessage(...)` and `openMainFrameSession(...)` are documented in
+  [Types](types.md#android-origin-aware-jsbridge).
 
 ---
 
