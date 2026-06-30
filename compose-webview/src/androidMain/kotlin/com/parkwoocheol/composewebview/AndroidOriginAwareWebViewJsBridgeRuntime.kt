@@ -504,7 +504,7 @@ internal class AndroidOriginAwareWebViewJsBridgeRuntime(
 
     private fun compatibilityInterfaceName(bridge: WebViewJsBridge): String = "${bridge.nativeInterfaceName}_$compatibilityInterfaceName"
 
-    private fun jsonElementToRawString(element: JsonElement): String? =
+    internal fun jsonElementToRawString(element: JsonElement): String? =
         when (element) {
             JsonNull -> null
             else -> element.toString()
@@ -650,7 +650,7 @@ internal class AndroidOriginAwareWebViewJsBridgeRuntime(
                             __composeWebView: true,
                             kind: ${JsonPrimitive(KIND_TYPED_CALL)},
                             method,
-                            data: data === undefined ? null : JSON.stringify(data),
+                            data: (data === undefined || data === null) ? null : data,
                             callbackId,
                         }));
                     });

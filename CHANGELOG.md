@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Android: the origin-aware JS bridge no longer double-encodes `call(...)` payloads, so
+  `register<T>` handlers receive correctly deserialized object/array/string payloads instead of a
+  JSON string literal. Explicit JavaScript `null` payloads are now handled like the compatibility
+  transport. (#61)
+
 ## [1.9.0] - 2026-04-27
 
 ### Added
