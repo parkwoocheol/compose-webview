@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- Desktop: the WebView no longer crashes with
+  `NoSuchMethodError: androidx.compose.ui.awt.SwingPanel_desktopKt.SwingPanel-euL9pac` on Compose
+  Multiplatform 1.12. Compose 1.12 replaced the `SwingPanel(background: Color, ...)` JVM symbol this
+  library was compiled against, so the overload that the running Compose version actually exposes is
+  now resolved at runtime. Compose 1.9.3 - 1.11.x keep using the original direct call. (#63)
 - Android: the origin-aware JS bridge no longer double-encodes `call(...)` payloads, so
   `register<T>` handlers receive correctly deserialized object/array/string payloads instead of a
   JSON string literal. Explicit JavaScript `null` payloads are now handled like the compatibility

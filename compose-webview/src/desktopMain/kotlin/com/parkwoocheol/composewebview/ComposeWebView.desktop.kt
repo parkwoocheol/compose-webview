@@ -9,7 +9,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.awt.SwingPanel
 import com.parkwoocheol.composewebview.client.ComposeWebChromeClient
 import com.parkwoocheol.composewebview.client.ComposeWebViewClient
 import kotlinx.coroutines.flow.collectLatest
@@ -278,7 +277,7 @@ internal actual fun ComposeWebViewImpl(
                 }
             }
 
-            SwingPanel(
+            CompatSwingPanel(
                 modifier = modifier,
                 factory = { webView!! },
                 update = { },
@@ -294,7 +293,7 @@ internal actual fun ComposeWebViewImpl(
             }
         } else {
             // Fallback if browser creation fails
-            SwingPanel(
+            CompatSwingPanel(
                 modifier = modifier,
                 factory = {
                     val jEditorPane =
@@ -321,7 +320,7 @@ internal actual fun ComposeWebViewImpl(
     } else {
         // Show loading content while initializing JCEF runtime.
         loadingContent()
-        SwingPanel(
+        CompatSwingPanel(
             modifier = modifier,
             factory = {
                 val label = JLabel("Initializing WebView (JCEF)...")
