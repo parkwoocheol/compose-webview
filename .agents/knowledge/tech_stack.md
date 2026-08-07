@@ -29,9 +29,13 @@
 - **JVM Version**: 11+
 - **Implementation**: CEF (Chromium Embedded Framework) via `dev.datlag:kcef`
 - **Dependencies**: Requires `JogAmp` maven repository
-- **UI**: `SwingPanel` integration
+- **UI**: `SwingPanel` integration, always through `CompatSwingPanel`
 - **Status**: 🚧 Experimental
 - **Key Constraints**: Asynchronous CEF initialization, threading considerations
+- **Compose compatibility**: `SwingPanel`'s JVM symbol changed in Compose 1.12, so desktop code must
+  call `CompatSwingPanel` (`SwingPanelCompat.desktop.kt`) instead of `SwingPanel` directly. It keeps
+  the compiled call site on Compose 1.9.3 - 1.11.x and resolves the replacement overload reflectively
+  on 1.12+.
 
 ### Web (JS)
 
