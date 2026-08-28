@@ -153,6 +153,20 @@ internal class ComposeWebViewDelegate(
         val requestUrl = decidePolicyForNavigationAction.request.URL
         val scheme = requestUrl?.scheme
 
+        val request =
+            PlatformWebResourceRequest(
+                decidePolicyForNavigationAction.request,
+                decidePolicyForNavigationAction.targetFrame?.mainFrame ?: false,
+            )
+        if (client.shouldOverrideUrlLoading(webView, request)) {
+            decisionHandler(WKNavigationActionPolicy.WKNavigationActionPolicyCancel)
+            return
+        }
+
+        // Client declined to handle this navigation itself. As a convenience for schemes WKWebView
+        // can't load natively (tel:, mailto:, custom app links, ...), hand it to the system - but only
+        // after the client had a chance to inspect/block it above, so shouldOverrideUrlLoading remains
+        // a real security boundary on iOS like it is on Android.
         if (scheme != null && !scheme.startsWith("http") && !scheme.startsWith("file")) {
             if (platform.UIKit.UIApplication.sharedApplication.canOpenURL(requestUrl)) {
                 platform.UIKit.UIApplication.sharedApplication.openURL(
@@ -165,16 +179,7 @@ internal class ComposeWebViewDelegate(
             }
         }
 
-        val request =
-            PlatformWebResourceRequest(
-                decidePolicyForNavigationAction.request,
-                decidePolicyForNavigationAction.targetFrame?.mainFrame ?: false,
-            )
-        if (client.shouldOverrideUrlLoading(webView, request)) {
-            decisionHandler(WKNavigationActionPolicy.WKNavigationActionPolicyCancel)
-        } else {
-            decisionHandler(WKNavigationActionPolicy.WKNavigationActionPolicyAllow)
-        }
+        decisionHandler(WKNavigationActionPolicy.WKNavigationActionPolicyAllow)
     }
 
     @OptIn(ExperimentalForeignApi::class)

@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- iOS: `shouldOverrideUrlLoading` is now consulted before the library opens non-http/file schemes
+  (custom app links, `tel:`, `mailto:`, ...) externally via `UIApplication.openURL`. Previously those
+  schemes were opened before the client's handler ran, so an app-installed `shouldOverrideUrlLoading`
+  could never inspect or block them, unlike on Android. Existing apps without a handler keep the same
+  automatic external-open behavior. (#67)
 - Desktop: the WebView no longer crashes with
   `NoSuchMethodError: androidx.compose.ui.awt.SwingPanel_desktopKt.SwingPanel-euL9pac` on Compose
   Multiplatform 1.12. Compose 1.12 replaced the `SwingPanel(background: Color, ...)` JVM symbol this
