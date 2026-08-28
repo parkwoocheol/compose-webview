@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.1] - 2026-08-28
+
 ### Fixed
 - iOS: `shouldOverrideUrlLoading` is now consulted before the library opens non-http/file schemes
   (custom app links, `tel:`, `mailto:`, ...) externally via `UIApplication.openURL`. Previously those
@@ -94,7 +96,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - iOS find API integration issues (`WKFindResult` property access alignment).
 - Cross-platform build issues across JS, WasmJs, Desktop, iOS, and shared API synchronization.
 
-[Unreleased]: https://github.com/parkwoocheol/compose-webview/compare/1.9.0...main
+[Unreleased]: https://github.com/parkwoocheol/compose-webview/compare/1.9.1...main
+[1.9.1]: https://github.com/parkwoocheol/compose-webview/compare/1.9.0...1.9.1
 [1.9.0]: https://github.com/parkwoocheol/compose-webview/compare/1.8.2...1.9.0
 [1.8.2]: https://github.com/parkwoocheol/compose-webview/compare/1.8.1...1.8.2
 [1.8.1]: https://github.com/parkwoocheol/compose-webview/compare/1.8.0...1.8.1
